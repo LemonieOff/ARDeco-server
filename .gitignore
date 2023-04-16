@@ -1,0 +1,7 @@
+.idea/
+.vs/
+.vscode/
+.fleet/
+
+dist/
+node_modules/
