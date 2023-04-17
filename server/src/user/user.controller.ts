@@ -1,21 +1,22 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
-import { UserService } from './user.service';
-import { Request } from "express";
-import { AuthGuard } from 'src/auth/auth.guard';
-import { JwtService } from '@nestjs/jwt';
+import {Body, Controller, Get, Param, Put, Req, Res, UseGuards} from '@nestjs/common';
+import {UserService} from './user.service';
+import { Request, Response } from "express";
+import {AuthGuard} from 'src/auth/auth.guard';
+import {JwtService} from '@nestjs/jwt';
+import {User} from "./models/user.entity";
 
 @Controller('user')
 export class UserController {
     constructor(
         private userService: UserService,
         private jwtService: JwtService
-        ) {}
+    ) {}
 
     @Get()
     all() {
         return ['users']
     }
-    
+
     @UseGuards(AuthGuard)
     @Get('whoami')
     async whoami(@Req() request: Request) {
@@ -24,4 +25,48 @@ export class UserController {
         return this.userService.findOne({id: data['id']})
     }
 
+    @UseGuards(AuthGuard)
+    @Put()
+    editViaQuery(@Req() req: Request, @Body() user: User) {
+        const cookie = req.cookies['jwt']
+        const data = this.jwtService.verify(cookie)
+        return this.userService.update(data['id'], user)
+    }
+
+    @UseGuards(AuthGuard)
+    @Put(":id")
+    editViaParam(@Req() req: Request, @Param("id") id: number, @Body() user: User, @Res({passthrough: true}) res: Response) {
+        const cookie = req.cookies['jwt']
+        const data = this.jwtService.verify(cookie)
+        console.log("ID", id);
+        console.log("DATA", data);
+        console.log("USER", user);
+        if (data['id'] != id) {
+            res.status(401)
+            return {
+                "status": "KO",
+                "code": 401,
+                "description": "You are not allowed to edit this user",
+                "data": null
+            }
+        }
+        try {
+            res.status(200);
+            return {
+                "status": "OK",
+                "code": 200,
+                "description": "User was updated",
+                "data": this.userService.update(data['id'], user)
+            }
+        } catch (e) {
+            res.status(400);
+            return {
+                "status": "KO",
+                "code": 400,
+                "description": "User was not updated because of an error",
+                "error": e,
+                "data": null
+            }
+        }
+    }
 }
