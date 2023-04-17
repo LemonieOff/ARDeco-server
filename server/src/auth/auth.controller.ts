@@ -20,6 +20,7 @@ export class AuthController {
         @Res({ passthrough: true }) response: Response) {
 
         if (body.password != body.password_confirm) {
+            response.status(423);
             return {
                 "status": "KO",
                 "description": "Password do not match",
@@ -34,6 +35,7 @@ export class AuthController {
             console.log("ID", res.id)
             const jwt = await this.jwtService.signAsync({ id: res.id })
             response.cookie("jwt", jwt, { httpOnly: true })
+            response.status(201);
             return {
                 "status": "OK",
                 "description": "User was created",
@@ -41,6 +43,7 @@ export class AuthController {
                 "data": res
             }
         } catch (e) {
+            response.status(422);
             return {
                 "status": "KO",
                 "description": "Error happen while creating the account",
