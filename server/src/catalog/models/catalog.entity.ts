@@ -31,4 +31,7 @@ export class Catalog {
 
   @Column()
   number: number; // Partner ID
+
+  @Column()
+  model_id: number // 3D model ID in the model database
 }
