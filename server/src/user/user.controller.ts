@@ -35,13 +35,11 @@ export class UserController {
 
     @UseGuards(AuthGuard)
     @Put(":id")
-    editViaParam(@Req() req: Request, @Param("id") id: number, @Body() user: User, @Res({passthrough: true}) res: Response) {
+    async editViaParam(@Req() req: Request, @Param("id") id: number, @Body() user: User, @Res({passthrough: true}) res: Response) {
         const cookie = req.cookies['jwt']
         const data = this.jwtService.verify(cookie)
-        console.log("ID", id);
-        console.log("DATA", data);
-        console.log("USER", user);
-        if (data['id'] != id) {
+        const request_user_id = await this.userService.findOne({id: data['id']})
+        if (data['id'] != id && request_user_id['role'] != 'admin') {
             res.status(401)
             return {
                 "status": "KO",
