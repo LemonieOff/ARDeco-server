@@ -48,6 +48,15 @@ export class UserController {
                 "data": null
             }
         }
+        if (user.role !== undefined && request_user_id['role'] != 'admin') {
+            res.status(401)
+            return {
+                "status": "KO",
+                "code": 401,
+                "description": "You are not allowed to modify the role of this user",
+                "data": null
+            }
+        }
         try {
             res.status(200);
             return {
