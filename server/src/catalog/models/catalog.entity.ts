@@ -37,4 +37,7 @@ export class Catalog {
 
   @Column()
   active: boolean; // true if the product is active, false if it is not active
+
+  @Column()
+  company: number; // Company ID
 }
