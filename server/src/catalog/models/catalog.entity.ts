@@ -3,13 +3,13 @@ import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 @Entity('catalog')
 export class Catalog {
   @PrimaryGeneratedColumn()
-  id: number;
+  id: number; // Product ID
 
   @Column()
-  name: string;
+  name: string; // Product name
 
   @Column()
-  price: number;
+  price: number; // in euro cents
 
   @Column()
   styles: string; // JSON array ["style1", "style2", "style3"]
@@ -18,13 +18,13 @@ export class Catalog {
   rooms: string; // JSON array ["room1", "room2", "room3"]
 
   @Column()
-  width: number;
+  width: number; // in cm
 
   @Column()
-  height: number;
+  height: number; // in cm
 
   @Column()
-  depth: number;
+  depth: number; // in cm
 
   @Column()
   colors: string; // JSON array ["color1", "color2", "color3"]
@@ -34,4 +34,7 @@ export class Catalog {
 
   @Column()
   model_id: number // 3D model ID in the model database
+
+  @Column()
+  active: boolean; // true if the product is active, false if it is not active
 }
