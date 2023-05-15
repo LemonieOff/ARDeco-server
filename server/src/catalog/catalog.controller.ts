@@ -5,7 +5,7 @@ import { AuthGuard } from "src/auth/auth.guard";
 import { JwtService } from "@nestjs/jwt";
 import { Catalog } from "./models/catalog.entity";
 
-@Controller("user")
+@Controller("catalog")
 export class CatalogController {
   constructor(
     private catalogService: CatalogService,
