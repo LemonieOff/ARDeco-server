@@ -7,12 +7,12 @@ export class User {
 
     @Column({unique: true})
     email: string;
-    
-    @Column()
-    first_name: string;
 
     @Column()
-    last_name: string;
+    first_name: string; // First name for users, company name for companies
+
+    @Column()
+    last_name: string; // Last name for users, sub-company name (or company name if not) for companies
 
     @Column()
     phone: string;
@@ -23,6 +23,9 @@ export class User {
     @Column()
     password: string;
 
-    @Column()
+    @Column({default: 'client'})
     role: string; // client, company, admin
+
+    @Column({nullable: true})
+    company_api_key: string; // API key for company users, null for all other account types
 }

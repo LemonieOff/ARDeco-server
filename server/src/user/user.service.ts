@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, UpdateResult } from "typeorm";
 import { User } from './models/user.entity';
+import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
 @Injectable()
 export class UserService {
@@ -23,7 +24,7 @@ export class UserService {
             return await this.userRepository.findOne({where: condit})
         }
 
-        async update(id: number, data) : Promise<any> {
+        async update(id: number, data: QueryPartialEntity<User>) : Promise<UpdateResult> {
             return this.userRepository.update(id, data)
         }
 
