@@ -21,7 +21,7 @@ export class UserService {
         }
         
         async findOne(condit): Promise<User> {
-            return await this.userRepository.findOne({where: condit})
+            return this.userRepository.findOne({where: condit})
         }
 
         async update(id: number, data: QueryPartialEntity<User>) : Promise<UpdateResult> {
