@@ -2,12 +2,15 @@ import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common
 import { UserService } from 'src/user/user.service';
 import * as bcrypt from 'bcryptjs';
 import { RegisterDto } from './models/register.dto';
+import { LoginDto } from './models/login.dto';
 import { JwtService } from '@nestjs/jwt';
-import { Response } from 'express';
+import {Request, Response} from 'express';
 import { PassThrough } from 'stream';
 import { AuthGuard } from './auth.guard';
 import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host';
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import {QueryPartialEntity} from "typeorm/query-builder/QueryPartialEntity";
+import {User} from "../user/models/user.entity";
 
 @Controller()
 export class AuthController {
@@ -50,6 +53,35 @@ export class AuthController {
                 "code": 422,
                 "data": e
             }
+        }
+    }
+
+    @Post('login')
+    async login(@Body() body: LoginDto,
+                @Res({ passthrough: true }) response: Response) {
+        const requestedUserByEmail = await this.userService.findOne({email: body.email})
+        if (!requestedUserByEmail) {
+            response.status(404);
+            return {
+                "status": "KO",
+                "description": "User not found",
+                "code": 404,
+                "data": body.email
+            }
+        }
+        if (!await bcrypt.compare(body.password, requestedUserByEmail.password)) {
+            response.status(401);
+            return {
+                "status": "KO",
+                "description": "Password and email do not match",
+                "code": 401,
+            }
+        }
+        return {
+            "status": "OK",
+            "description": "User is successfully logged in",
+            "code": 200,
+            "data": requestedUserByEmail
         }
     }
 
