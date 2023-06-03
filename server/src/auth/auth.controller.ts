@@ -61,11 +61,11 @@ export class AuthController {
                 @Res({ passthrough: true }) response: Response) {
         const requestedUserByEmail = await this.userService.findOne({email: body.email})
         if (!requestedUserByEmail) {
-            response.status(404);
+            response.status(401);
             return {
                 "status": "KO",
-                "description": "User not found",
-                "code": 404,
+                "description": "Wrong email or password",
+                "code": 401,
                 "data": body.email
             }
         }
@@ -73,15 +73,17 @@ export class AuthController {
             response.status(401);
             return {
                 "status": "KO",
-                "description": "Password and email do not match",
+                "description": "Wrong email or password",
                 "code": 401,
             }
         }
+        const jwt = await this.jwtService.signAsync({ id: requestedUserByEmail.id })
+        response.cookie("jwt", jwt, { httpOnly: true })
         return {
             "status": "OK",
             "description": "User is successfully logged in",
             "code": 200,
-            "data": requestedUserByEmail
+            "data": jwt
         }
     }
 
