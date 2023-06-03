@@ -79,6 +79,7 @@ export class AuthController {
         }
         const jwt = await this.jwtService.signAsync({ id: requestedUserByEmail.id })
         response.cookie("jwt", jwt, { httpOnly: true })
+        response.status(200);
         return {
             "status": "OK",
             "description": "User is successfully logged in",
