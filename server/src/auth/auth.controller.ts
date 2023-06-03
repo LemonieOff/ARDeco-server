@@ -77,14 +77,27 @@ export class AuthController {
                 "code": 401,
             }
         }
-        const jwt = await this.jwtService.signAsync({ id: requestedUserByEmail.id })
-        response.cookie("jwt", jwt, { httpOnly: true })
-        response.status(200);
-        return {
-            "status": "OK",
-            "description": "User is successfully logged in",
-            "code": 200,
-            "data": jwt
+        try {
+            const jwt = await this.jwtService.signAsync({ id: requestedUserByEmail.id })
+            response.cookie("jwt", jwt, { httpOnly: true })
+            response.status(200);
+            return {
+                "status": "OK",
+                "description": "User is successfully logged in",
+                "code": 200,
+                "data": {
+                    "jwt": jwt,
+                    "userID": requestedUserByEmail.id,
+                }
+            }
+        } catch (e) {
+            response.status(422);
+            return {
+                "status": "KO",
+                "description": "Error happen while creating the account",
+                "code": 422,
+                "data": e
+            }
         }
     }
 
