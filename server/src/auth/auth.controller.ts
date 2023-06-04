@@ -49,7 +49,7 @@ export class AuthController {
             response.status(422);
             return {
                 "status": "KO",
-                "description": "Error happen while creating the account",
+                "description": "Error happen during login",
                 "code": 422,
                 "data": e
             }
