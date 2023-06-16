@@ -1,7 +1,7 @@
 import {Body, Controller, Get, Param, Put, Req, Res, UseGuards} from '@nestjs/common';
 import {UserService} from './user.service';
 import { Request, Response } from "express";
-import {AuthGuard} from 'src/auth/auth.guard';
+import { AuthGuard } from '../auth/auth.guard';
 import {JwtService} from '@nestjs/jwt';
 import {User} from "./models/user.entity";
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";

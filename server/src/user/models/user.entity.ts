@@ -1,11 +1,12 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, OneToOne, JoinColumn } from "typeorm";
+import { Cart } from "../../cart/models/cart.entity";
 
 @Entity('users')
 export class User {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({unique: true})
+    @Column({ unique: true })
     email: string;
 
     @Column()
@@ -23,9 +24,13 @@ export class User {
     @Column()
     password: string;
 
-    @Column({default: 'client'})
+    @Column({ default: 'client' })
     role: string; // client, company, admin
 
-    @Column({nullable: true})
+    @Column({ nullable: true })
     company_api_key: string; // API key for company users, null for all other account types
+
+    @OneToOne(() => Cart, cart => cart.user, { eager: true })
+    @JoinColumn()
+    cart: Cart;
 }
