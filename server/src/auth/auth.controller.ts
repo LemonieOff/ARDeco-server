@@ -35,7 +35,7 @@ export class AuthController {
         body.password = hashed
         try {
             const res = await this.userService.create(body)
-            this.mailService.sendMail({"email": body.email, "content": `Salut ${body.first_name}, Bienvenue a toi`})
+            ///this.mailService.sendMail({"email": body.email, "content": `Salut ${body.first_name}, Bienvenue a toi`}) // To uncomment
             console.log("ID", res.id)
             const jwt = await this.jwtService.signAsync({ id: res.id })
             response.cookie("jwt", jwt, { httpOnly: true })
