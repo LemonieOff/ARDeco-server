@@ -8,7 +8,7 @@ export class StatusService {
             version: "0.0.1",
             reachable: true,
             host: "localhost",
-            last_update: new Date()
+            last_update: new Date().getTime()
         };
     }
 

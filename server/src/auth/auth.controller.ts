@@ -7,6 +7,7 @@ import { Response } from 'express';
 import { AuthGuard } from '@nestjs/passport'
 import { MailService } from '../mail/mail.service';
 import { sendMailDTO } from 'src/mail/models/sendMail.dto';
+import { LoginDto } from 'src/auth/models/login.dto';
 
 // idclient 720605484975-ohe2u21jk3k6e2cdekgifiliipd4e6oh.apps.googleusercontent.com
 // secret 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
@@ -46,6 +47,51 @@ export class AuthController {
                 "data": res
             }
         } catch (e) {
+            return {
+                "status": "KO",
+                "description": "Error happen while creating the account",
+                "code": 422,
+                "data": e
+            }
+        }
+    }
+
+    @Post('login')
+    async login(@Body() body: LoginDto,
+                @Res({ passthrough: true }) response: Response) {
+        const requestedUserByEmail = await this.userService.findOne({email: body.email})
+        if (!requestedUserByEmail) {
+            response.status(401);
+            return {
+                "status": "KO",
+                "description": "Wrong email or password",
+                "code": 401,
+                "data": body.email
+            }
+        }
+        if (!await bcrypt.compare(body.password, requestedUserByEmail.password)) {
+            response.status(401);
+            return {
+                "status": "KO",
+                "description": "Wrong email or password",
+                "code": 401,
+            }
+        }
+        try {
+            const jwt = await this.jwtService.signAsync({ id: requestedUserByEmail.id })
+            response.cookie("jwt", jwt, { httpOnly: true })
+            response.status(200);
+            return {
+                "status": "OK",
+                "description": "User is successfully logged in",
+                "code": 200,
+                "data": {
+                    "jwt": jwt,
+                    "userID": requestedUserByEmail.id,
+                }
+            }
+        } catch (e) {
+            response.status(422);
             return {
                 "status": "KO",
                 "description": "Error happen while creating the account",
