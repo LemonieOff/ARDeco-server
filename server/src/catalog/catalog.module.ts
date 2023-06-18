@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Catalog } from './models/catalog.entity';
 import { CatalogController } from './catalog.controller';
 import { CatalogService } from './catalog.service';
+import { UserModule } from "../user/user.module";
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { CatalogService } from './catalog.service';
       secret: "secret",
       signOptions: { expiresIn: '1d' },
     }),
+    UserModule
   ],
   controllers: [CatalogController],
   providers: [CatalogService],

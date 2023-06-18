@@ -12,10 +12,10 @@ export class Catalog {
   price: number; // in euro cents
 
   @Column()
-  styles: string; // JSON array ["style1", "style2", "style3"]
+  styles: string; // CSV array "style1,style2,style3"
 
   @Column()
-  rooms: string; // JSON array ["room1", "room2", "room3"]
+  rooms: string; // CSV array "room1,room2,room3"
 
   @Column()
   width: number; // in cm
@@ -27,7 +27,7 @@ export class Catalog {
   depth: number; // in cm
 
   @Column()
-  colors: string; // JSON array ["color1", "color2", "color3"]
+  colors: string; // CSV array "color1,color2,color3"
 
   @Column()
   object_id: string; // Partner object ID
