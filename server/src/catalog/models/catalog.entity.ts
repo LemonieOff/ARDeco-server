@@ -30,14 +30,17 @@ export class Catalog {
   colors: string; // JSON array ["color1", "color2", "color3"]
 
   @Column()
-  number: number; // Partner ID
+  object_id: string; // Partner object ID
 
-  @Column()
-  model_id: number // 3D model ID in the model database
+  @Column({ default: null }) // TODO : Remove default and null type when 3D model database is ready
+  model_id: number|null // 3D model ID in the model database
 
-  @Column()
+  @Column({ default: true })
   active: boolean; // true if the product is active, false if it is not active
 
   @Column()
   company: number; // Company ID
+
+  @Column()
+  company_name: string; // Company name
 }
