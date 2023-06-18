@@ -18,7 +18,8 @@ export class AuthController {
     constructor(
         private userService: UserService,
         private jwtService: JwtService,
-        private mailService: MailService) { }
+        private mailService: MailService
+    ) { }
 
     @Post('register')
     async register(@Body() body: RegisterDto,
