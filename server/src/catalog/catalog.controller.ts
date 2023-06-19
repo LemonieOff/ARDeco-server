@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Req, Res, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, Req, Res, UseGuards } from "@nestjs/common";
 import { CatalogService } from "./catalog.service";
 import { UserService } from "../user/user.service";
 import { Request, Response } from "express";
@@ -80,15 +80,76 @@ export class CatalogController {
         };
     }
 
-    /*
-Création d’une route /remove/{ID} [DELETE] et /remove?id={ID} où {ID} correspond à l’identifiant unique d’un meuble. Cette route sera utilisée pour supprimer un seul meuble
-Création d’une route /removeAll [POST, PUT & DELETE] permettant de retirer l’intégralité des meubles de l’enseigne
-Si la requête aboutit, un code HTTP 200 sera renvoyé ainsi que les meubles retirés et leurs anciennes propriétés dans un tableau d’objets JSON au sein du corps de la réponse
 
-     */
+    @Put(":id/removeAll")
+    @Post(":id/removeAll")
+    @Delete(":id/removeAll")
+    async removeAll(@Req() req: Request, @Param("id") id: number, @Res() res: Response) {
+        const authorizedCompany = await this.checkAuthorization(req, res, id);
+        if (!(authorizedCompany instanceof User)) return authorizedCompany;
+
+        const removedObjects = await this.catalogService.deleteAllObjectsFromCompany(authorizedCompany.id);
+        // TODO : Update Service to delete object from catalog table, and add it to a new archive table
+        if (removedObjects === null) {
+            res.status(400);
+            return {
+                "status": "KO",
+                "code": 400,
+                "description": "Objects not removed",
+                "data": null
+            };
+        }
+
+        res.status(200);
+        return {
+            "status": "OK",
+            "code": 200,
+            "description": "Objects removed",
+            "data": removedObjects
+        };
+    }
+
+    @Delete(":id/remove/:object_id")
+    async removeOne(@Req() req: Request, @Param("id") id: number, @Param("object_id") object_id: string, @Res() res: Response) {
+        const authorizedCompany = await this.checkAuthorization(req, res, id);
+        if (!(authorizedCompany instanceof User)) return authorizedCompany;
+
+        const object = await this.catalogService.findOne({ object_id: object_id });
+
+        if (object === null) {
+            res.status(400);
+            return {
+                "status": "KO",
+                "code": 400,
+                "description": "Object doesn't exists in catalog",
+                "data": null
+            };
+        }
+
+        const removedObject = await this.catalogService.delete(object.id);
+        // TODO : Update Service to delete object from catalog table, and add it to a new archive table
+        if (removedObject === null) {
+            res.status(400);
+            return {
+                "status": "KO",
+                "code": 400,
+                "description": "Object doesn't exists in catalog",
+                "data": null
+            };
+        } else {
+            res.status(200);
+            return {
+                "status": "OK",
+                "code": 200,
+                "description": "Object successfully removed from catalog",
+                "data": removedObject
+            };
+        }
+    }
 
     @Post(":id/remove")
     @Put(":id/remove")
+    @Delete(":id/remove")
     async remove(@Req() req: Request, @Param("id") id: number, @Body() objects: string[], @Res() res: Response) {
         const authorizedCompany = await this.checkAuthorization(req, res, id);
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
