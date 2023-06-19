@@ -86,7 +86,6 @@ export class CatalogController {
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
         const removedObjects = await this.catalogService.deleteAllObjectsFromCompany(authorizedCompany.id);
-        // TODO : Update Service to delete object from catalog table, and add it to a new archive table
         if (removedObjects === null) {
             res.status(400);
             return {
@@ -124,7 +123,6 @@ export class CatalogController {
         }
 
         const removedObject = await this.catalogService.delete(object.id);
-        // TODO : Update Service to delete object from catalog table, and add it to a new archive table
         if (removedObject === null) {
             res.status(400);
             return {
@@ -192,7 +190,6 @@ export class CatalogController {
         }
 
         const removedObjects = await this.catalogService.deleteArray(ids);
-        // TODO : Update Service to delete objects from catalog table, and add them to a new archive table
         if (removedObjects === null) {
             res.status(400);
             return {
