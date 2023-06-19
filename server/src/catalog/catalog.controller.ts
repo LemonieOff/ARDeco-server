@@ -25,7 +25,7 @@ export class CatalogController {
         const authorizedCompany = await this.checkAuthorization(req, res, id);
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
-        if (catalog.length === 0) {
+        if (!(catalog instanceof Array) || catalog.length === 0) {
             res.status(400);
             return {
                 "status": "KO",
