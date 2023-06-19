@@ -38,13 +38,12 @@ export class CatalogController {
         const errors = [];
 
         // Check errors of each object
-        catalog.forEach((object, index) => {
-            const isValid = this.checkObject(authorizedCompany, object, index);
-            console.log(index.toString() + isValid.toString());
+        for (let i = 0; i < catalog.length; i++) {
+            const isValid = this.checkObject(authorizedCompany, catalog[i], i);
             if (isValid.length > 0) {
                 errors.push(isValid);
             }
-        });
+        }
 
         // If there are errors, return them and don't register any object in database
         if (errors.length > 0) {
@@ -58,8 +57,8 @@ export class CatalogController {
         }
 
         // If there are no errors, register each object in database
-        catalog.forEach((object) => {
-            this.catalogService.create(object).catch((err) => {
+        for (let i = 0; i < catalog.length; i++) {
+            await this.catalogService.create(catalog[i]).catch((err) => {
                 console.error(err);
                 res.status(500);
                 return {
@@ -69,7 +68,7 @@ export class CatalogController {
                     "data": null
                 };
             });
-        });
+        }
 
         res.status(201);
         return {
@@ -81,8 +80,6 @@ export class CatalogController {
     }
 
 
-    @Put(":id/removeAll")
-    @Post(":id/removeAll")
     @Delete(":id/removeAll")
     async removeAll(@Req() req: Request, @Param("id") id: number, @Res({ passthrough: true }) res: Response) {
         const authorizedCompany = await this.checkAuthorization(req, res, id);
@@ -147,8 +144,6 @@ export class CatalogController {
         }
     }
 
-    @Post(":id/remove")
-    @Put(":id/remove")
     @Delete(":id/remove")
     async remove(@Req() req: Request, @Param("id") id: number, @Body() objects: string[], @Res({ passthrough: true }) res: Response) {
         const authorizedCompany = await this.checkAuthorization(req, res, id);
@@ -179,17 +174,14 @@ export class CatalogController {
         const errors: string[] = [];
         const ids: number[] = [];
 
-        objects.forEach((object_id, index) => {
-            this.catalogService.findOne({ object_id: object_id }).then((res) => {
-                if (res === null) errors.push(index + " - \"object_id\" doesn't exists");
-                else ids.push(res.id);
-            }).catch((err) => {
-                console.error(err);
-                errors.push(index + " - \"object_id\" doesn't exists");
-            });
-        });
+        for (let i = 0; i < objects.length; i++) {
+            const object_id = objects[i];
+            const res = await this.catalogService.findOne({ object_id: object_id });
+            if (res == null) errors.push(i + " - \"object_id\" doesn't exists");
+            else ids.push(res.id);
+        }
 
-        if (errors.length > 0) {
+        if (errors.length > 0 || ids.length === 0) {
             res.status(400);
             return {
                 "status": "KO",

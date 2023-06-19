@@ -29,7 +29,10 @@ export class CatalogService {
     }
 
     async delete(id: number): Promise<any> {
-        return this.catalogRepository.delete(id);
+        const backup = await this.findOne(id);
+        await this.catalogRepository.delete(id);
+        // await this.archiveRepository.save(backup);
+        return backup;
     }
 
     async deleteFromObjectId(object_id: string): Promise<any> {
@@ -37,11 +40,17 @@ export class CatalogService {
     }
 
     async deleteArray(ids: number[]) {
-        return this.catalogRepository.delete(ids);
+        const backup = await this.catalogRepository.findByIds(ids);
+        await this.catalogRepository.delete(ids);
+        // await this.archiveRepository.save(deleted.raw);
+        return backup;
     }
 
     async deleteAllObjectsFromCompany(company_id: number) {
-        return this.catalogRepository.delete({ company: company_id });
+        const backup = await this.catalogRepository.find({ where: { company: company_id } });
+        await this.catalogRepository.delete({ company: company_id });
+        // await this.archiveRepository.save(deleted.raw);
+        return backup;
     }
 
 }
