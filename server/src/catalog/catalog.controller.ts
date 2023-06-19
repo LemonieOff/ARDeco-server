@@ -84,7 +84,7 @@ export class CatalogController {
     @Put(":id/removeAll")
     @Post(":id/removeAll")
     @Delete(":id/removeAll")
-    async removeAll(@Req() req: Request, @Param("id") id: number, @Res() res: Response) {
+    async removeAll(@Req() req: Request, @Param("id") id: number, @Res({ passthrough: true }) res: Response) {
         const authorizedCompany = await this.checkAuthorization(req, res, id);
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
@@ -110,7 +110,7 @@ export class CatalogController {
     }
 
     @Delete(":id/remove/:object_id")
-    async removeOne(@Req() req: Request, @Param("id") id: number, @Param("object_id") object_id: string, @Res() res: Response) {
+    async removeOne(@Req() req: Request, @Param("id") id: number, @Param("object_id") object_id: string, @Res({ passthrough: true }) res: Response) {
         const authorizedCompany = await this.checkAuthorization(req, res, id);
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
@@ -150,7 +150,7 @@ export class CatalogController {
     @Post(":id/remove")
     @Put(":id/remove")
     @Delete(":id/remove")
-    async remove(@Req() req: Request, @Param("id") id: number, @Body() objects: string[], @Res() res: Response) {
+    async remove(@Req() req: Request, @Param("id") id: number, @Body() objects: string[], @Res({ passthrough: true }) res: Response) {
         const authorizedCompany = await this.checkAuthorization(req, res, id);
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
