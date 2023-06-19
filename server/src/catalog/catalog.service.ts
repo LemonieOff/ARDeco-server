@@ -2,11 +2,13 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Catalog } from "./models/catalog.entity";
+import { ArchiveService } from "./archive.service";
 
 @Injectable()
 export class CatalogService {
     constructor(
-        @InjectRepository(Catalog) private readonly catalogRepository: Repository<Catalog>
+        @InjectRepository(Catalog) private readonly catalogRepository: Repository<Catalog>,
+        private readonly archiveService: ArchiveService
     ) {
     }
 
@@ -31,7 +33,7 @@ export class CatalogService {
     async delete(id: number): Promise<any> {
         const backup = await this.findOne(id);
         await this.catalogRepository.delete(id);
-        // await this.archiveRepository.save(backup);
+        await this.archiveService.create(backup);
         return backup;
     }
 
@@ -42,14 +44,14 @@ export class CatalogService {
     async deleteArray(ids: number[]) {
         const backup = await this.catalogRepository.findByIds(ids);
         await this.catalogRepository.delete(ids);
-        // await this.archiveRepository.save(deleted.raw);
+        await this.archiveService.create(backup);
         return backup;
     }
 
     async deleteAllObjectsFromCompany(company_id: number) {
         const backup = await this.catalogRepository.find({ where: { company: company_id } });
         await this.catalogRepository.delete({ company: company_id });
-        // await this.archiveRepository.save(deleted.raw);
+        await this.archiveService.create(backup);
         return backup;
     }
 
