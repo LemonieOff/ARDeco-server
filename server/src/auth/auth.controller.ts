@@ -3,11 +3,13 @@ import { UserService } from 'src/user/user.service';
 import * as bcrypt from 'bcryptjs';
 import { RegisterDto } from './models/register.dto';
 import { JwtService } from '@nestjs/jwt';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import { AuthGuard } from '@nestjs/passport'
 import { MailService } from '../mail/mail.service';
 import { sendMailDTO } from 'src/mail/models/sendMail.dto';
 import { LoginDto } from 'src/auth/models/login.dto';
+import { CatalogService } from 'src/catalog/catalog.service';
+import { CartService } from 'src/cart/cart.service';
 
 // idclient 720605484975-ohe2u21jk3k6e2cdekgifiliipd4e6oh.apps.googleusercontent.com
 // secret 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
@@ -18,7 +20,8 @@ export class AuthController {
     constructor(
         private userService: UserService,
         private jwtService: JwtService,
-        private mailService: MailService
+        private mailService: MailService,
+        private cartService: CartService
     ) { }
 
     @Post('register')
@@ -61,6 +64,12 @@ export class AuthController {
     async login(@Body() body: LoginDto,
                 @Res({ passthrough: true }) response: Response) {
         const requestedUserByEmail = await this.userService.findOne({email: body.email})
+        if (requestedUserByEmail.deleted)
+        return {
+            "status": "KO",
+            "description": "Account deleted",
+            "code": 401,
+        }
         if (!requestedUserByEmail) {
             response.status(401);
             return {
@@ -119,21 +128,23 @@ export class AuthController {
         if (!req.user) {
             return 'No user from google'
         }
-        if (this.userService.findOne({email: req.user.email})) {
+        console.log("req :", req)
+        if (await this.userService.findOne({email: req.user.email})) {
             return {
                 "status": "KO",
                 "description": "User already created",
                 "code": 424,
             }
         }
-        const body: RegisterDto = {
+        const body = {
             "email": req.user.email,
             "password": "12345",
             "password_confirm": "12345",
             "first_name": req.user.firstName,
             "last_name": req.user.lastName,
             "phone": "0000000000",
-            "city": "Nantes"
+            "city": "Nantes",
+            "deleted": false
         }
         const res = await this.userService.create(body)
         console.log("ID", res.id)
@@ -151,5 +162,23 @@ export class AuthController {
         response.clearCookie('jwt')
         console.log("Removed jwt token cookie !")
         return "Logout successful"
+    }
+
+    @Get('close')
+    async deleteAccount(@Res({ passthrough: true }) response: Response,  @Req() request: Request) {
+        const cookie = request.cookies['jwt']
+		const data = await this.jwtService.verifyAsync(cookie)
+		const usr = await this.userService.findOne({ id: data['id'] })
+        const cart = await this.cartService.findOne({id: usr.cart.id})
+        this.userService.update(usr.id, {deleted: true})
+        response.clearCookie('jwt')
+        
+        console.log("Removed jwt token cookie !")
+        return {
+            "status": "OK",
+            "code": 200,
+            "description": "Account closed",
+            "data": null
+        };
     }
 }

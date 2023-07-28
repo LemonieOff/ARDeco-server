@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Column, Entity, PrimaryGeneratedColumn, OneToOne, JoinColumn } from "typeorm";
 import { Cart } from "../../cart/models/cart.entity";
 
@@ -23,6 +24,9 @@ export class User {
 
     @Column()
     password: string;
+
+    @Column()
+    deleted: boolean = false
 
     @Column({ default: 'client' })
     role: string; // client, company, admin

@@ -11,7 +11,7 @@ export class Cart {
     capacity: number;
 
     @Column()
-    catalogItemsIdCSV: string;
+    catalogItems: string;
 
     @OneToOne(() => User, user => user.cart)
     @JoinColumn()

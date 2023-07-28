@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Req, Res, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, Req, Res, UseGuards } from "@nestjs/common";
 import { CatalogService } from "./catalog.service";
 import { UserService } from "../user/user.service";
 import { Request, Response } from "express";
@@ -14,6 +14,35 @@ export class CatalogController {
         private jwtService: JwtService,
         private userService: UserService
     ) {
+    }
+
+
+    @Get()
+    async getCatalog(@Query() filters: any) {
+        
+        let items = await this.catalogService.all()
+        
+        if (!filters) {
+            // If no filters provided, return all items
+            return items;
+          }
+      
+          // Filter the catalog items based on the provided filters
+          let r = items.filter((item) => {
+            console.log(item)
+            let i = true
+            for (const key in filters) {
+              console.log("Comp : ", item[key], " and ", filters[key])
+              if (item[key] == undefined)
+                return false
+              if (item[key].toString() !== filters[key]) {
+                console.log("comp : ", item[key].toString(), " : ", filters[key])
+                i = false; // Item doesn't match the filter condition
+              }
+            }
+            return i; // All filter conditions passed, include the item
+        });
+        return r
     }
 
     @Post(":id/add")

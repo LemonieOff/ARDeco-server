@@ -3,15 +3,14 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { google } from 'googleapis';
 import { Options } from 'nodemailer/lib/smtp-transport';
-import { sendMailDTO } from './models/sendMail.dto';
-
+ 
 // 296799252497-m015kpmeiedhi0lf9f442tdqe8q97djl.apps.googleusercontent.com
 // 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
 @Injectable()
 export class MailService {
     constructor(private mailerService: MailerService,
         private readonly configService: ConfigService) { }
-
+ 
     private async setTransport(token) {
         const OAuth2 = google.auth.OAuth2;
         const oauth2Client = new OAuth2(
@@ -19,11 +18,11 @@ export class MailService {
             this.configService.get('CLIENT_SECRET'),
             'https://developers.google.com/oauthplayground',
         );
-
+ 
         oauth2Client.setCredentials({
             refresh_token: token,
         });
-
+ 
         const accessToken: string = await new Promise((resolve, reject) => {
             oauth2Client.getAccessToken((err, token) => {
                 if (err) {
@@ -32,7 +31,7 @@ export class MailService {
                 resolve(token);
             });
         });
-
+ 
         const config: Options = {
             service: 'gmail',
             auth: {
@@ -45,22 +44,23 @@ export class MailService {
         };
         this.mailerService.addTransporter('gmail', config);
     }
-
-    public async sendMail(sendMailDTO: sendMailDTO) {
+ 
+    public async sendMail(dest: string) {
         //const token = await this.getToken()
         //console.log("Then : ", await this.getToken())
         await this.setTransport(await this.getToken());
-        console.log("Sending email...")
         this.mailerService
             .sendMail({
                 transporterName: 'gmail',
-                to: sendMailDTO.email, // list of receivers
+                to: dest, // list of receivers
                 from: 'noreply@nestjs.com', // sender address
                 subject: 'Verfication Code', // Subject line
                 template: './confirmation',
-                text: sendMailDTO.content,
-                attachments: [
-                ]
+                context: {
+                    name: "name",
+                    url: "test.com",
+                    code: '38320',
+                },
             })
             .then((success) => {
                 console.log(success);
@@ -69,19 +69,19 @@ export class MailService {
                 console.log(err);
             });
     }
-
+ 
     private async getToken(){
         const axios = require('axios');
         const qs = require('qs');
-        const data = qs.stringify({
+        let data = qs.stringify({
           'client_id': '296799252497-m015kpmeiedhi0lf9f442tdqe8q97djl.apps.googleusercontent.com',
           'client_secret': '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',
           'grant_type': 'refresh_token',
           'redirect_uri': 'https://localhost:8080',
           'refresh_token': '1//046DmH9P6nqf_CgYIARAAGAQSNwF-L9Ir_Hwq8PHcZUVvzc5S_ZYzyKQAv__wsdTogkxZZD5hWxbDXJm-lrw6joU7eXt92YdXWnY' 
         });
-        
-        const config = {
+ 
+        let config = {
           method: 'post',
           maxBodyLength: Infinity,
           url: 'https://oauth2.googleapis.com/token?client_secret',
@@ -90,8 +90,8 @@ export class MailService {
           },
           data : data
         };
-        
-
+ 
+ 
         let t
         await axios.request(config)
         .then(async (response : any) => {

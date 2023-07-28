@@ -31,7 +31,10 @@ export class UserService {
         }
 
         async delete(id: number): Promise<any> {
-            return this.userRepository.delete(id);
+            //return this.userRepository.delete(id);
+            console.log("Deleting user ", id)
+            this.userRepository.createQueryBuilder('user').delete().from(User).where("id = id", {id: id}).execute()
         }
+        
 
     }

@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
@@ -16,7 +17,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     UserModule,
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: 'db',
+      host: 'localhost',
       port: 3306,
       username: 'root',
       password: 'root',
@@ -33,8 +34,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     ConfigModule.forRoot({
       isGlobal: true, // no need to import into other modules
     }),
-    MailModule
-  ],
+  MailModule   
+ ],
   controllers: [AppController],
   providers: [AppService, ConfigService]
 })

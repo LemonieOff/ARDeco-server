@@ -1,4 +1,5 @@
-import { Controller, Post, UseGuards, Body, Req, Delete } from '@nestjs/common';
+/* eslint-disable prettier/prettier */
+import { Controller, Post, UseGuards, Body, Req, Delete, Get } from '@nestjs/common';
 import { Request } from 'express';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
@@ -28,71 +29,86 @@ export class CartController {
 		const cookie = request.cookies['jwt']
 		const data = await this.jwtService.verifyAsync(cookie)
 		const usr = await this.userService.findOne({ id: data['id'] })
-		const catalogItems: Catalog[] = addItemToCartDTO.catalogItems;
-
-		if (!addItemToCartDTO.catalogItems)
-			return;
+		const item: number = addItemToCartDTO.id;
+		console.log(item)
+		if (!await this.catalogService.findOne({id: item})) {
+			return {
+                "status": "KO",
+                "code": 600,
+                "description": "No catalog item with this id",
+                "data": null
+            };
+		}
 		if (!usr.cart) {
 			const obj = {
 				"capacity": 101,
-				"catalogItems": null,
+				"catalogItems": "",
 				"user": usr
 			}
 			const cart = await this.cartService.create(obj)
-			usr.cart = cart
+			this.userService.update(usr.id, {"cart": cart})
 		}
-		let cartCSV = (await this.cartService.findOne(usr.cart)).catalogItemsIdCSV
-		for (const item of catalogItems) {
-			const catalogItem = await this.catalogService.findOne(item);
-			if (catalogItem)
-				cartCSV += cartCSV.length == 0 ? catalogItem.id : "," + catalogItem.id
+		console.log("User : ", await this.userService.findOne({ id: data['id'] }))
+		let carta = (await this.cartService.findOne(usr.cart))
+		let catalogItem = (await this.cartService.findOne({user: usr})).catalogItems;
+		catalogItem += `${item},`
+		carta.catalogItems = catalogItem
+		await this.cartService.update(usr.cart.id, { catalogItems: carta });
+		return {
+			"status": "OK",
+			"code": 200,
+			"description": "Item added to cart",
+			"data": (await this.cartService.findOne({"id": usr.cart.id}))
 		}
-		cartCSV = cartCSV.split(',').sort().join(',');
-		console.log(cartCSV)
-		await this.cartService.update(usr.cart.id, { catalogItemsIdCSV: cartCSV });
-		return (await this.cartService.findOne(usr.cart))
 	}
-
 
 	@Delete()
 	async delete(@Body() addItemToCartDTO: AddItemToCartDTO, @Req() request: Request) {
 		const cookie = request.cookies['jwt']
 		const data = await this.jwtService.verifyAsync(cookie)
 		const usr = await this.userService.findOne({ id: data['id'] })
-		const catalogItems: Catalog[] = addItemToCartDTO.catalogItems;
-
-		if (!addItemToCartDTO.catalogItems)
-			return;
+		const item: number = addItemToCartDTO.id;
+		console.log(item)
+		if (!await this.catalogService.findOne({id: item})) {
+			return {
+                "status": "KO",
+                "code": 600,
+                "description": "No catalog item with this id",
+                "data": null
+            };
+		}
 		if (!usr.cart) {
 			const obj = {
 				"capacity": 101,
-				"catalogItems": null,
+				"catalogItems": "",
 				"user": usr
 			}
 			const cart = await this.cartService.create(obj)
-			usr.cart = cart
+			this.userService.update(usr.id, {"cart": cart})
 		}
-		const curCSV = (await this.cartService.findOne(usr.cart)).catalogItemsIdCSV
-		let toRemCSV = ""
-		for (const item of catalogItems) {
-			const catalogItem = await this.catalogService.findOne(item);
-			if (catalogItem)
-				toRemCSV += toRemCSV.length == 0 ? catalogItem.id : "," + catalogItem.id
-		}
-		const temp = curCSV.split(",")
-		console.log(toRemCSV);
-		for (const id of toRemCSV.split(',')) {
-			const index = temp.indexOf(id);
-			console.log(index, " : ",  curCSV.split(',')[index])
-			if (index !== -1) {
-				console.log("Removing ", index , " from ", temp)
-				console.log("Before ", temp)
-				temp.splice(index, 1);
-				console.log("After ", temp)
+		console.log("User : ", await this.userService.findOne({ id: data['id'] }))
+		let carta = (await this.cartService.findOne(usr.cart))
+		let catalogItem = (await this.cartService.findOne({user: usr})).catalogItems;
+		const values = catalogItem.split(',');
+		const numberAsString = item.toString(); // Convert the number to a string for comparison
+		const indexToRemove = values.indexOf(numberAsString);
+ 		if (indexToRemove !== -1) {
+  			values.splice(indexToRemove, 1); // Remove the element at the found index
+ 		} else {
+			return {
+					"status": "KO",
+					"code": 601,
+					"description": "No catalog item within this cart",
+					"data": null
+				};
 			}
+		carta.catalogItems = values.join(',')
+		await this.cartService.update(usr.cart.id, { catalogItems: carta });
+		return {
+			"status": "OK",
+			"code": 200,
+			"description": "Item removed from cart",
+			"data": (await this.cartService.findOne({"id": usr.cart.id}))
 		}
-		console.log("result :",  temp)
-		await this.cartService.update(usr.cart.id, { catalogItemsIdCSV: temp.join(',') });
-		return (await this.cartService.findOne(usr.cart))
 	}
 }

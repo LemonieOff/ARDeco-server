@@ -18,6 +18,7 @@ import { CatalogModule } from 'src/catalog/catalog.module';
     }),
   ],
   providers: [CartService],
-  controllers: [CartController]
+  controllers: [CartController],
+  exports: [CartService]
 })
 export class CartModule {}

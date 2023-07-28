@@ -8,7 +8,7 @@ export class MailController {
 
     @Get()
     basic(@Body() sendMail: sendMailDTO) {
-        this.mailService.sendMail(sendMail)
+        this.mailService.sendMail(sendMail.email)
         return 'send'
     }
 }
