@@ -10,12 +10,10 @@ services:
       - db
 
   db:
-    image: mysql:5.7.22
+    image: mysql:latest
     restart: always
     environment:
-      MYSQL_DATABASE: admin
-      MYSQL_USER: root
-      MYSQL_PASSWORD: root
+      MYSQL_DATABASE: ardeco
       MYSQL_ROOT_PASSWORD: root
     volumes:
       - dbdata:/var/lib/mysql

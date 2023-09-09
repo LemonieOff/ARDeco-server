@@ -21,7 +21,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       port: 3306,
       username: 'root',
       password: 'root',
-      database: 'admin',
+      database: 'ardeco',
       autoLoadEntities: true,
       entities: [],
       synchronize: true,
