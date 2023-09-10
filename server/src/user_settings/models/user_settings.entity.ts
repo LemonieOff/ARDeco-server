@@ -9,7 +9,7 @@ export class UserSettings {
     @Column({unique: true, update: false, type: "int"})
     user_id: number;
 
-    @Column({type: "string"})
+    @Column({type: "varchar"})
     language: string;
 
     @Column({type: "boolean"})

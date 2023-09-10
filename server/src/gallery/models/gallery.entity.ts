@@ -15,12 +15,12 @@ export class Gallery {
     @Column({type: "json"})
     furniture: string;
 
-    @Column({type: "string"})
+    @Column({type: "varchar"})
     name: string;
 
-    @Column({type: "string"})
+    @Column({type: "varchar"})
     description: string;
 
-    @Column({type: "string"})
+    @Column({type: "varchar"})
     room_type: string;
 }
