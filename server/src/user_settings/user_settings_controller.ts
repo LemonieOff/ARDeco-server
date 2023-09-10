@@ -16,7 +16,7 @@ import {QueryPartialEntity} from 'typeorm/query-builder/QueryPartialEntity';
 import {UserService} from "../user/user.service";
 
 @Controller('settings')
-export class GalleryController {
+export class UserSettingsController {
     constructor(
         private userSettingsService: UserSettingsService,
         private jwtService: JwtService,
