@@ -1,141 +1,227 @@
 import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Put,
-  Req,
-  Res,
-  UseGuards,
+    Body,
+    Controller, Delete,
+    Get,
+    Param, Post,
+    Put,
+    Req,
+    Res,
 } from '@nestjs/common';
-import { UserSettingsService } from './user_settings_service';
-import { Request, Response } from 'express';
-import { AuthGuard } from '../auth/auth.guard';
-import { JwtService } from '@nestjs/jwt';
-import { UserSettings } from './models/user_settings.entity';
-import { User } from '../user/models/user.entity';
-import { QueryPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
+import {UserSettingsService} from './user_settings_service';
+import {Request, Response} from 'express';
+import {JwtService} from '@nestjs/jwt';
+import {UserSettings} from './models/user_settings.entity';
+import {User} from '../user/models/user.entity';
+import {QueryPartialEntity} from 'typeorm/query-builder/QueryPartialEntity';
+import {UserService} from "../user/user.service";
 
-@Controller('user')
-export class UserSettingsController {
-  constructor(
-    private userService: UserSettingsService,
-    private jwtService: JwtService,
-  ) {}
-
-  @Get()
-  all() {
-    return ['users'];
-  }
-
-  @Get(':id')
-  async getOne(@Param('id') id: number) {
-    const requestedUser = await this.userService.findOne({ id: id });
-    console.log(requestedUser);
-    if (requestedUser === undefined || requestedUser === null) {
-      return {
-        status: 'KO',
-        code: 404,
-        description: 'User was not found',
-        error: 'User was not found',
-        data: null,
-      };
+@Controller('settings')
+export class GalleryController {
+    constructor(
+        private userSettingsService: UserSettingsService,
+        private jwtService: JwtService,
+        private userService: UserService
+    ) {
     }
-    return {
-      status: 'OK',
-      code: 200,
-      description: 'User has been found',
-      data: requestedUser
-    };
-  }
-  @UseGuards(AuthGuard)
-  @Get('whoami')
-  async whoami(@Req() request: Request) {
-    const cookie = request.cookies['jwt'];
-    const data = await this.jwtService.verifyAsync(cookie);
-    return this.userService.findOne({ id: data['id'] });
-  }
 
-  @UseGuards(AuthGuard)
-  @Put()
-  async editViaQuery(
-    @Req() req: Request,
-    @Body() user: QueryPartialEntity<User>,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    const id = Number(req.query['id']);
-    if (id === undefined || isNaN(id)) {
-      res.status(400);
-      return {
-        status: 'KO',
-        code: 400,
-        description: 'User was not updated because of an error',
-        error: 'User ID must be passed as a query parameter and be a number',
-        data: null,
-      };
-    }
-    return await this.editUser(req, Number(req.query['id']), user, res);
-  }
+    @Get(":id")
+    async get(@Req() req: Request, @Param("id") id: number, @Res({passthrough: true}) res: Response) {
+        const item = await this.userSettingsService.findOne({id: id});
 
-  @UseGuards(AuthGuard)
-  @Put(':id')
-  async editViaParam(
-    @Req() req: Request,
-    @Param('id') id: number,
-    @Body() user: QueryPartialEntity<User>,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    console.log(user);
-    return await this.editUser(req, id, user, res);
-  }
+        const authorizedUser = await this.checkAuthorization(req, res, item);
+        if (!(authorizedUser instanceof User)) return authorizedUser;
 
-  async editUser(
-    req: Request,
-    id: number,
-    user: QueryPartialEntity<User>,
-    res: Response,
-  ) {
-    try {
-      const cookie = req.cookies['jwt'];
-      const data = this.jwtService.verify(cookie);
-      const request_user_id = await this.userService.findOne({
-        id: data['id'],
-      });
-      if (data['id'] != id && request_user_id['role'] != 'admin') {
-        res.status(401);
+        res.status(200);
         return {
-          status: 'KO',
-          code: 401,
-          description: 'You are not allowed to edit this user',
-          data: null,
+            "status": "OK",
+            "code": 200,
+            "description": "User settings",
+            "data": item
         };
-      }
-      if (user['role'] !== undefined && request_user_id['role'] != 'admin') {
-        res.status(401);
-        return {
-          status: 'KO',
-          code: 401,
-          description: 'You are not allowed to modify the role of this user',
-          data: null,
-        };
-      }
-      const result = await this.userService.update(data['id'], user);
-      res.status(200);
-      return {
-        status: 'OK',
-        code: 200,
-        description: 'User was updated',
-        data: result,
-      };
-    } catch (e) {
-      res.status(400);
-      return {
-        status: 'KO',
-        code: 400,
-        description: 'User was not updated because of an error',
-        error: e,
-        data: null,
-      };
     }
-  }
+
+    @Post()
+    async post(@Req() req: Request, @Body() settings: QueryPartialEntity<UserSettings>, @Res({passthrough: true}) res: Response) {
+        const cookie = req.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+
+        // Cookie or JWT not valid
+        if (!cookie || !data) {
+            res.status(401);
+            return {
+                "status": "KO",
+                "code": 401,
+                "description": "You have to login in order to create user settings",
+                "data": null
+            };
+        }
+
+        const user = await this.userService.findOne({id: data["id"]});
+
+        if (!user) {
+            res.status(403);
+            return {
+                "status": "KO",
+                "code": 403,
+                "description": "You are not allowed to create user settings",
+                "data": null
+            };
+        }
+
+        // Check if user settings already exist, if so, return an error and don't create a new one
+        const existingSettings = await this.userSettingsService.findOne({user_id: user.id});
+        if (existingSettings) {
+            res.status(400);
+            return {
+                "status": "KO",
+                "code": 400,
+                "description": "User settings already exist",
+                "data": null
+            };
+        }
+
+        try {
+            const result = await this.userSettingsService.create(settings);
+            res.status(201);
+            return {
+                status: 'OK',
+                code: 200,
+                description: 'User settings was created',
+                data: result,
+            };
+        } catch (e) {
+            res.status(400);
+            return {
+                status: 'KO',
+                code: 400,
+                description: 'User settings was not created because of an error',
+                error: e,
+                data: null,
+            };
+        }
+    }
+
+    @Delete(':id')
+    async deleteItem(@Req() req: Request, @Param("id") id: number, @Res({passthrough: true}) res: Response) {
+        const item = await this.userSettingsService.findOne({id: id});
+
+        const authorizedUser = await this.checkAuthorization(req, res, item);
+        if (!(authorizedUser instanceof User)) return authorizedUser;
+
+        try {
+            const result = await this.userSettingsService.delete(id);
+            res.status(200);
+            return {
+                "status": "OK",
+                "code": 200,
+                "description": "Gallery item has successfully been deleted",
+                "data": result
+            };
+        } catch (e) {
+            res.status(500);
+            return {
+                "status": "OK",
+                "code": 500,
+                "description": "Server error",
+                "data": item
+            };
+        }
+    }
+
+    @Put(':id')
+    async editViaParam(
+        @Req() req: Request,
+        @Param('id') id: number,
+        @Body() item: QueryPartialEntity<UserSettings>,
+        @Res({passthrough: true}) res: Response,
+    ) {
+        console.log(item);
+        return await this.editItem(req, id, item, res);
+    }
+
+    async editItem(
+        req: Request,
+        id: number,
+        new_item: QueryPartialEntity<UserSettings>,
+        res: Response,
+    ) {
+        try {
+            const item = await this.userSettingsService.findOne({id: id});
+
+            const authorizedUser = await this.checkAuthorization(req, res, item);
+            if (!(authorizedUser instanceof User)) return authorizedUser;
+
+            const result = await this.userSettingsService.update(id, new_item);
+            res.status(200);
+            return {
+                status: 'OK',
+                code: 200,
+                description: 'User settings was updated',
+                data: result,
+            };
+        } catch (e) {
+            res.status(400);
+            return {
+                status: 'KO',
+                code: 400,
+                description: 'User settings was not updated because of an error',
+                error: e,
+                data: null,
+            };
+        }
+    }
+
+    async checkAuthorization(req: Request, res: Response, settings: UserSettings) {
+        if (!settings) {
+            res.status(404);
+            return {
+                status: 'KO',
+                code: 404,
+                description: 'Resource was not found',
+                data: null,
+            };
+        }
+
+        const cookie = req.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+
+        // Cookie or JWT not valid
+        if (!cookie || !data) {
+            res.status(401);
+            return {
+                "status": "KO",
+                "code": 401,
+                "description": "You are not connected",
+                "data": null
+            };
+        }
+
+        const user = await this.userService.findOne({id: data["id"]});
+
+        if (!user) {
+            res.status(403);
+            return {
+                "status": "KO",
+                "code": 403,
+                "description": "You are not allowed to access/modify this resource",
+                "data": null
+            };
+        }
+
+        // Check if user is the creator
+        if (settings.user_id !== user.id) {
+            // If not, check if it's an admin
+            if (user.role !== "admin") {
+                res.status(403);
+                return {
+                    "status": "KO",
+                    "code": 403,
+                    "description": "You are not allowed to access/modify this resource",
+                    "data": null
+                };
+            }
+        }
+        return user;
+    }
 }
+
