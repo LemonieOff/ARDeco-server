@@ -87,7 +87,7 @@ export class GalleryController {
             return {
                 status: 'KO',
                 code: 400,
-                description: 'Gallery item was not updated because of an error',
+                description: 'Gallery item was not created because of an error',
                 error: e,
                 data: null,
             };

@@ -32,6 +32,6 @@ export class GalleryService {
     async delete(id: number): Promise<any> {
         //return this.userRepository.delete(id);
         console.log("Deleting gallery item", id)
-        await this.galleryRepository.createQueryBuilder('gallery').delete().from(Gallery).where("id = id", {id: id}).execute()
+        return this.galleryRepository.createQueryBuilder('gallery').delete().from(Gallery).where("id = id", {id: id}).execute()
     }
 }
