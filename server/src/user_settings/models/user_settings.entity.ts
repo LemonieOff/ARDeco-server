@@ -1,20 +1,20 @@
 /* eslint-disable prettier/prettier */
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import {Column, Entity, PrimaryGeneratedColumn} from "typeorm";
 
 @Entity('user_settings')
-export class User {
+export class UserSettings {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ unique: true })
+    @Column({unique: true, update: false, type: "int"})
     user_id: number;
 
-    @Column()
+    @Column({type: "string"})
     language: string;
 
-    @Column()
+    @Column({type: "boolean"})
     notifications_enabled: boolean;
 
-    @Column()
+    @Column({type: "boolean"})
     sounds_enabled: boolean;
 }
