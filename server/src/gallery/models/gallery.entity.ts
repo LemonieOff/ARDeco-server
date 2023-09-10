@@ -1,26 +1,26 @@
 /* eslint-disable prettier/prettier */
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import {Column, Entity, PrimaryGeneratedColumn} from "typeorm";
 
 @Entity('gallery')
-export class User {
+export class Gallery {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column("int")
+    @Column({type: "int", update: false})
     user_id: number;
 
-    @Column("boolean")
+    @Column({type: "boolean"})
     visibility: boolean;
 
-    @Column("json")
+    @Column({type: "json"})
     furniture: string;
 
-    @Column("string")
+    @Column({type: "string"})
     name: string;
 
-    @Column("string")
+    @Column({type: "string"})
     description: string;
 
-    @Column("string")
+    @Column({type: "string"})
     room_type: string;
 }
