@@ -2,7 +2,7 @@
 import { Column, Entity, PrimaryGeneratedColumn, OneToOne, JoinColumn } from "typeorm";
 import { Cart } from "../../cart/models/cart.entity";
 
-@Entity('users')
+@Entity("users")
 export class User {
     @PrimaryGeneratedColumn()
     id: number;
@@ -25,10 +25,10 @@ export class User {
     @Column()
     password: string;
 
-    @Column()
-    deleted: boolean = false
+    @Column({ default: 0 }) // 0 = false, 1 = true
+    deleted: boolean;
 
-    @Column({ default: 'client' })
+    @Column({ default: "client" })
     role: string; // client, company, admin
 
     @Column({ nullable: true })
