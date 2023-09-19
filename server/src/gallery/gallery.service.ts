@@ -1,6 +1,6 @@
 import {Injectable} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
-import {Repository, UpdateResult} from "typeorm";
+import {Repository} from "typeorm";
 import {Gallery} from './models/gallery.entity';
 import {QueryPartialEntity} from "typeorm/query-builder/QueryPartialEntity";
 
@@ -42,7 +42,6 @@ export class GalleryService {
     }
 
     async delete(id: number): Promise<any> {
-        //return this.userRepository.delete(id);
         console.log("Deleting gallery item", id)
         return this.galleryRepository.createQueryBuilder('gallery').delete().from(Gallery).where("id = id", {id: id}).execute()
     }
