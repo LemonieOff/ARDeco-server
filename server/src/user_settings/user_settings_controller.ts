@@ -40,6 +40,54 @@ export class UserSettingsController {
         };
     }
 
+    @Get()
+    async getOwnSettings(@Req() req: Request, @Res({passthrough: true}) res: Response) {
+        const cookie = req.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+
+        // Cookie or JWT not valid
+        if (!cookie || !data) {
+            res.status(401);
+            return {
+                "status": "KO",
+                "code": 401,
+                "description": "You have to login in order to see your settings",
+                "data": null
+            };
+        }
+
+        const user = await this.userService.findOne({id: data["id"]});
+
+        if (!user) {
+            res.status(403);
+            return {
+                "status": "KO",
+                "code": 403,
+                "description": "You are not allowed to access this resource",
+                "data": null
+            };
+        }
+
+        const existingSettings = await this.userSettingsService.findOne({user_id: user.id});
+        if (existingSettings) {
+            res.status(200);
+            return {
+                "status": "OK",
+                "code": 200,
+                "description": "Your user settings",
+                "data": existingSettings
+            };
+        } else {
+            res.status(404);
+            return {
+                "status": "KO",
+                "code": 404,
+                "description": "You don't have any user settings yet",
+                "data": null
+            };
+        }
+    }
+
     @Post()
     async post(@Req() req: Request, @Body() settings: QueryPartialEntity<UserSettings>, @Res({passthrough: true}) res: Response) {
         const cookie = req.cookies["jwt"];
@@ -81,6 +129,7 @@ export class UserSettingsController {
         }
 
         try {
+            settings.user_id = user.id;
             const result = await this.userSettingsService.create(settings);
             res.status(201);
             return {
@@ -114,7 +163,7 @@ export class UserSettingsController {
             return {
                 "status": "OK",
                 "code": 200,
-                "description": "Gallery item has successfully been deleted",
+                "description": "Settings has successfully been deleted",
                 "data": result
             };
         } catch (e) {
