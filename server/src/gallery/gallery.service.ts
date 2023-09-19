@@ -27,8 +27,8 @@ export class GalleryService {
                 });
             });
         }
-        const item = this.galleryRepository.save(data);
-        console.log('Create gallery item :', await item);
+        const item = await this.galleryRepository.save(data);
+        console.log('Create gallery item :', item);
         return item;
     }
 
@@ -36,8 +36,9 @@ export class GalleryService {
         return this.galleryRepository.findOne({where: condit})
     }
 
-    async update(id: number, data: QueryPartialEntity<Gallery>): Promise<UpdateResult> {
-        return this.galleryRepository.update(id, data)
+    async update(id: number, data: QueryPartialEntity<Gallery>): Promise<Gallery> {
+        await this.galleryRepository.update(id, data);
+        return await this.findOne({id: id});
     }
 
     async delete(id: number): Promise<any> {

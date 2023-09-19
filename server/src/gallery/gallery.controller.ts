@@ -33,7 +33,7 @@ export class GalleryController {
     async get(@Req() req: Request, @Param("id") id: number, @Res({passthrough: true}) res: Response) {
         const item = await this.galleryService.findOne({id: id});
 
-        const authorizedUser = await this.checkAuthorization(req, res, item);
+        const authorizedUser = await this.checkAuthorization(req, res, item, "view");
         if (!(authorizedUser instanceof User)) return authorizedUser;
 
         res.status(200);
@@ -99,7 +99,7 @@ export class GalleryController {
     async deleteItem(@Req() req: Request, @Param("id") id: number, @Res({passthrough: true}) res: Response) {
         const item = await this.galleryService.findOne({id: id});
 
-        const authorizedUser = await this.checkAuthorization(req, res, item);
+        const authorizedUser = await this.checkAuthorization(req, res, item, "delete");
         if (!(authorizedUser instanceof User)) return authorizedUser;
 
         try {
@@ -142,7 +142,7 @@ export class GalleryController {
         try {
             const item = await this.galleryService.findOne({id: id});
 
-            const authorizedUser = await this.checkAuthorization(req, res, item);
+            const authorizedUser = await this.checkAuthorization(req, res, item, "edit");
             if (!(authorizedUser instanceof User)) return authorizedUser;
 
             const result = await this.galleryService.update(id, new_item);
@@ -165,7 +165,7 @@ export class GalleryController {
         }
     }
 
-    async checkAuthorization(req: Request, res: Response, item: Gallery) {
+    async checkAuthorization(req: Request, res: Response, item: Gallery, action: string) {
         if (!item) {
             res.status(404);
             return {
@@ -203,7 +203,23 @@ export class GalleryController {
         }
 
         // Check if item is not visible for everyone
-        if (!item.visibility) {
+        if (action === "view") {
+            if (!item.visibility) {
+                // Check if user is the creator
+                if (item.user_id !== user.id) {
+                    // If not, check if it's an admin
+                    if (user.role !== "admin") {
+                        res.status(403);
+                        return {
+                            "status": "KO",
+                            "code": 403,
+                            "description": "You are not allowed to access this resource",
+                            "data": null
+                        };
+                    }
+                }
+            }
+        } else {
             // Check if user is the creator
             if (item.user_id !== user.id) {
                 // If not, check if it's an admin
@@ -212,7 +228,7 @@ export class GalleryController {
                     return {
                         "status": "KO",
                         "code": 403,
-                        "description": "You are not allowed to access/modify this resource",
+                        "description": "You are not allowed to modify/delete this resource",
                         "data": null
                     };
                 }
