@@ -74,11 +74,12 @@ export class GalleryController {
         }
 
         try {
+            item.user_id = user.id;
             const result = await this.galleryService.create(item);
             res.status(201);
             return {
                 status: 'OK',
-                code: 200,
+                code: 201,
                 description: 'Gallery item was created',
                 data: result,
             };
