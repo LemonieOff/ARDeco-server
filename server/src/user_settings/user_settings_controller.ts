@@ -134,7 +134,7 @@ export class UserSettingsController {
             res.status(201);
             return {
                 status: 'OK',
-                code: 200,
+                code: 201,
                 description: 'User settings was created',
                 data: result,
             };
