@@ -8,6 +8,12 @@ services:
       - backend_dir:/app
     depends_on:
       - db
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: ardeco
+      DB_USER: root
+      DB_PASSWORD: root
 
   db:
     image: mysql:latest
