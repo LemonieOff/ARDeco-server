@@ -16,9 +16,20 @@ export class GalleryService {
     }
 
     async create(data): Promise<Gallery> {
-        const item = this.galleryRepository.save(data)
-        console.log('Create gallery item :', await item)
-        return item
+        try {
+            JSON.parse(data.furniture);
+        } catch (e) {
+            return await new Promise((_, reject) => {
+                reject({
+                    "error": "JsonError",
+                    "message": "Furniture is not a valid JSON object",
+                    "furniture": data.furniture,
+                });
+            });
+        }
+        const item = this.galleryRepository.save(data);
+        console.log('Create gallery item :', await item);
+        return item;
     }
 
     async findOne(condit): Promise<Gallery> {
