@@ -13,6 +13,9 @@ import {MailModule} from './mail/mail.module';
 import {ConfigModule, ConfigService} from '@nestjs/config';
 import {UserSettingsModule} from "./user_settings/user_settings_module";
 import {GalleryModule} from "./gallery/gallery.module";
+import {PaymentsController} from './payments/payments.controller';
+import {PaymentsService } from './payments/payments.service';
+import {PaymentsModule} from './payments/payments.module';
 
 @Module({
     imports: [
@@ -38,10 +41,11 @@ import {GalleryModule} from "./gallery/gallery.module";
         ConfigModule.forRoot({
             isGlobal: true, // no need to import into other modules
         }),
-        MailModule
+        MailModule,
+        PaymentsModule
     ],
-    controllers: [AppController],
-    providers: [AppService, ConfigService]
+    controllers: [AppController, PaymentsController],
+    providers: [AppService, ConfigService, PaymentsService]
 })
 export class AppModule {
 }
