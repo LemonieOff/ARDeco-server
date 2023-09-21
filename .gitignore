@@ -7,3 +7,5 @@ dist/
 node_modules/
 
 .dbdata/
+
+./furniture_transfer/uploads
