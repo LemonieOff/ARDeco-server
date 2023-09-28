@@ -39,6 +39,7 @@ import { OrderHistoryModule } from "./order_history/order_history_module";
         CartModule,
         UserSettingsModule,
         GalleryModule,
+        OrderHistoryModule,
         ConfigModule.forRoot({
             isGlobal: true // no need to import into other modules
         }),
