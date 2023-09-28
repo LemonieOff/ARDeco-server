@@ -1,10 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Req, Res, UseGuards } from "@nestjs/common";
-import { CatalogService } from "./catalog.service";
+import { Controller, Delete, Get, Param, Req, Res } from "@nestjs/common";
 import { UserService } from "../user/user.service";
 import { Request, Response } from "express";
 import { JwtService } from "@nestjs/jwt";
-import { Catalog } from "./models/catalog.entity";
-import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 import { User } from "../user/models/user.entity";
 import { ArchiveService } from "./archive.service";
 
@@ -14,57 +11,68 @@ export class ArchiveController {
         private archiveService: ArchiveService,
         private jwtService: JwtService,
         private userService: UserService
-    ) {
-    }
+    ) {}
 
     @Get(":id")
-    async get(@Req() req: Request, @Param("id") id: number, @Res({ passthrough: true }) res: Response) {
+    async get(
+        @Req() req: Request,
+        @Param("id") id: number,
+        @Res({ passthrough: true }) res: Response
+    ) {
         const authorizedCompany = await this.checkAuthorization(req, res, id);
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
-        const objects = await this.archiveService.findAllObjectsFromCompany(authorizedCompany.id);
+        const objects = await this.archiveService.findAllObjectsFromCompany(
+            authorizedCompany.id
+        );
 
         if (objects === null) {
             res.status(400);
             return {
-                "status": "KO",
-                "code": 400,
-                "description": "Objects not found",
-                "data": null
+                status: "KO",
+                code: 400,
+                description: "Objects not found",
+                data: null
             };
         }
         res.status(200);
         return {
-            "status": "OK",
-            "code": 200,
-            "description": "Objects list",
-            "data": objects
+            status: "OK",
+            code: 200,
+            description: "Objects list",
+            data: objects
         };
     }
 
-
     @Delete(":id")
-    async removeAll(@Req() req: Request, @Param("id") id: number, @Res({ passthrough: true }) res: Response) {
+    async removeAll(
+        @Req() req: Request,
+        @Param("id") id: number,
+        @Res({ passthrough: true }) res: Response
+    ) {
         const authorizedCompany = await this.checkAuthorization(req, res, id);
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
-        const removedObjects = await this.archiveService.deleteAllObjectsFromCompany(authorizedCompany.id);
+        const removedObjects =
+            await this.archiveService.deleteAllObjectsFromCompany(
+                authorizedCompany.id
+            );
         if (removedObjects === null) {
             res.status(400);
             return {
-                "status": "KO",
-                "code": 400,
-                "description": "Objects not removed",
-                "data": null
+                status: "KO",
+                code: 400,
+                description: "Objects not removed",
+                data: null
             };
         }
 
         res.status(200);
         return {
-            "status": "OK",
-            "code": 200,
-            "description": "Objects removed",
-            "data": removedObjects
+            status: "OK",
+            code: 200,
+            description: "Objects removed",
+            data: removedObjects
         };
     }
 
@@ -76,10 +84,10 @@ export class ArchiveController {
         if (!cookie || !data) {
             res.status(401);
             return {
-                "status": "KO",
-                "code": 401,
-                "description": "You are not connected",
-                "data": null
+                status: "KO",
+                code: 401,
+                description: "You are not connected",
+                data: null
             };
         }
 
@@ -87,10 +95,10 @@ export class ArchiveController {
         if (id.toString() !== data["id"].toString()) {
             res.status(403);
             return {
-                "status": "KO",
-                "code": 403,
-                "description": "You are not allowed to access this resource",
-                "data": null
+                status: "KO",
+                code: 403,
+                description: "You are not allowed to access this resource",
+                data: null
             };
         }
 
@@ -98,20 +106,22 @@ export class ArchiveController {
         if (!company) {
             res.status(403);
             return {
-                "status": "KO",
-                "code": 403,
-                "description": "Your user doesn't exists ant can't access this resource",
-                "data": null
+                status: "KO",
+                code: 403,
+                description:
+                    "Your user doesn't exists ant can't access this resource",
+                data: null
             };
         }
 
         if (!company["company_api_key"]) {
             res.status(403);
             return {
-                "status": "KO",
-                "code": 401,
-                "description": "You don't have any API key, please generate one before using this endpoint",
-                "data": null
+                status: "KO",
+                code: 401,
+                description:
+                    "You don't have any API key, please generate one before using this endpoint",
+                data: null
             };
         }
 
@@ -119,10 +129,11 @@ export class ArchiveController {
         if (company.company_api_key !== req.query["company_api_key"]) {
             res.status(403);
             return {
-                "status": "KO",
-                "code": 401,
-                "description": "API key is not valid in \"company_api_key\" query parameter",
-                "data": null
+                status: "KO",
+                code: 401,
+                description:
+                    'API key is not valid in "company_api_key" query parameter',
+                data: null
             };
         }
 

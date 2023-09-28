@@ -1,10 +1,10 @@
-import { IsEmail, IsNotEmpty } from "class-validator"
+import { IsEmail, IsNotEmpty } from "class-validator";
 
 export class sendMailDTO {
     @IsNotEmpty()
     @IsEmail()
-    email : string
-    
+    email: string;
+
     @IsNotEmpty()
-    content : string
+    content: string;
 }

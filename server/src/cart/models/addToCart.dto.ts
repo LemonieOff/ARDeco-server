@@ -1,3 +1,3 @@
 export class AddItemToCartDTO {
-  id: number;
+    id: number;
 }

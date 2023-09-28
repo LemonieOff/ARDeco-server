@@ -7,10 +7,10 @@ import { ArchiveService } from "./archive.service";
 @Injectable()
 export class CatalogService {
     constructor(
-        @InjectRepository(Catalog) private readonly catalogRepository: Repository<Catalog>,
+        @InjectRepository(Catalog)
+        private readonly catalogRepository: Repository<Catalog>,
         private readonly archiveService: ArchiveService
-    ) {
-    }
+    ) {}
 
     async all(): Promise<Catalog[]> {
         return this.catalogRepository.find();
@@ -49,10 +49,11 @@ export class CatalogService {
     }
 
     async deleteAllObjectsFromCompany(company_id: number) {
-        const backup = await this.catalogRepository.find({ where: { company: company_id } });
+        const backup = await this.catalogRepository.find({
+            where: { company: company_id }
+        });
         await this.catalogRepository.delete({ company: company_id });
         await this.archiveService.create(backup);
         return backup;
     }
-
 }

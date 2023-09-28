@@ -8,7 +8,11 @@ export class OrderHistory {
     @Column({ type: "int", update: false })
     user_id: number;
 
-    @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP", update: false })
+    @Column({
+        type: "timestamp",
+        default: () => "CURRENT_TIMESTAMP",
+        update: false
+    })
     datetime: Date;
 
     @Column({ type: "float" })

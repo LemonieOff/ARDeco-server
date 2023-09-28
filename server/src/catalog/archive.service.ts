@@ -7,9 +7,9 @@ import { Catalog } from "./models/catalog.entity";
 @Injectable()
 export class ArchiveService {
     constructor(
-        @InjectRepository(Archive) private readonly archiveRepository: Repository<Archive>
-    ) {
-    }
+        @InjectRepository(Archive)
+        private readonly archiveRepository: Repository<Archive>
+    ) {}
 
     async create(data): Promise<Catalog> {
         return await this.archiveRepository.save(data);

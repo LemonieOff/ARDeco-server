@@ -20,7 +20,5 @@ import { ArchiveModule } from "./archive.module";
     controllers: [CatalogController],
     providers: [CatalogService],
     exports: [CatalogService]
-
 })
-export class CatalogModule {
-}
+export class CatalogModule {}

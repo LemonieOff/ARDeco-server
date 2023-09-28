@@ -1,12 +1,4 @@
-import {
-    Body,
-    Controller, Delete,
-    Get,
-    Param, Post,
-    Put,
-    Req,
-    Res
-} from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Req, Res } from "@nestjs/common";
 import { OrderHistoryService } from "./order_history_service";
 import { Request, Response } from "express";
 import { JwtService } from "@nestjs/jwt";
@@ -21,27 +13,39 @@ export class OrderHistoryController {
         private galleryService: OrderHistoryService,
         private jwtService: JwtService,
         private userService: UserService
-    ) {
-    }
+    ) {}
 
     @Get(":id")
-    async get(@Req() req: Request, @Param("id") id: number, @Res({ passthrough: true }) res: Response) {
+    async get(
+        @Req() req: Request,
+        @Param("id") id: number,
+        @Res({ passthrough: true }) res: Response
+    ) {
         const item = await this.galleryService.findOne({ id: id });
 
-        const authorizedUser = await this.checkAuthorization(req, res, item, "view");
+        const authorizedUser = await this.checkAuthorization(
+            req,
+            res,
+            item,
+            "view"
+        );
         if (!(authorizedUser instanceof User)) return authorizedUser;
 
         res.status(200);
         return {
-            "status": "OK",
-            "code": 200,
-            "description": "Gallery item",
-            "data": item
+            status: "OK",
+            code: 200,
+            description: "Gallery item",
+            data: item
         };
     }
 
     @Post()
-    async post(@Req() req: Request, @Body() item: QueryPartialEntity<OrderHistory>, @Res({ passthrough: true }) res: Response) {
+    async post(
+        @Req() req: Request,
+        @Body() item: QueryPartialEntity<OrderHistory>,
+        @Res({ passthrough: true }) res: Response
+    ) {
         const cookie = req.cookies["jwt"];
         const data = cookie ? this.jwtService.verify(cookie) : null;
 
@@ -49,10 +53,11 @@ export class OrderHistoryController {
         if (!cookie || !data) {
             res.status(401);
             return {
-                "status": "KO",
-                "code": 401,
-                "description": "You have to login in order to create a gallery item",
-                "data": null
+                status: "KO",
+                code: 401,
+                description:
+                    "You have to login in order to create a gallery item",
+                data: null
             };
         }
 
@@ -61,10 +66,10 @@ export class OrderHistoryController {
         if (!user) {
             res.status(403);
             return {
-                "status": "KO",
-                "code": 403,
-                "description": "You are not allowed to create a gallery item",
-                "data": null
+                status: "KO",
+                code: 403,
+                description: "You are not allowed to create a gallery item",
+                data: null
             };
         }
 
@@ -90,9 +95,14 @@ export class OrderHistoryController {
         }
     }
 
-    async checkAuthorization(req: Request, res: Response, item: OrderHistory, action: string) {
+    async checkAuthorization(
+        req: Request,
+        res: Response,
+        item: OrderHistory,
+        action: string
+    ) {
         if (!item) {
-            res.status(404)
+            res.status(404);
             return {
                 status: "KO",
                 code: 404,
@@ -108,10 +118,10 @@ export class OrderHistoryController {
         if (!cookie || !data) {
             res.status(401);
             return {
-                "status": "KO",
-                "code": 401,
-                "description": "You are not connected",
-                "data": null
+                status: "KO",
+                code: 401,
+                description: "You are not connected",
+                data: null
             };
         }
 
@@ -120,10 +130,11 @@ export class OrderHistoryController {
         if (!user) {
             res.status(403);
             return {
-                "status": "KO",
-                "code": 403,
-                "description": "You are not allowed to access/modify this resource",
-                "data": null
+                status: "KO",
+                code: 403,
+                description:
+                    "You are not allowed to access/modify this resource",
+                data: null
             };
         }
 
@@ -133,15 +144,15 @@ export class OrderHistoryController {
             if (user.role !== "admin") {
                 res.status(403);
                 return {
-                    "status": "KO",
-                    "code": 403,
-                    "description": "You are not allowed to modify/delete this resource",
-                    "data": null
+                    status: "KO",
+                    code: 403,
+                    description:
+                        "You are not allowed to modify/delete this resource",
+                    data: null
                 };
             }
         }
 
         return user;
     }
-
 }

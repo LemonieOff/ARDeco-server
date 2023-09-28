@@ -1,7 +1,7 @@
-import {Controller, Delete, Get, HttpCode, Post, Put} from '@nestjs/common';
-import {StatusService} from "./status.service";
+import { Controller, Delete, Get, HttpCode, Post, Put } from "@nestjs/common";
+import { StatusService } from "./status.service";
 
-@Controller('status')
+@Controller("status")
 export class StatusController {
     constructor(private readonly statusService: StatusService) {}
 

@@ -49,5 +49,4 @@ import { OrderHistoryModule } from "./order_history/order_history_module";
     controllers: [AppController, PaymentsController],
     providers: [AppService, ConfigService, PaymentsService]
 })
-export class AppModule {
-}
+export class AppModule {}
