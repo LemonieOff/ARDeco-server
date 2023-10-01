@@ -1,6 +1,6 @@
 const gulp = require('gulp');
-const rename = require('gulp-rename');
-const dest = require('gulp-dest');
+// const rename = require('gulp-rename'); - removed package for security reasons
+// const dest = require('gulp-dest'); - removed package for security reasons
 
 // Define the source and destination paths
 const srcFolder = './src/mail/templates/**/*.hbs';
