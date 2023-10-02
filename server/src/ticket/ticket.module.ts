@@ -18,4 +18,4 @@ import { TicketService } from './ticket.service';
     exports: [TicketService]
 
 })
-export class UserModule {}
+export class TicketModule {}

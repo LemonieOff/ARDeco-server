@@ -24,14 +24,14 @@ export class TicketController {
 
     @Get()
     all() {
-        return ['users'];
+        return ['tickets'];
     }
 
     @Get(':id')
     async getOne(@Param('id') id: number) {
-        const requestedUser = await this.ticketService.findOne({ id: id });
-        console.log(requestedUser);
-        if (requestedUser === undefined || requestedUser === null) {
+        const requestedTicket = await this.ticketService.findOne({ id: id });
+        console.log(requestedTicket);
+        if (requestedTicket === undefined || requestedTicket === null) {
             return {
                 status: 'KO',
                 code: 404,
@@ -45,7 +45,8 @@ export class TicketController {
             code: 200,
             description: 'Ticket has been found',
             data: {
-                id: requestedUser.id,
+                id: requestedTicket.id,
+                messages: requestedTicket.messages,
             },
         };
     }
