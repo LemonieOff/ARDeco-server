@@ -2,7 +2,6 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { OrderHistory } from "./models/order_history.entity";
-import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
 @Injectable()
 export class OrderHistoryService {
