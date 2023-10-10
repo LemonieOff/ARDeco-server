@@ -8,11 +8,11 @@ import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 export class OrderHistoryService {
     constructor(
         @InjectRepository(OrderHistory)
-        private readonly galleryRepository: Repository<OrderHistory>
+        private readonly orderHistoryRepository: Repository<OrderHistory>
     ) {}
 
     async all(): Promise<OrderHistory[]> {
-        return this.galleryRepository.find();
+        return this.orderHistoryRepository.find();
     }
 
     async create(data): Promise<OrderHistory> {
@@ -27,30 +27,17 @@ export class OrderHistoryService {
                 });
             });
         }
-        const item = await this.galleryRepository.save(data);
+
+        /*TODO : Potentially check if every furniture is available in catalog. 
+           See if it's relevant based on the manner we pass furniture list
+           Also, see if it will be possible to register order history items after a furniture item has been removed from catalog*/
+
+        const item = await this.orderHistoryRepository.save(data);
         console.log("Create OrderHistory item :", item);
         return item;
     }
 
     async findOne(condit): Promise<OrderHistory> {
-        return this.galleryRepository.findOne({ where: condit });
-    }
-
-    async update(
-        id: number,
-        data: QueryPartialEntity<OrderHistory>
-    ): Promise<OrderHistory> {
-        await this.galleryRepository.update(id, data);
-        return await this.findOne({ id: id });
-    }
-
-    async delete(id: number): Promise<any> {
-        console.log("Deleting OrderHistory item", id);
-        return this.galleryRepository
-            .createQueryBuilder("OrderHistory")
-            .delete()
-            .from(OrderHistory)
-            .where("id = id", { id: id })
-            .execute();
+        return this.orderHistoryRepository.findOne({ where: condit });
     }
 }

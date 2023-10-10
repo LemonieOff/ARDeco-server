@@ -15,9 +15,9 @@ export class OrderHistory {
     })
     datetime: Date;
 
-    @Column({ type: "float" })
+    @Column({ type: "float", update: false })
     total_amount: number;
 
-    @Column({ type: "json" })
+    @Column({ type: "json", update: false })
     furniture: string;
 }
