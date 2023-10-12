@@ -27,7 +27,7 @@ export class CatalogController {
 
     @Get()
     async getCatalog(@Query() filters: any) {
-        let items = await this.catalogService.all();
+        const items = await this.catalogService.all();
 
         if (!filters) {
             // If no filters provided, return all items
@@ -35,7 +35,7 @@ export class CatalogController {
         }
 
         // Filter the catalog items based on the provided filters
-        let r = items.filter(item => {
+        return items.filter(item => {
             console.log(item);
             let i = true;
             for (const key in filters) {
@@ -53,7 +53,6 @@ export class CatalogController {
             }
             return i; // All filter conditions passed, include the item
         });
-        return r;
     }
 
     @Post(":id/add")
@@ -167,7 +166,8 @@ export class CatalogController {
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
         const object = await this.catalogService.findOne({
-            object_id: object_id
+            object_id: object_id,
+            company: id
         });
 
         if (object === null) {
@@ -238,7 +238,8 @@ export class CatalogController {
         for (let i = 0; i < objects.length; i++) {
             const object_id = objects[i];
             const res = await this.catalogService.findOne({
-                object_id: object_id
+                object_id: object_id,
+                company: id
             });
             if (res == null) errors.push(i + ' - "object_id" doesn\'t exists');
             else ids.push(res.id);
@@ -278,11 +279,7 @@ export class CatalogController {
         return new Set(arr).size !== arr.length;
     }
 
-    generateNewId(
-        company: User,
-        iteration: number = 0,
-        max_iteration: number = 10
-    ): string {
+    generateNewId(company: User, iteration = 0, max_iteration = 10): string {
         if (iteration >= max_iteration) {
             throw new Error("Max iteration reached");
         }
