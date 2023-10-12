@@ -83,10 +83,6 @@ export class TicketController {
     ) {
         try {
             const item = await this.ticketService.findOne({id: id});
-
-          //  const authorizedUser = await this.checkAuthorization(req, res, item, "edit");
-            //if (!(authorizedUser instanceof User)) return authorizedUser;
-
             const result = await this.ticketService.update(id, new_item);
             res.status(200);
             return {
@@ -105,5 +101,18 @@ export class TicketController {
                 data: null,
             };
         }
+    }
+
+    @UseGuards(AuthGuard)
+    @Put('close/:id')
+    async closeTicket(
+        @Req() req: Request,
+        @Param('id') id: number,
+        @Body() ticket: QueryPartialEntity<Ticket>,
+        @Res({ passthrough: true }) res: Response,
+    ) {
+        console.log(ticket);
+        ticket.status = "closed";
+        return await this.editTicket(req, id, ticket, res);
     }
 }
