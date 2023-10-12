@@ -5,6 +5,7 @@ import {
     Get,
     Param,
     Post,
+    Put,
     Query,
     Req,
     Res
@@ -120,6 +121,72 @@ export class CatalogController {
             code: 201,
             description: "Objects registered",
             data: catalog
+        };
+    }
+
+    @Put(":company_id/edit/:object_id")
+    async update(
+        @Req() req: Request,
+        @Param("company_id") company_id: number,
+        @Param("object_id") object_id: string,
+        @Body() catalog: QueryPartialEntity<Catalog>,
+        @Res({ passthrough: true }) res: Response
+    ) {
+        const authorizedCompany = await this.checkAuthorization(
+            req,
+            res,
+            company_id
+        );
+        if (!(authorizedCompany instanceof User)) return authorizedCompany;
+
+        const object = await this.catalogService.findOne({
+            object_id: object_id,
+            company: company_id
+        });
+
+        if (object === null) {
+            res.status(400);
+            return {
+                status: "KO",
+                code: 400,
+                description: "Object doesn't exist in the catalog",
+                data: null
+            };
+        }
+
+        catalog.object_id = object_id;
+
+        const errors = this.checkObject(authorizedCompany, catalog, 0, false);
+        if (errors.length > 0) {
+            res.status(400);
+            return {
+                status: "KO",
+                code: 400,
+                description: "Object not updated",
+                data: errors
+            };
+        }
+
+        const updatedObject = await this.catalogService.update(
+            object.id,
+            catalog
+        );
+        if (updatedObject === null) {
+            res.status(400);
+            return {
+                status: "KO",
+                code: 400,
+                description: "Object not updated",
+                data: null
+            };
+        }
+
+        res.status(200);
+        return {
+            status: "OK",
+            code: 200,
+            description: "Object updated",
+            data: updatedObject
         };
     }
 
@@ -305,7 +372,8 @@ export class CatalogController {
     checkObject(
         company: User,
         catalog: QueryPartialEntity<Catalog>,
-        number: number
+        number: number,
+        check_id = true
     ): string[] {
         catalog.company = company.id;
         if (!catalog.company_name) {
@@ -314,14 +382,22 @@ export class CatalogController {
 
         const errors: string[] = [];
 
-        if (!catalog.object_id) catalog.object_id = this.generateNewId(company);
-        else {
-            this.catalogService
-                .findOne({ object_id: catalog.object_id })
-                .then(res => {
-                    if (res !== null)
-                        errors.push(number + ' - "object_id" already exists');
-                });
+        // In case of creation, we need to check if ID is missing to create one, or check if already exists
+        // But in update, we don't need to check if ID is missing or already existant, as the object is keeping its ID
+        // TODO : Maybe let the company change the ID of an object ? (possibly a bad idea because it can break orders and order history)
+        if (check_id) {
+            if (!catalog.object_id)
+                catalog.object_id = this.generateNewId(company);
+            else {
+                this.catalogService
+                    .findOne({ object_id: catalog.object_id })
+                    .then(res => {
+                        if (res !== null)
+                            errors.push(
+                                number + ' - "object_id" already exists'
+                            );
+                    });
+            }
         }
 
         if (!catalog.name) errors.push(number + ' - "name" field is required');
