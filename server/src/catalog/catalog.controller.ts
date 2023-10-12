@@ -384,7 +384,7 @@ export class CatalogController {
 
         // In case of creation, we need to check if ID is missing to create one, or check if already exists
         // But in update, we don't need to check if ID is missing or already existant, as the object is keeping its ID
-        // TODO : Maybe let the company change the ID of an object ? (possibly a bad idea because it can break orders and order history)
+        // NOTE : Maybe let the company change the ID of an object ? (possibly a bad idea because it can break orders and order history)
         if (check_id) {
             if (!catalog.object_id)
                 catalog.object_id = this.generateNewId(company);
