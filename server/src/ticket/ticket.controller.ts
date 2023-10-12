@@ -14,13 +14,16 @@ import { AuthGuard } from '../auth/auth.guard';
 import { JwtService } from '@nestjs/jwt';
 import { Ticket } from './models/ticket.entity';
 import { QueryPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
+import {User} from "../user/models/user.entity";
+import {Gallery} from "../gallery/models/gallery.entity";
 
 @Controller('ticket')
 export class TicketController {
     constructor(
         private ticketService: TicketService,
         private jwtService: JwtService,
-    ) {}
+    ) {
+    }
 
     @Get()
     all() {
@@ -29,7 +32,7 @@ export class TicketController {
 
     @Get(':id')
     async getOne(@Param('id') id: number) {
-        const requestedTicket = await this.ticketService.findOne({ id: id });
+        const requestedTicket = await this.ticketService.findOne({id: id});
         console.log(requestedTicket);
         if (requestedTicket === undefined || requestedTicket === null) {
             return {
@@ -50,11 +53,57 @@ export class TicketController {
             },
         };
     }
+
     @UseGuards(AuthGuard)
     @Get('whoami')
     async whoami(@Req() request: Request) {
         const cookie = request.cookies['jwt'];
         const data = await this.jwtService.verifyAsync(cookie);
-        return this.ticketService.findOne({ id: data['id'] });
+        return this.ticketService.findOne({id: data['id']});
+    }
+
+
+    @UseGuards(AuthGuard)
+    @Put(':id')
+    async editViaParam(
+        @Req() req: Request,
+        @Param('id') id: number,
+        @Body() ticket: QueryPartialEntity<Ticket>,
+        @Res({ passthrough: true }) res: Response,
+    ) {
+        console.log(ticket);
+        return await this.editTicket(req, id, ticket, res);
+    }
+
+    async editTicket(
+        req: Request,
+        id: number,
+        new_item: QueryPartialEntity<Ticket>,
+        res: Response,
+    ) {
+        try {
+            const item = await this.ticketService.findOne({id: id});
+
+          //  const authorizedUser = await this.checkAuthorization(req, res, item, "edit");
+            //if (!(authorizedUser instanceof User)) return authorizedUser;
+
+            const result = await this.ticketService.update(id, new_item);
+            res.status(200);
+            return {
+                status: 'OK',
+                code: 200,
+                description: 'Ticket was updated',
+                data: result,
+            };
+        } catch (e) {
+            res.status(400);
+            return {
+                status: 'KO',
+                code: 400,
+                description: 'Ticket was not updated because of an error',
+                error: e,
+                data: null,
+            };
+        }
     }
 }
