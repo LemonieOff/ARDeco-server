@@ -112,7 +112,22 @@ export class TicketController {
         @Res({ passthrough: true }) res: Response,
     ) {
         console.log(ticket);
+
         ticket.status = "closed";
+        return await this.editTicket(req, id, ticket, res);
+    }
+
+    @UseGuards(AuthGuard)
+    @Put('write/:id')
+    async writeMessage(
+        @Req() req: Request,
+        @Param('id') id: number,
+        @Body() ticket: QueryPartialEntity<Ticket>,
+        @Res({ passthrough: true }) res: Response,
+    ) {
+        console.log(ticket);
+        const requestedTicket = await this.ticketService.findOne({id: id});
+        ticket.messages = requestedTicket.messages = requestedTicket.messages.slice(0, -1) + "message" + "]";
         return await this.editTicket(req, id, ticket, res);
     }
 }
