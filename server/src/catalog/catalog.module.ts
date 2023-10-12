@@ -5,7 +5,7 @@ import { Catalog } from "./models/catalog.entity";
 import { CatalogController } from "./catalog.controller";
 import { CatalogService } from "./catalog.service";
 import { UserModule } from "../user/user.module";
-import { ArchiveModule } from "./archive.module";
+import { ArchiveModule } from "../archive/archive.module";
 
 @Module({
     imports: [

@@ -144,7 +144,7 @@ export class ArchiveController {
                 };
             }
         } else {
-            const object = await this.archiveService.find(id);
+            const object = await this.archiveService.findById(id);
 
             if (object === null) {
                 res.status(404);

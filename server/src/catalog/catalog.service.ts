@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Catalog } from "./models/catalog.entity";
-import { ArchiveService } from "./archive.service";
+import { ArchiveService } from "../archive/archive.service";
 
 @Injectable()
 export class CatalogService {
@@ -17,9 +17,7 @@ export class CatalogService {
     }
 
     async create(data): Promise<Catalog> {
-        const article = await this.catalogRepository.save(data);
-        console.log("Create catalog :", article);
-        return article;
+        return await this.catalogRepository.save(data);
     }
 
     async findOne(condit): Promise<Catalog> {
