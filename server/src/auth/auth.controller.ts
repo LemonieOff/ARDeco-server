@@ -55,7 +55,7 @@ export class AuthController {
           }
           console.log(token)
           const user = await this.userService.findOne({email: reset.email})
-          user.password  = password
+          user.password  = await bcrypt.hash(password, 12)
           console.log(await this.userService.update(user.id, user))
           return "Password changed";
     }
