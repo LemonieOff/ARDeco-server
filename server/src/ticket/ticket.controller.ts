@@ -33,6 +33,8 @@ export class TicketController {
         return ['tickets'];
     }
 
+
+
     @Get(':id')
     async getOne(@Param('id') id: number,
                  @Req() req: Request): Promise<any> {
@@ -127,13 +129,35 @@ export class TicketController {
         @Body() ticket: QueryPartialEntity<Ticket>,
         @Res({ passthrough: true }) res: Response,
     ) {
+        //check admin
+        const data = await this.jwtService.verifyAsync(req.cookies['jwt'])
+        const usr = await this.userService.findOne({id: data['id']})
+        if (usr.role != "admin") {
+            return {
+                status: 'KO',
+                code: HttpStatus.BAD_REQUEST,
+                description: 'You are not an admin',
+                data: null,
+            };
+        }
         ticket.status = "closed";
         return await this.editTicket(req, id, ticket, res);
     }
 
     @UseGuards(AuthGuard)
     @Get('delete/:id')
-    async delete(@Param('id') id: number): Promise<any> {
+    async delete(@Param('id') id: number,
+                 @Req() req: Request): Promise<any> {
+        const data = await this.jwtService.verifyAsync(req.cookies['jwt'])
+        const usr = await this.userService.findOne({id: data['id']})
+        if (usr.role != "admin") {
+            return {
+                status: 'KO',
+                code: HttpStatus.BAD_REQUEST,
+                description: 'You are not an admin',
+                data: null,
+            };
+        }
         const ticket = await this.ticketService.findOne({ id })
         this.ticketService.update(ticket.id, {status: "deleted"})
     }
@@ -242,4 +266,29 @@ export class TicketController {
         };
     }
 
+    @UseGuards(AuthGuard)
+    @Get('all')
+    async getAll(@Req() req: Request): Promise<any> {
+        const data = await this.jwtService.verifyAsync(req.cookies['jwt'])
+        const usr = await this.userService.findOne({id: data['id']})
+
+        if (usr.role != "admin") {
+            return {
+                status: 'KO',
+                code: HttpStatus.BAD_REQUEST,
+                description: 'You are not an admin',
+                data: null,
+            };
+        }
+
+        const tickets = await this.ticketService.all()
+        return {
+            status: 'OK',
+            code: HttpStatus.OK,
+            description: 'All tickets',
+            data: tickets,
+        };
+    }
 }
+
+
