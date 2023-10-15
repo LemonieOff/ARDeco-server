@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import {Column, Entity, PrimaryGeneratedColumn} from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity("ticket")
 export class Ticket {
@@ -21,6 +21,6 @@ export class Ticket {
     @Column()
     date: string; // The date of the ticket
 
-    @Column({type: "json"}) // The messages of the ticket
+    @Column("longtext") // The messages of the ticket
     messages: string;
 }
