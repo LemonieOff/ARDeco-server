@@ -2,28 +2,31 @@ import {
     Body,
     Controller,
     Get,
+    HttpStatus,
+    NotFoundException,
     Param,
+    Post,
     Put,
     Req,
     Res,
-    UseGuards,
+    UseGuards
 } from '@nestjs/common';
-import { TicketService } from './ticket.service';
-import { Request, Response } from 'express';
-import { AuthGuard } from '../auth/auth.guard';
-import { JwtService } from '@nestjs/jwt';
-import { Ticket } from './models/ticket.entity';
-import { QueryPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
-import {User} from "../user/models/user.entity";
-import {Gallery} from "../gallery/models/gallery.entity";
+import {TicketService} from './ticket.service';
+import {UserService} from 'src/user/user.service';
+import {Request, Response} from 'express';
+import {AuthGuard} from '../auth/auth.guard';
+import {JwtService} from '@nestjs/jwt';
+import {Ticket} from './models/ticket.entity';
+import {QueryPartialEntity} from 'typeorm/query-builder/QueryPartialEntity';
+import {TicketDto} from "./models/ticket.dto";
 
 @Controller('ticket')
 export class TicketController {
     constructor(
         private ticketService: TicketService,
         private jwtService: JwtService,
-    ) {
-    }
+        private userService: UserService,
+    ) {}
 
     @Get()
     all() {
@@ -31,21 +34,39 @@ export class TicketController {
     }
 
     @Get(':id')
-    async getOne(@Param('id') id: number) {
-        const requestedTicket = await this.ticketService.findOne({id: id});
-        console.log(requestedTicket);
-        if (requestedTicket === undefined || requestedTicket === null) {
+    async getOne(@Param('id') id: number,
+                 @Req() req: Request): Promise<any> {
+        const requestedTicket = await this.ticketService.findOne({ id });
+        const data = await this.jwtService.verifyAsync(req.cookies['jwt'])
+        const usr = await this.userService.findOne({id: data['id']})
+
+        if (!requestedTicket) {
             return {
                 status: 'KO',
-                code: 404,
+                code: HttpStatus.BAD_REQUEST,
                 description: 'Ticket was not found',
-                error: 'Ticket was not found',
+                data: null,
+            };
+        }
+        else if (requestedTicket.status == "deleted" && usr.role != "admin") {
+            return {
+                status: 'KO',
+                code: HttpStatus.BAD_REQUEST,
+                description: 'Ticket is deleted',
+                data: null,
+            };
+        }
+        else if (usr.id != requestedTicket.user_init_id && usr.role != "admin") {
+            return {
+                status: 'KO',
+                code: HttpStatus.BAD_REQUEST,
+                description: 'You are not the owner of this ticket',
                 data: null,
             };
         }
         return {
             status: 'OK',
-            code: 200,
+            code: HttpStatus.OK,
             description: 'Ticket has been found',
             data: {
                 id: requestedTicket.id,
@@ -56,12 +77,11 @@ export class TicketController {
 
     @UseGuards(AuthGuard)
     @Get('whoami')
-    async whoami(@Req() request: Request) {
+    async whoami(@Req() request: Request): Promise<any> {
         const cookie = request.cookies['jwt'];
         const data = await this.jwtService.verifyAsync(cookie);
-        return this.ticketService.findOne({id: data['id']});
+        return this.ticketService.findOne({ id: data['id'] });
     }
-
 
     @UseGuards(AuthGuard)
     @Put(':id')
@@ -71,31 +91,27 @@ export class TicketController {
         @Body() ticket: QueryPartialEntity<Ticket>,
         @Res({ passthrough: true }) res: Response,
     ) {
-        console.log(ticket);
         return await this.editTicket(req, id, ticket, res);
     }
 
-    async editTicket(
+    private async editTicket(
         req: Request,
         id: number,
         new_item: QueryPartialEntity<Ticket>,
         res: Response,
-    ) {
+    ): Promise<any> {
         try {
-            const item = await this.ticketService.findOne({id: id});
             const result = await this.ticketService.update(id, new_item);
-            res.status(200);
             return {
                 status: 'OK',
-                code: 200,
+                code: HttpStatus.OK,
                 description: 'Ticket was updated',
                 data: result,
             };
         } catch (e) {
-            res.status(400);
             return {
                 status: 'KO',
-                code: 400,
+                code: HttpStatus.BAD_REQUEST,
                 description: 'Ticket was not updated because of an error',
                 error: e,
                 data: null,
@@ -111,23 +127,119 @@ export class TicketController {
         @Body() ticket: QueryPartialEntity<Ticket>,
         @Res({ passthrough: true }) res: Response,
     ) {
-        console.log(ticket);
-
         ticket.status = "closed";
         return await this.editTicket(req, id, ticket, res);
     }
 
     @UseGuards(AuthGuard)
-    @Put('write/:id')
-    async writeMessage(
+    @Get('delete/:id')
+    async delete(@Param('id') id: number): Promise<any> {
+        const ticket = await this.ticketService.findOne({ id })
+        this.ticketService.update(ticket.id, {status: "deleted"})
+    }
+
+    @UseGuards(AuthGuard)
+    @Post('create')
+    async createTicket(
         @Req() req: Request,
-        @Param('id') id: number,
-        @Body() ticket: QueryPartialEntity<Ticket>,
+        @Body() ticket: TicketDto,
         @Res({ passthrough: true }) res: Response,
     ) {
-        console.log(ticket);
-        const requestedTicket = await this.ticketService.findOne({id: id});
-        ticket.messages = requestedTicket.messages = requestedTicket.messages.slice(0, -1) + "message" + "]";
-        return await this.editTicket(req, id, ticket, res);
+        const data = await this.jwtService.verifyAsync(req.cookies['jwt'])
+        const usr = await this.userService.findOne({id: data['id']})
+        const body = {
+            "title": ticket.title,
+            "description": ticket.description,
+            "messages": "[{\"sender\": \"" + usr.first_name + " " + usr.last_name + "\", \"content\": \"" + ticket.message + "\", \"timestamp\": \"" + Date.now().toLocaleString() + "\"}]",
+            "user_init_id": usr.id,
+            "status": "pending",
+            "date": Date.now(),
+        }
+        const ress = await this.ticketService.create(body)
+        console.log("ID", ress.id)
+        return {
+            status: 'OK',
+            code: HttpStatus.OK,
+            description: 'Ticket was created',
+            data: ress,
+        };
     }
+
+    @UseGuards(AuthGuard)
+    @Put('write/:id')
+    async writeTicket(
+        @Req() req: Request,
+        @Param('id') id: number,
+        @Body('message') message: string,
+        @Res({ passthrough: true }) res: Response,
+    ) {
+        const data = await this.jwtService.verifyAsync(req.cookies['jwt'])
+        const usr = await this.userService.findOne({id: data['id']})
+        const ticket = await this.ticketService.findOne({id: id})
+
+        try {
+            if (!ticket) {
+                return {
+                    status: 'KO',
+                    code: HttpStatus.BAD_REQUEST,
+                    description: 'Ticket was not found',
+                    data: null,
+                };
+            }
+            else if (ticket.status == "closed") {
+                return {
+                    status: 'KO',
+                    code: HttpStatus.BAD_REQUEST,
+                    description: 'Ticket is closed',
+                    data: null,
+                };
+            }
+            else if (ticket.status == "deleted") {
+                return {
+                    status: 'KO',
+                    code: HttpStatus.BAD_REQUEST,
+                    description: 'Ticket is deleted',
+                    data: null,
+                };
+            }
+            else if (usr.id != ticket.user_init_id && usr.role != "admin") {
+                return {
+                    status: 'KO',
+                    code: HttpStatus.BAD_REQUEST,
+                    description: 'You are not the owner of this ticket',
+                    data: null,
+                };
+            }
+            else if (message.length == 0) {
+                return {
+                    status: 'KO',
+                    code: HttpStatus.BAD_REQUEST,
+                    description: 'Message is empty',
+                    data: null,
+                };
+            }
+        } catch (e) {
+            return {
+                status: 'KO',
+                code: HttpStatus.BAD_REQUEST,
+                description: 'Ticket was not edited because of an error',
+                data: null,
+            };
+        }
+
+        let messages = ticket.messages
+        console.log("Messages", JSON.stringify(messages));
+        messages = messages.slice(0, -1) + ",{\"sender\": \"" + usr.first_name + " " + usr.last_name + "\", \"content\": \"" + message + "\", \"timestamp\": \"" + Date.now().toLocaleString() + "\"}]"
+        const body = {
+            "messages": messages
+        }
+        const ress = await this.ticketService.update(id, body)
+        return {
+            status: 'OK',
+            code: HttpStatus.OK,
+            description: 'Message was added to ticket',
+            data: ress,
+        };
+    }
+
 }

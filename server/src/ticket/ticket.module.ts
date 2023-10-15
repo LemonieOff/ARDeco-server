@@ -4,10 +4,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Ticket } from './models/ticket.entity';
 import { TicketController } from './ticket.controller';
 import { TicketService } from './ticket.service';
+import { UserModule } from '../user/user.module';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([Ticket]),
+        UserModule,
         JwtModule.register({
             secret: "secret",
             signOptions: { expiresIn: '1d' },
