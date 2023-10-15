@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty } from "class-validator"
+import { IsEmail, IsNotEmpty } from "class-validator";
 import { PrimaryGeneratedColumn } from "typeorm";
 
 export class LoginDto {
@@ -7,5 +7,5 @@ export class LoginDto {
 
     @IsNotEmpty()
     @IsEmail()
-    email : string
+    email: string;
 }

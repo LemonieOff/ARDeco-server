@@ -1,12 +1,12 @@
-import { IsEmail, IsNotEmpty } from "class-validator"
+import { IsEmail, IsNotEmpty } from "class-validator";
 
 export class TicketDto {
     @IsNotEmpty()
-    title : string
+    title: string;
 
     @IsNotEmpty()
-    description : string
+    description: string;
 
     @IsNotEmpty()
-    message : string
+    message: string;
 }

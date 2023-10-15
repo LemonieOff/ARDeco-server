@@ -1,5 +1,11 @@
 /* eslint-disable prettier/prettier */
-import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import {
+    Column,
+    Entity,
+    JoinColumn,
+    OneToOne,
+    PrimaryGeneratedColumn
+} from "typeorm";
 import { Cart } from "../../cart/models/cart.entity";
 
 @Entity("users")
