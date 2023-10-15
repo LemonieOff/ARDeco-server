@@ -42,7 +42,7 @@ export class AuthController {
         await this.authService.createReset({email: email, link : resetToken})
         console.log("rt:", resetToken)
 
-        this.mailService.sendMail(email, resetToken)
+        this.mailService.sendMailPassword(email, resetToken)
         return resetToken;
       }
 
@@ -203,9 +203,10 @@ export class AuthController {
     @Get('close')
     async deleteAccount(@Res({ passthrough: true }) response: Response,  @Req() request: Request) {
         const cookie = request.cookies['jwt']
-		const data = await this.jwtService.verifyAsync(cookie)
-		const usr = await this.userService.findOne({ id: data['id'] })
-        const cart = await this.cartService.findOne({id: usr.cart.id})
+        const data = await this.jwtService.verifyAsync(cookie)
+		console.log("id : ", data['id'])
+        const usr = await this.userService.findOne({ id: data['id'] })
+//        const cart = await this.cartService.findOne({id: usr.cart.id})
         this.userService.update(usr.id, {deleted: true})
         response.clearCookie('jwt')
         

@@ -68,6 +68,27 @@ export class MailService {
             });
     }
 
+    public async sendMailPassword(dest: string, content : string) {
+        await this.setTransport(await this.getToken());
+        this.mailerService
+            .sendMail({
+                transporterName: 'gmail',
+                to: dest, // list of receivers
+                from: 'noreply@nestjs.com', // sender address
+                subject: 'CHange password', // Subject line
+                template: './password',
+                context: {
+                    token : content
+                },
+            })
+            .then((success) => {
+                console.log(success);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    }
+
 
  
     private async getToken(){
