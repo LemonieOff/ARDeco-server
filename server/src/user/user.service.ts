@@ -29,6 +29,7 @@ export class UserService {
         id: number,
         data: QueryPartialEntity<User>
     ): Promise<UpdateResult> {
+        console.log("ID : ", id, ", DATA : ", data)
         return this.userRepository.update(id, data);
     }
 
