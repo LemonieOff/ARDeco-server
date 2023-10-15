@@ -8,7 +8,7 @@ async function bootstrap() {
     app.useGlobalPipes(new ValidationPipe());
     app.use(cookieParser());
     app.enableCors({
-      origin: 'http://localhost:3000', // Remplacez par l'URL de votre application Vue.js
+      origin: 'https://ardeco.app/',
       methods: 'POST',
     });
     await app.listen(8000);
