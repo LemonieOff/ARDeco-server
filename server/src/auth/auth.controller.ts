@@ -1,13 +1,16 @@
-import { Body, Controller, Get, Post, Req, Res, UseGuards } from "@nestjs/common";
-import { UserService } from "src/user/user.service";
-import * as bcrypt from "bcryptjs";
-import { RegisterDto } from "./models/register.dto";
-import { JwtService } from "@nestjs/jwt";
-import { Request, Response } from "express";
-import { AuthGuard } from "@nestjs/passport";
-import { MailService } from "../mail/mail.service";
-import { LoginDto } from "src/auth/models/login.dto";
-import { CartService } from "src/cart/cart.service";
+import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { UserService } from 'src/user/user.service';
+import * as bcrypt from 'bcryptjs';
+import { RegisterDto } from './models/register.dto';
+import { JwtService } from '@nestjs/jwt';
+import { Response, Request } from 'express';
+import { AuthGuard } from '@nestjs/passport'
+import { MailService } from '../mail/mail.service';
+import { sendMailDTO } from 'src/mail/models/sendMail.dto';
+import { LoginDto } from 'src/auth/models/login.dto';
+import { CatalogService } from 'src/catalog/catalog.service';
+import { CartService } from 'src/cart/cart.service';
+import { randomBytes } from 'crypto';
 
 // idclient 720605484975-ohe2u21jk3k6e2cdekgifiliipd4e6oh.apps.googleusercontent.com
 // secret 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
@@ -20,6 +23,23 @@ export class AuthController {
         private mailService: MailService,
         private cartService: CartService
     ) {}
+
+    @Post('reset')
+    async resetPassword(@Body('email') email: string) {
+        const user = await this.userService.findOne(email);
+
+        if (!user) {
+          throw new Error('User not found');
+        }
+
+        const resetToken = randomBytes(32).toString('hex');
+        const expirationDate = new Date();
+        expirationDate.setHours(expirationDate.getHours() + 1); // Lien valable pendant 1 heure
+
+        // await this.userRepository.saveResetLink(user.id, resetToken, expirationDate);
+        console.log(resetToken)
+        //return resetToken;
+      }
 
     @Post("register")
     async register(

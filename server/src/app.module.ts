@@ -17,6 +17,7 @@ import { PaymentsController } from "./payments/payments.controller";
 import { PaymentsService } from "./payments/payments.service";
 import { PaymentsModule } from "./payments/payments.module";
 import { OrderHistoryModule } from "./order_history/order_history_module";
+import { TicketModule } from './ticket/ticket.module';
 
 @Module({
     imports: [
@@ -44,7 +45,8 @@ import { OrderHistoryModule } from "./order_history/order_history_module";
             isGlobal: true // no need to import into other modules
         }),
         MailModule,
-        PaymentsModule
+        PaymentsModule,
+        TicketModule
     ],
     controllers: [AppController, PaymentsController],
     providers: [AppService, ConfigService, PaymentsService]
