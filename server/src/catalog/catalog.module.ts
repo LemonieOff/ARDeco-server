@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { forwardRef, Module } from "@nestjs/common";
 import { JwtModule } from "@nestjs/jwt";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Catalog } from "./models/catalog.entity";
@@ -15,7 +15,7 @@ import { ArchiveModule } from "../archive/archive.module";
             signOptions: { expiresIn: "1d" }
         }),
         UserModule,
-        ArchiveModule
+        forwardRef(() => ArchiveModule)
     ],
     controllers: [CatalogController],
     providers: [CatalogService],

@@ -18,6 +18,7 @@ import { PaymentsService } from "./payments/payments.service";
 import { PaymentsModule } from "./payments/payments.module";
 import { OrderHistoryModule } from "./order_history/order_history_module";
 import { TicketModule } from './ticket/ticket.module';
+import {ArchiveModule} from "./archive/archive.module";
 
 @Module({
     imports: [
@@ -46,7 +47,8 @@ import { TicketModule } from './ticket/ticket.module';
         }),
         MailModule,
         PaymentsModule,
-        TicketModule
+        TicketModule,
+        ArchiveModule
     ],
     controllers: [AppController, PaymentsController],
     providers: [AppService, ConfigService, PaymentsService]

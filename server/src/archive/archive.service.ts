@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { forwardRef, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Archive } from "./models/archive.entity";
@@ -10,6 +10,7 @@ export class ArchiveService {
     constructor(
         @InjectRepository(Archive)
         private readonly archiveRepository: Repository<Archive>,
+        @Inject(forwardRef(() => CatalogService))
         private readonly catalogService: CatalogService
     ) {}
 
