@@ -1,11 +1,10 @@
-import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
-import { UserModule } from '../user/user.module';
-import { AuthController } from './auth.controller';
-import { MailModule } from '../mail/mail.module';
-import { GoogleStrategy } from './google.strategy';
-import { CartModule } from 'src/cart/cart.module';
-import { CartService } from 'src/cart/cart.service';
+import { Module } from "@nestjs/common";
+import { JwtModule } from "@nestjs/jwt";
+import { UserModule } from "../user/user.module";
+import { AuthController } from "./auth.controller";
+import { MailModule } from "../mail/mail.module";
+import { GoogleStrategy } from "./google.strategy";
+import { CartModule } from "src/cart/cart.module";
 
 @Module({
     imports: [
@@ -14,14 +13,10 @@ import { CartService } from 'src/cart/cart.service';
         CartModule,
         JwtModule.register({
             secret: "secret",
-            signOptions: { expiresIn: '1d' },
-          }),
+            signOptions: { expiresIn: "1d" }
+        })
     ],
-    controllers: [
-        AuthController
-    ],
-    providers: [
-        GoogleStrategy
-    ]
+    controllers: [AuthController],
+    providers: [GoogleStrategy]
 })
 export class AuthModule {}

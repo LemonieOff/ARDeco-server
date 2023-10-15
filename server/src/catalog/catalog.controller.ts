@@ -1,4 +1,15 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query, Req, Res, UseGuards } from "@nestjs/common";
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Param,
+    Post,
+    Put,
+    Query,
+    Req,
+    Res
+} from "@nestjs/common";
 import { CatalogService } from "./catalog.service";
 import { UserService } from "../user/user.service";
 import { Request, Response } from "express";
@@ -13,36 +24,36 @@ export class CatalogController {
         private catalogService: CatalogService,
         private jwtService: JwtService,
         private userService: UserService
-    ) {
-    }
-
+    ) {}
 
     @Get()
     async getCatalog(@Query() filters: any) {
-        
-        let items = await this.catalogService.all()
-        
+        const items = await this.catalogService.all();
+
         if (!filters) {
             // If no filters provided, return all items
             return items;
-          }
-      
-          // Filter the catalog items based on the provided filters
-          let r = items.filter((item) => {
-            console.log(item)
-            let i = true
+        }
+
+        // Filter the catalog items based on the provided filters
+        return items.filter(item => {
+            console.log(item);
+            let i = true;
             for (const key in filters) {
-              console.log("Comp : ", item[key], " and ", filters[key])
-              if (item[key] == undefined)
-                return false
-              if (item[key].toString() !== filters[key]) {
-                console.log("comp : ", item[key].toString(), " : ", filters[key])
-                i = false; // Item doesn't match the filter condition
-              }
+                console.log("Comp : ", item[key], " and ", filters[key]);
+                if (item[key] == undefined) return false;
+                if (item[key].toString() !== filters[key]) {
+                    console.log(
+                        "comp : ",
+                        item[key].toString(),
+                        " : ",
+                        filters[key]
+                    );
+                    i = false; // Item doesn't match the filter condition
+                }
             }
             return i; // All filter conditions passed, include the item
         });
-        return r
     }
 
     @Post(":id/add")
@@ -50,17 +61,22 @@ export class CatalogController {
     L’intégralité des meubles seront vérifiés avant de les ajouter en base de données. Si un meuble est invalide, rien ne sera inscrit en base de données et une erreur sera retournée à l’utilisateur
     Si la requête aboutit, un code HTTP 201 sera renvoyé ainsi que les meubles et leurs propriétés dans un tableau d’objets JSON
     */
-    async add(@Req() req: Request, @Param("id") id: number, @Body() catalog: QueryPartialEntity<Catalog>[], @Res({ passthrough: true }) res: Response) {
+    async add(
+        @Req() req: Request,
+        @Param("id") id: number,
+        @Body() catalog: QueryPartialEntity<Catalog>[],
+        @Res({ passthrough: true }) res: Response
+    ) {
         const authorizedCompany = await this.checkAuthorization(req, res, id);
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
         if (!(catalog instanceof Array) || catalog.length === 0) {
             res.status(400);
             return {
-                "status": "KO",
-                "code": 400,
-                "description": "No object to register",
-                "data": null
+                status: "KO",
+                code: 400,
+                description: "No object to register",
+                data: null
             };
         }
 
@@ -78,76 +94,156 @@ export class CatalogController {
         if (errors.length > 0) {
             res.status(400);
             return {
-                "status": "KO",
-                "code": 400,
-                "description": errors,
-                "data": null
+                status: "KO",
+                code: 400,
+                description: errors,
+                data: null
             };
         }
 
         // If there are no errors, register each object in database
         for (let i = 0; i < catalog.length; i++) {
-            await this.catalogService.create(catalog[i]).catch((err) => {
+            await this.catalogService.create(catalog[i]).catch(err => {
                 console.error(err);
                 res.status(500);
                 return {
-                    "status": "KO",
-                    "code": 500,
-                    "description": "Internal server error",
-                    "data": null
+                    status: "KO",
+                    code: 500,
+                    description: "Internal server error",
+                    data: null
                 };
             });
         }
 
         res.status(201);
         return {
-            "status": "OK",
-            "code": 201,
-            "description": "Objects registered",
-            "data": catalog
+            status: "OK",
+            code: 201,
+            description: "Objects registered",
+            data: catalog
         };
     }
 
-
-    @Delete(":id/removeAll")
-    async removeAll(@Req() req: Request, @Param("id") id: number, @Res({ passthrough: true }) res: Response) {
-        const authorizedCompany = await this.checkAuthorization(req, res, id);
+    @Put(":company_id/edit/:object_id")
+    async update(
+        @Req() req: Request,
+        @Param("company_id") company_id: number,
+        @Param("object_id") object_id: string,
+        @Body() catalog: QueryPartialEntity<Catalog>,
+        @Res({ passthrough: true }) res: Response
+    ) {
+        const authorizedCompany = await this.checkAuthorization(
+            req,
+            res,
+            company_id
+        );
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
-        const removedObjects = await this.catalogService.deleteAllObjectsFromCompany(authorizedCompany.id);
-        if (removedObjects === null) {
+        const object = await this.catalogService.findOne({
+            object_id: object_id,
+            company: company_id
+        });
+
+        if (object === null) {
             res.status(400);
             return {
-                "status": "KO",
-                "code": 400,
-                "description": "Objects not removed",
-                "data": null
+                status: "KO",
+                code: 400,
+                description: "Object doesn't exist in the catalog",
+                data: null
+            };
+        }
+
+        catalog.object_id = object_id;
+
+        const errors = this.checkObject(authorizedCompany, catalog, 0, false);
+        if (errors.length > 0) {
+            res.status(400);
+            return {
+                status: "KO",
+                code: 400,
+                description: "Object not updated",
+                data: errors
+            };
+        }
+
+        const updatedObject = await this.catalogService.update(
+            object.id,
+            catalog
+        );
+        if (updatedObject === null) {
+            res.status(400);
+            return {
+                status: "KO",
+                code: 400,
+                description: "Object not updated",
+                data: null
             };
         }
 
         res.status(200);
         return {
-            "status": "OK",
-            "code": 200,
-            "description": "Objects removed",
-            "data": removedObjects
+            status: "OK",
+            code: 200,
+            description: "Object updated",
+            data: updatedObject
+        };
+    }
+
+    @Delete(":id/removeAll")
+    async removeAll(
+        @Req() req: Request,
+        @Param("id") id: number,
+        @Res({ passthrough: true }) res: Response
+    ) {
+        const authorizedCompany = await this.checkAuthorization(req, res, id);
+        if (!(authorizedCompany instanceof User)) return authorizedCompany;
+
+        const removedObjects =
+            await this.catalogService.deleteAllObjectsFromCompany(
+                authorizedCompany.id
+            );
+        if (removedObjects === null) {
+            res.status(400);
+            return {
+                status: "KO",
+                code: 400,
+                description: "Objects not removed",
+                data: null
+            };
+        }
+
+        res.status(200);
+        return {
+            status: "OK",
+            code: 200,
+            description: "Objects removed",
+            data: removedObjects
         };
     }
 
     @Delete(":id/remove/:object_id")
-    async removeOne(@Req() req: Request, @Param("id") id: number, @Param("object_id") object_id: string, @Res({ passthrough: true }) res: Response) {
+    async removeOne(
+        @Req() req: Request,
+        @Param("id") id: number,
+        @Param("object_id") object_id: string,
+        @Res({ passthrough: true }) res: Response
+    ) {
         const authorizedCompany = await this.checkAuthorization(req, res, id);
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
-        const object = await this.catalogService.findOne({ object_id: object_id });
+        const object = await this.catalogService.findOne({
+            object_id: object_id,
+            company: id
+        });
 
         if (object === null) {
             res.status(400);
             return {
-                "status": "KO",
-                "code": 400,
-                "description": "Object doesn't exists in catalog",
-                "data": null
+                status: "KO",
+                code: 400,
+                description: "Object doesn't exists in catalog",
+                data: null
             };
         }
 
@@ -155,34 +251,39 @@ export class CatalogController {
         if (removedObject === null) {
             res.status(400);
             return {
-                "status": "KO",
-                "code": 400,
-                "description": "Object doesn't exists in catalog",
-                "data": null
+                status: "KO",
+                code: 400,
+                description: "Object doesn't exists in catalog",
+                data: null
             };
         } else {
             res.status(200);
             return {
-                "status": "OK",
-                "code": 200,
-                "description": "Object successfully removed from catalog",
-                "data": removedObject
+                status: "OK",
+                code: 200,
+                description: "Object successfully removed from catalog",
+                data: removedObject
             };
         }
     }
 
     @Delete(":id/remove")
-    async remove(@Req() req: Request, @Param("id") id: number, @Body() objects: string[], @Res({ passthrough: true }) res: Response) {
+    async remove(
+        @Req() req: Request,
+        @Param("id") id: number,
+        @Body() objects: string[],
+        @Res({ passthrough: true }) res: Response
+    ) {
         const authorizedCompany = await this.checkAuthorization(req, res, id);
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
         if (objects.length === 0) {
             res.status(400);
             return {
-                "status": "KO",
-                "code": 400,
-                "description": "No object to remove from catalog",
-                "data": null
+                status: "KO",
+                code: 400,
+                description: "No object to remove from catalog",
+                data: null
             };
         }
 
@@ -191,10 +292,10 @@ export class CatalogController {
         if (this.checkIfDuplicateExists(objects)) {
             res.status(400);
             return {
-                "status": "KO",
-                "code": 400,
-                "description": "Duplicate object(s) id in request body",
-                "data": null
+                status: "KO",
+                code: 400,
+                description: "Duplicate object(s) id in request body",
+                data: null
             };
         }
 
@@ -203,18 +304,21 @@ export class CatalogController {
 
         for (let i = 0; i < objects.length; i++) {
             const object_id = objects[i];
-            const res = await this.catalogService.findOne({ object_id: object_id });
-            if (res == null) errors.push(i + " - \"object_id\" doesn't exists");
+            const res = await this.catalogService.findOne({
+                object_id: object_id,
+                company: id
+            });
+            if (res == null) errors.push(i + ' - "object_id" doesn\'t exists');
             else ids.push(res.id);
         }
 
         if (errors.length > 0 || ids.length === 0) {
             res.status(400);
             return {
-                "status": "KO",
-                "code": 400,
-                "description": "Some objects doesn't exists in catalog",
-                "data": errors
+                status: "KO",
+                code: 400,
+                description: "Some objects doesn't exists in catalog",
+                data: errors
             };
         }
 
@@ -222,18 +326,18 @@ export class CatalogController {
         if (removedObjects === null) {
             res.status(400);
             return {
-                "status": "KO",
-                "code": 400,
-                "description": "Some objects doesn't exists in catalog",
-                "data": null
+                status: "KO",
+                code: 400,
+                description: "Some objects doesn't exists in catalog",
+                data: null
             };
         } else {
             res.status(200);
             return {
-                "status": "OK",
-                "code": 200,
-                "description": "Objects successfully removed from catalog",
-                "data": removedObjects
+                status: "OK",
+                code: 200,
+                description: "Objects successfully removed from catalog",
+                data: removedObjects
             };
         }
     }
@@ -242,23 +346,35 @@ export class CatalogController {
         return new Set(arr).size !== arr.length;
     }
 
-    generateNewId(company: User, iteration: number = 0, max_iteration: number = 10): string {
+    generateNewId(company: User, iteration = 0, max_iteration = 10): string {
         if (iteration >= max_iteration) {
             throw new Error("Max iteration reached");
         }
 
-        const object_id = company.id.toString() + "-" + Math.floor(Math.random() * 1000000).toString();
-        this.catalogService.findOne({ object_id: object_id }).then((res) => {
+        const object_id =
+            company.id.toString() +
+            "-" +
+            Math.floor(Math.random() * 1000000).toString();
+        this.catalogService.findOne({ object_id: object_id }).then(res => {
             if (res !== null) {
                 console.error("Object id already exists");
-                return this.generateNewId(company, iteration + 1, max_iteration);
+                return this.generateNewId(
+                    company,
+                    iteration + 1,
+                    max_iteration
+                );
             }
         });
 
         return object_id;
     }
 
-    checkObject(company: User, catalog: QueryPartialEntity<Catalog>, number: number): string[] {
+    checkObject(
+        company: User,
+        catalog: QueryPartialEntity<Catalog>,
+        number: number,
+        check_id = true
+    ): string[] {
         catalog.company = company.id;
         if (!catalog.company_name) {
             catalog.company_name = company.first_name + "-" + company.last_name;
@@ -266,25 +382,55 @@ export class CatalogController {
 
         const errors: string[] = [];
 
-        if (!catalog.object_id) catalog.object_id = this.generateNewId(company);
-        else {
-            this.catalogService.findOne({ object_id: catalog.object_id }).then((res) => {
-                if (res !== null) errors.push(number + " - \"object_id\" already exists");
-            });
+        // In case of creation, we need to check if ID is missing to create one, or check if already exists
+        // But in update, we don't need to check if ID is missing or already existant, as the object is keeping its ID
+        // NOTE : Maybe let the company change the ID of an object ? (possibly a bad idea because it can break orders and order history)
+        if (check_id) {
+            if (!catalog.object_id)
+                catalog.object_id = this.generateNewId(company);
+            else {
+                this.catalogService
+                    .findOne({ object_id: catalog.object_id })
+                    .then(res => {
+                        if (res !== null)
+                            errors.push(
+                                number + ' - "object_id" already exists'
+                            );
+                    });
+            }
         }
 
-        if (!catalog.name) errors.push(number + " - \"name\" field is required");
-        if (!catalog.price) errors.push(number + " - \"Price\" field is required");
-        if (!catalog.styles) errors.push(number + " - \"Styles\" field is required");
-        if (!catalog.rooms) errors.push(number + " - \"Rooms\" field is required");
-        if (!catalog.width) errors.push(number + " - \"Width\" field is required");
-        if (!catalog.height) errors.push(number + " - \"Height\" field is required");
-        if (!catalog.depth) errors.push(number + " - \"Depth\" field is required");
-        if (!catalog.colors) errors.push(number + " - \"Colors\" field is required");
+        if (!catalog.name) errors.push(number + ' - "name" field is required');
+        if (!catalog.price)
+            errors.push(number + ' - "Price" field is required');
+        if (!catalog.styles)
+            errors.push(number + ' - "Styles" field is required');
+        if (!catalog.rooms)
+            errors.push(number + ' - "Rooms" field is required');
+        if (!catalog.width)
+            errors.push(number + ' - "Width" field is required');
+        if (!catalog.height)
+            errors.push(number + ' - "Height" field is required');
+        if (!catalog.depth)
+            errors.push(number + ' - "Depth" field is required');
+        if (!catalog.colors)
+            errors.push(number + ' - "Colors" field is required');
 
-        catalog.styles = catalog.styles.toString().split(",").map(x => x.trim()).join();
-        catalog.rooms = catalog.rooms.toString().split(",").map(x => x.trim()).join();
-        catalog.colors = catalog.colors.toString().split(",").map(x => x.trim()).join();
+        catalog.styles = catalog.styles
+            .toString()
+            .split(",")
+            .map(x => x.trim())
+            .join();
+        catalog.rooms = catalog.rooms
+            .toString()
+            .split(",")
+            .map(x => x.trim())
+            .join();
+        catalog.colors = catalog.colors
+            .toString()
+            .split(",")
+            .map(x => x.trim())
+            .join();
 
         return errors;
     }
@@ -297,10 +443,10 @@ export class CatalogController {
         if (!cookie || !data) {
             res.status(401);
             return {
-                "status": "KO",
-                "code": 401,
-                "description": "You are not connected",
-                "data": null
+                status: "KO",
+                code: 401,
+                description: "You are not connected",
+                data: null
             };
         }
 
@@ -308,10 +454,10 @@ export class CatalogController {
         if (id.toString() !== data["id"].toString()) {
             res.status(403);
             return {
-                "status": "KO",
-                "code": 403,
-                "description": "You are not allowed to access this resource",
-                "data": null
+                status: "KO",
+                code: 403,
+                description: "You are not allowed to access this resource",
+                data: null
             };
         }
 
@@ -319,20 +465,22 @@ export class CatalogController {
         if (!company) {
             res.status(403);
             return {
-                "status": "KO",
-                "code": 403,
-                "description": "Your user doesn't exists ant can't access this resource",
-                "data": null
+                status: "KO",
+                code: 403,
+                description:
+                    "Your user doesn't exists ant can't access this resource",
+                data: null
             };
         }
 
         if (!company["company_api_key"]) {
             res.status(403);
             return {
-                "status": "KO",
-                "code": 401,
-                "description": "You don't have any API key, please generate one before using this endpoint",
-                "data": null
+                status: "KO",
+                code: 401,
+                description:
+                    "You don't have any API key, please generate one before using this endpoint",
+                data: null
             };
         }
 
@@ -340,10 +488,11 @@ export class CatalogController {
         if (company.company_api_key !== req.query["company_api_key"]) {
             res.status(403);
             return {
-                "status": "KO",
-                "code": 401,
-                "description": "API key is not valid in \"company_api_key\" query parameter",
-                "data": null
+                status: "KO",
+                code: 401,
+                description:
+                    'API key is not valid in "company_api_key" query parameter',
+                data: null
             };
         }
 

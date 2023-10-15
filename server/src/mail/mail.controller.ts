@@ -1,14 +1,14 @@
-import { Controller, Get, Body } from '@nestjs/common';
-import { MailService } from './mail.service';
-import { sendMailDTO } from './models/sendMail.dto';
+import { Body, Controller, Get } from "@nestjs/common";
+import { MailService } from "./mail.service";
+import { sendMailDTO } from "./models/sendMail.dto";
 
-@Controller('mail')
+@Controller("mail")
 export class MailController {
-    constructor(private mailService:MailService) {}
+    constructor(private mailService: MailService) {}
 
     @Get()
     basic(@Body() sendMail: sendMailDTO) {
-        this.mailService.sendMail(sendMail.email)
-        return 'send'
+        this.mailService.sendMail(sendMail.email);
+        return "send";
     }
 }

@@ -18,7 +18,5 @@ import { Archive } from "./models/archive.entity";
     controllers: [ArchiveController],
     providers: [ArchiveService],
     exports: [ArchiveService]
-
 })
-export class ArchiveModule {
-}
+export class ArchiveModule {}
