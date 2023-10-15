@@ -1,38 +1,37 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, UpdateResult } from "typeorm";
-import { User } from './models/user.entity';
+import { Reset } from './models/password_reset.entity';
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
 @Injectable()
-export class UserService {
+export class AuthService {
     constructor(
-        @InjectRepository(User) private readonly userRepository: Repository<User>,
+        @InjectRepository(Reset) private readonly userRepository: Repository<Reset>,
         ) {}
 
-        async all() : Promise<User[]> {
+        async allReset() : Promise<Reset[]> {
             return this.userRepository.find();
         }
 
-        async create(data) : Promise<User> {
+        async createReset(data) : Promise<Reset> {
             const u = this.userRepository.save(data)
             console.log('Create user :', await u)
             return u
         }
         
-        async findOne(condit): Promise<User> {
+        async findOneReset(condit): Promise<Reset> {
             return this.userRepository.findOne({where: condit})
         }
 
-        async update(id: number, data: QueryPartialEntity<User>) : Promise<UpdateResult> {
-            console.log("ID : ", id, ", DATA : ", data)
+        async updateReset(id: number, data: QueryPartialEntity<Reset>) : Promise<UpdateResult> {
             return this.userRepository.update(id, data)
         }
 
-        async delete(id: number): Promise<any> {
+        async deleteReset(id: number): Promise<any> {
             //return this.userRepository.delete(id);
             console.log("Deleting user ", id)
-            this.userRepository.createQueryBuilder('user').delete().from(User).where("id = id", {id: id}).execute()
+            this.userRepository.createQueryBuilder('user').delete().from(Reset).where("id = id", {id: id}).execute()
         }
         
 

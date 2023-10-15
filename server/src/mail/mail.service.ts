@@ -45,9 +45,7 @@ export class MailService {
         this.mailerService.addTransporter('gmail', config);
     }
  
-    public async sendMail(dest: string) {
-        //const token = await this.getToken()
-        //console.log("Then : ", await this.getToken())
+    public async sendMail(dest: string, content : string) {
         await this.setTransport(await this.getToken());
         this.mailerService
             .sendMail({
@@ -59,7 +57,7 @@ export class MailService {
                 context: {
                     name: "name",
                     url: "test.com",
-                    code: '38320',
+                    code: content,
                 },
             })
             .then((success) => {
@@ -69,6 +67,8 @@ export class MailService {
                 console.log(err);
             });
     }
+
+
  
     private async getToken(){
         const axios = require('axios');

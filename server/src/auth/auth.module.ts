@@ -6,9 +6,13 @@ import { MailModule } from '../mail/mail.module';
 import { GoogleStrategy } from './google.strategy';
 import { CartModule } from 'src/cart/cart.module';
 import { CartService } from 'src/cart/cart.service';
+import { AuthService } from './auth.service';
+import { Reset } from './models/password_reset.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
     imports: [
+        TypeOrmModule.forFeature([Reset]),
         UserModule,
         MailModule,
         CartModule,
@@ -21,7 +25,7 @@ import { CartService } from 'src/cart/cart.service';
         AuthController
     ],
     providers: [
-        GoogleStrategy
+        GoogleStrategy, AuthService
     ]
 })
 export class AuthModule {}

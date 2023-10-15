@@ -11,6 +11,8 @@ import { LoginDto } from 'src/auth/models/login.dto';
 import { CatalogService } from 'src/catalog/catalog.service';
 import { CartService } from 'src/cart/cart.service';
 import { randomBytes } from 'crypto';
+import { AuthService } from './auth.service';
+import { use } from 'passport';
 
 
 // idclient 720605484975-ohe2u21jk3k6e2cdekgifiliipd4e6oh.apps.googleusercontent.com
@@ -23,25 +25,40 @@ export class AuthController {
         private userService: UserService,
         private jwtService: JwtService,
         private mailService: MailService,
-        private cartService: CartService
+        private cartService: CartService,
+        private authService: AuthService
     ) { }
 
     @Post('reset')
     async resetPassword(@Body('email') email: string) {
-        const user = await this.userService.findOne(email);
-
+        console.log("email", email)
+        const user = await this.userService.findOne({email: email});
         if (!user) {
           throw new Error('User not found');
         }
-    
         const resetToken = randomBytes(32).toString('hex');
         const expirationDate = new Date();
         expirationDate.setHours(expirationDate.getHours() + 1); // Lien valable pendant 1 heure
-    
-        // await this.userRepository.saveResetLink(user.id, resetToken, expirationDate);
-        console.log(resetToken)
-        //return resetToken;
+        await this.authService.createReset({email: email, link : resetToken})
+        console.log("rt:", resetToken)
+
+        this.mailService.sendMail(email, resetToken)
+        return resetToken;
       }
+
+      @Post('resetConfirm')
+      async confirmReset(@Body('password') password: string, @Body('token') token: string) {
+          console.log("passord, token", password, ", ", token)
+          const reset = await this.authService.findOneReset({link: token});
+          if (!reset) {
+            throw new Error('reset not found');
+          }
+          console.log(token)
+          const user = await this.userService.findOne({email: reset.email})
+          user.password  = password
+          console.log(await this.userService.update(user.id, user))
+          return "Password changed";
+    }
 
     @Post('register')
     async register(@Body() body: RegisterDto,
