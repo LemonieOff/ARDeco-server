@@ -22,6 +22,10 @@ export class ArchiveService {
         return await this.archiveRepository.findOne({ where: { id: id } });
     }
 
+    async findByObjectId(id: string): Promise<Archive> {
+        return await this.archiveRepository.findOne({ where: { object_id: id } });
+    }
+
     async findAllObjectsFromCompany(id: number): Promise<Archive[]> {
         return this.archiveRepository.find({ where: { company: id } });
     }
@@ -32,9 +36,9 @@ export class ArchiveService {
         return backup;
     }
 
-    async restore(id: number): Promise<Catalog> {
-        const backup = await this.findById(id);
-        await this.archiveRepository.delete(id);
+    async restore(id: string): Promise<Catalog> {
+        const backup = await this.findByObjectId(id);
+        await this.archiveRepository.delete(backup.id);
         return await this.catalogService.create(backup);
     }
 }

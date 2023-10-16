@@ -416,6 +416,8 @@ export class CatalogController {
         if (!catalog.colors)
             errors.push(number + ' - "Colors" field is required');
 
+        if (errors.length > 0) return errors;
+
         catalog.styles = catalog.styles
             .toString()
             .split(",")
