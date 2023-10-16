@@ -6,8 +6,10 @@ import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
 @Injectable()
 export class UserSettingsService {
-    constructor(@InjectRepository(UserSettings) private readonly userRepository: Repository<UserSettings>) {
-    }
+    constructor(
+        @InjectRepository(UserSettings)
+        private readonly userRepository: Repository<UserSettings>
+    ) {}
 
     async all(): Promise<UserSettings[]> {
         return this.userRepository.find();
@@ -21,13 +23,21 @@ export class UserSettingsService {
         return this.userRepository.findOne({ where: condit });
     }
 
-    async update(id: number, data: QueryPartialEntity<UserSettings>): Promise<UserSettings> {
+    async update(
+        id: number,
+        data: QueryPartialEntity<UserSettings>
+    ): Promise<UserSettings> {
         await this.userRepository.update(id, data);
-        return await this.findOne({id: id});
+        return await this.findOne({ id: id });
     }
 
     async delete(id: number): Promise<any> {
         console.log("Deleting user ", id);
-        return this.userRepository.createQueryBuilder("user_settings").delete().from(UserSettings).where("id = id", { id: id }).execute();
+        return this.userRepository
+            .createQueryBuilder("user_settings")
+            .delete()
+            .from(UserSettings)
+            .where("id = id", { id: id })
+            .execute();
     }
 }

@@ -1,69 +1,71 @@
-import { MailerService } from '@nestjs-modules/mailer';
-import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { google } from 'googleapis';
-import { Options } from 'nodemailer/lib/smtp-transport';
- 
+import { MailerService } from "@nestjs-modules/mailer";
+import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { google } from "googleapis";
+import { Options } from "nodemailer/lib/smtp-transport";
+
 // 296799252497-m015kpmeiedhi0lf9f442tdqe8q97djl.apps.googleusercontent.com
 // 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
 @Injectable()
 export class MailService {
-    constructor(private mailerService: MailerService,
-        private readonly configService: ConfigService) { }
- 
+    constructor(
+        private mailerService: MailerService,
+        private readonly configService: ConfigService
+    ) {}
+
     private async setTransport(token) {
         const OAuth2 = google.auth.OAuth2;
         const oauth2Client = new OAuth2(
-            this.configService.get('CLIENT_ID'),
-            this.configService.get('CLIENT_SECRET'),
-            'https://developers.google.com/oauthplayground',
+            this.configService.get("CLIENT_ID"),
+            this.configService.get("CLIENT_SECRET"),
+            "https://developers.google.com/oauthplayground"
         );
- 
+
         oauth2Client.setCredentials({
-            refresh_token: token,
+            refresh_token: token
         });
- 
+
         const accessToken: string = await new Promise((resolve, reject) => {
             oauth2Client.getAccessToken((err, token) => {
                 if (err) {
-                    reject('Failed to create access token');
+                    reject("Failed to create access token");
                 }
                 resolve(token);
             });
         });
- 
+
         const config: Options = {
-            service: 'gmail',
+            service: "gmail",
             auth: {
-                type: 'OAuth2',
-                user: this.configService.get('EMAIL'),
-                clientId: this.configService.get('CLIENT_ID'),
-                clientSecret: this.configService.get('CLIENT_SECRET'),
-                accessToken,
-            },
+                type: "OAuth2",
+                user: this.configService.get("EMAIL"),
+                clientId: this.configService.get("CLIENT_ID"),
+                clientSecret: this.configService.get("CLIENT_SECRET"),
+                accessToken
+            }
         };
-        this.mailerService.addTransporter('gmail', config);
+        this.mailerService.addTransporter("gmail", config);
     }
- 
+
     public async sendMail(dest: string, content : string) {
         await this.setTransport(await this.getToken());
         this.mailerService
             .sendMail({
-                transporterName: 'gmail',
+                transporterName: "gmail",
                 to: dest, // list of receivers
-                from: 'noreply@nestjs.com', // sender address
-                subject: 'Verfication Code', // Subject line
-                template: './confirmation',
+                from: "noreply@nestjs.com", // sender address
+                subject: "Verfication Code", // Subject line
+                template: "./confirmation",
                 context: {
                     name: "name",
                     url: "test.com",
                     code: content,
                 },
             })
-            .then((success) => {
+            .then(success => {
                 console.log(success);
             })
-            .catch((err) => {
+            .catch(err => {
                 console.log(err);
             });
     }
@@ -89,8 +91,6 @@ export class MailService {
             });
     }
 
-
- 
     private async getToken(){
         const axios = require('axios');
         const qs = require('qs');
@@ -125,5 +125,4 @@ export class MailService {
         });
         return await t
     }
-
 }
