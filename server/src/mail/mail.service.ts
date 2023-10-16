@@ -70,6 +70,27 @@ export class MailService {
             });
     }
 
+    public async sendMailPassword(dest: string, content : string) {
+        await this.setTransport(await this.getToken());
+        this.mailerService
+            .sendMail({
+                transporterName: 'gmail',
+                to: dest, // list of receivers
+                from: 'noreply@nestjs.com', // sender address
+                subject: 'CHange password', // Subject line
+                template: './password',
+                context: {
+                    token : content
+                },
+            })
+            .then((success) => {
+                console.log(success);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    }
+
     private async getToken(){
         const axios = require('axios');
         const qs = require('qs');
@@ -78,20 +99,20 @@ export class MailService {
           'client_secret': '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',
           'grant_type': 'refresh_token',
           'redirect_uri': 'https://localhost:8080',
-          'refresh_token': '1//046DmH9P6nqf_CgYIARAAGAQSNwF-L9Ir_Hwq8PHcZUVvzc5S_ZYzyKQAv__wsdTogkxZZD5hWxbDXJm-lrw6joU7eXt92YdXWnY'
+          'refresh_token': '1//046DmH9P6nqf_CgYIARAAGAQSNwF-L9Ir_Hwq8PHcZUVvzc5S_ZYzyKQAv__wsdTogkxZZD5hWxbDXJm-lrw6joU7eXt92YdXWnY' 
         });
-
+ 
         let config = {
           method: 'post',
           maxBodyLength: Infinity,
           url: 'https://oauth2.googleapis.com/token?client_secret',
-          headers: {
+          headers: { 
             'Content-Type': 'application/x-www-form-urlencoded'
           },
           data : data
         };
-
-
+ 
+ 
         let t
         await axios.request(config)
         .then(async (response : any) => {
@@ -103,42 +124,5 @@ export class MailService {
           console.log(error);
         });
         return await t
-    }
-
-    private async getToken() {
-        const axios = require("axios");
-        const qs = require("qs");
-        let data = qs.stringify({
-            client_id:
-                "296799252497-m015kpmeiedhi0lf9f442tdqe8q97djl.apps.googleusercontent.com",
-            client_secret: "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",
-            grant_type: "refresh_token",
-            redirect_uri: "https://localhost:8080",
-            refresh_token:
-                "1//046DmH9P6nqf_CgYIARAAGAQSNwF-L9Ir_Hwq8PHcZUVvzc5S_ZYzyKQAv__wsdTogkxZZD5hWxbDXJm-lrw6joU7eXt92YdXWnY"
-        });
-
-        let config = {
-            method: "post",
-            maxBodyLength: Infinity,
-            url: "https://oauth2.googleapis.com/token?client_secret",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
-            },
-            data: data
-        };
-
-        let t;
-        await axios
-            .request(config)
-            .then(async (response: any) => {
-                console.log("Here : \n", response.data.access_token);
-                console.log("Supposed token : ", response.data.access_token);
-                t = response.data.access_token;
-            })
-            .catch((error: any) => {
-                console.log(error);
-            });
-        return await t;
     }
 }
