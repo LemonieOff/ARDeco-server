@@ -13,7 +13,7 @@ services:
       DB_PORT: 3306
       DB_NAME: ardeco
       DB_USER: root
-      DB_PASSWORD: root
+      DB_PASSWORD: mnw4xav-bud*eha*DCE
 
   db:
     image: mysql:latest 
