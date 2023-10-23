@@ -20,7 +20,7 @@ services:
     restart: always
     environment:
       MYSQL_DATABASE: ardeco
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: mnw4xav-bud*eha*DCE
     volumes:
       - dbdata:/var/lib/mysql
     ports:
