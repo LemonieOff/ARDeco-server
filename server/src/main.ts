@@ -11,6 +11,11 @@ async function bootstrap() {
       origin: 'https://ardeco.app/',
       methods: 'POST',
     });
+    app.enableCors({
+        origin: 'http://localhost:63342',
+        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+        credentials: true,
+    });
     await app.listen(8000);
 }
 

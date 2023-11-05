@@ -7,11 +7,13 @@ export class AuthGuard implements CanActivate {
 
     canActivate(context: ExecutionContext) {
         const request = context.switchToHttp().getRequest();
+        console.log("request", request);
         try {
             const jwt = request.cookies["jwt"];
+            console.log("cookie jwt", jwt);
             return this.jwtService.verify(jwt);
         } catch (err) {
-            console.log("Auth guard didn't pass");
+            console.log("Auth guard didn't pass + error: ", err);
             return false;
         }
     }
