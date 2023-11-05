@@ -3,6 +3,7 @@ import {
     Controller,
     Get,
     HttpStatus,
+    NotFoundException,
     Param,
     Post,
     Put,
@@ -275,8 +276,10 @@ export class TicketController {
     }
 
     private async editTicket(
+        req: Request,
         id: number,
         new_item: QueryPartialEntity<Ticket>,
+        res: Response,
     ): Promise<any> {
         try {
             const result = await this.ticketService.update(id, new_item);
