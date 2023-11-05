@@ -7,10 +7,7 @@ async function bootstrap() {
     const app = await NestFactory.create(AppModule);
     app.useGlobalPipes(new ValidationPipe());
     app.use(cookieParser());
-    app.enableCors({
-      origin: 'https://ardeco.app/',
-      methods: 'POST',
-    });
+    app.enableCors();
     await app.listen(8000);
 }
 
