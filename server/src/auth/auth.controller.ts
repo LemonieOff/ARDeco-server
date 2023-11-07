@@ -197,6 +197,15 @@ export class AuthController {
                 }
             }
             return {
+                "status": "OK",
+                "description": "User is successfully logged in",
+                "code": 200,
+                "data": {
+                    "jwt": jwt,
+                    "userID": (await this.userService.findOne({email: req.user.email})).id,
+                }
+            }
+            return {
                 status: "KO",
                 description: "User already created",
                 code: 424

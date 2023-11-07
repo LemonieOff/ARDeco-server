@@ -3,6 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Catalog } from "./models/catalog.entity";
 import { ArchiveService } from "../archive/archive.service";
+import { CatalogFilterDto } from "./models/catalog-filter.dto";
 
 @Injectable()
 export class CatalogService {
@@ -76,5 +77,4 @@ export class CatalogService {
     
         return whereClause;
       }
-
 }
