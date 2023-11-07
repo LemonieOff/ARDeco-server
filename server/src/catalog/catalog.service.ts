@@ -55,4 +55,26 @@ export class CatalogService {
         await this.archiveService.create(backup);
         return backup;
     }
+    async filterCatalog(filterDto: CatalogFilterDto): Promise<Catalog[]> {
+        // Implement your filtering logic based on the provided criteria
+        return this.catalogRepository.find({
+          where: filterDto,
+        });
+      }
+    
+    
+      private buildWhereClause(filterDto: CatalogFilterDto): object {
+        const whereClause: any = {};
+    
+        // Add conditions for each property in the filterDto
+        console.log("1", whereClause)
+        if (filterDto.width) {
+          whereClause.width = filterDto.width;
+        }
+        console.log("2", whereClause)
+        // Add other conditions as needed for additional properties
+    
+        return whereClause;
+      }
+
 }

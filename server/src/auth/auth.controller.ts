@@ -84,11 +84,11 @@ export class AuthController {
         const hashed = await bcrypt.hash(body.password, 12);
         body.password = hashed;
         try {
-            const res = await this.userService.create(body);
-            ///this.mailService.sendMail({"email": body.email, "content": `Salut ${body.first_name}, Bienvenue a toi`}) // To uncomment
-            console.log("ID", res.id);
-            const jwt = await this.jwtService.signAsync({ id: res.id });
-            response.cookie("jwt", jwt, { httpOnly: true });
+            const res = await this.userService.create(body)
+            this.mailService.sendMail(body.email, "Welcome") // To uncomment
+            console.log("ID", res.id)
+            const jwt = await this.jwtService.signAsync({ id: res.id })
+            response.cookie("jwt", jwt, { httpOnly: true })
             return {
                 status: "OK",
                 description: "User was created",
@@ -182,8 +182,20 @@ export class AuthController {
         if (!req.user) {
             return "No user from google";
         }
-        console.log("req :", req);
-        if (await this.userService.findOne({ email: req.user.email })) {
+        console.log("req :", req)
+        if (await this.userService.findOne({email: req.user.email})) {
+            const jwt = await this.jwtService.signAsync({ id: (await this.userService.findOne({email: req.user.email})).id })
+            response.cookie("jwt", jwt, { httpOnly: true })
+            response.status(200);
+            return {
+                "status": "OK",
+                "description": "User is successfully logged in",
+                "code": 200,
+                "data": {
+                    "jwt": jwt,
+                    "userID": (await this.userService.findOne({email: req.user.email})).id,
+                }
+            }
             return {
                 status: "KO",
                 description: "User already created",
