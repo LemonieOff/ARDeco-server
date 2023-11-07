@@ -18,8 +18,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         CartModule,
         JwtModule.register({
             secret: "secret",
-            signOptions: { expiresIn: '1d' },
-          }),
+            signOptions: { expiresIn: "1d" }
+        })
     ],
     controllers: [
         AuthController

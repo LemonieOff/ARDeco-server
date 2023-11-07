@@ -1,10 +1,11 @@
-import { Module } from "@nestjs/common";
+import { forwardRef, Module } from "@nestjs/common";
 import { JwtModule } from "@nestjs/jwt";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { UserModule } from "../user/user.module";
 import { ArchiveService } from "./archive.service";
 import { ArchiveController } from "./archive.controller";
 import { Archive } from "./models/archive.entity";
+import { CatalogModule } from "../catalog/catalog.module";
 
 @Module({
     imports: [
@@ -13,12 +14,11 @@ import { Archive } from "./models/archive.entity";
             secret: "secret",
             signOptions: { expiresIn: "1d" }
         }),
-        UserModule
+        UserModule,
+        forwardRef(() => CatalogModule)
     ],
     controllers: [ArchiveController],
     providers: [ArchiveService],
     exports: [ArchiveService]
-
 })
-export class ArchiveModule {
-}
+export class ArchiveModule {}

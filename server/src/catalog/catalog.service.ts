@@ -1,25 +1,24 @@
-import { Injectable } from "@nestjs/common";
+import { forwardRef, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Catalog } from "./models/catalog.entity";
-import { ArchiveService } from "./archive.service";
+import { ArchiveService } from "../archive/archive.service";
 
 @Injectable()
 export class CatalogService {
     constructor(
-        @InjectRepository(Catalog) private readonly catalogRepository: Repository<Catalog>,
+        @InjectRepository(Catalog)
+        private readonly catalogRepository: Repository<Catalog>,
+        @Inject(forwardRef(() => ArchiveService))
         private readonly archiveService: ArchiveService
-    ) {
-    }
+    ) {}
 
     async all(): Promise<Catalog[]> {
         return this.catalogRepository.find();
     }
 
     async create(data): Promise<Catalog> {
-        const article = await this.catalogRepository.save(data);
-        console.log("Create catalog :", article);
-        return article;
+        return await this.catalogRepository.save(data);
     }
 
     async findOne(condit): Promise<Catalog> {
@@ -49,10 +48,11 @@ export class CatalogService {
     }
 
     async deleteAllObjectsFromCompany(company_id: number) {
-        const backup = await this.catalogRepository.find({ where: { company: company_id } });
+        const backup = await this.catalogRepository.find({
+            where: { company: company_id }
+        });
         await this.catalogRepository.delete({ company: company_id });
         await this.archiveService.create(backup);
         return backup;
     }
-
 }

@@ -1,8 +1,13 @@
-import { Column, Entity, PrimaryGeneratedColumn, ManyToMany, JoinTable, OneToOne, JoinColumn } from "typeorm";
-import { Catalog } from "../../catalog/models/catalog.entity";
+import {
+    Column,
+    Entity,
+    JoinColumn,
+    OneToOne,
+    PrimaryGeneratedColumn
+} from "typeorm";
 import { User } from "../../user/models/user.entity";
 
-@Entity('cart')
+@Entity("cart")
 export class Cart {
     @PrimaryGeneratedColumn()
     id: number;
