@@ -437,7 +437,10 @@ export class TicketController {
 
         let messages = ticket.messages
         console.log("Messages", JSON.stringify(messages));
-        messages = messages.slice(0, -1) + ",{\"sender\": \"" + usr.first_name + " " + usr.last_name + "\", \"content\": \"" + message + "\", \"timestamp\": \"" + Date.now().toLocaleString() + "\"}]"
+        if (usr.role == "admin") {
+            messages = messages.slice(0, -1) + ",{\"sender\": \"" + "Support" + "\", \"content\": \"" + message + "\", \"timestamp\": \"" + Date.now().toLocaleString() + "\"}]"
+        }
+        else messages = messages.slice(0, -1) + ",{\"sender\": \"" + usr.first_name + " " + usr.last_name + "\", \"content\": \"" + message + "\", \"timestamp\": \"" + Date.now().toLocaleString() + "\"}]"
         const body = {
             "messages": messages
         }
