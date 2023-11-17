@@ -88,7 +88,7 @@ export class AuthController {
             ///this.mailService.sendMail({"email": body.email, "content": `Salut ${body.first_name}, Bienvenue a toi`}) // To uncomment
             console.log("ID", res.id);
             const jwt = await this.jwtService.signAsync({ id: res.id });
-            response.cookie("jwt", jwt, { httpOnly: true });
+            response.cookie("jwt", jwt, { httpOnly: true, sameSite: "none", secure: true });
             return {
                 status: "OK",
                 description: "User was created",
@@ -145,7 +145,7 @@ export class AuthController {
             const jwt = await this.jwtService.signAsync({
                 id: requestedUserByEmail.id
             });
-            response.cookie("jwt", jwt, { httpOnly: true });
+            response.cookie("jwt", jwt, { httpOnly: true, sameSite: "none", secure: true });
             response.status(200);
             return {
                 status: "OK",
@@ -203,7 +203,7 @@ export class AuthController {
         const res = await this.userService.create(body);
         console.log("ID", res.id);
         const jwt = await this.jwtService.signAsync({ id: res.id });
-        response.cookie("jwt", jwt, { httpOnly: true });
+        response.cookie("jwt", jwt, { httpOnly: true, sameSite: "none", secure: true });
         return {
             message: "User information from google",
             user: req.user
