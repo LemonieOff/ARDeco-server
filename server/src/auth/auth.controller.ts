@@ -168,6 +168,75 @@ export class AuthController {
         }
     }
 
+    @Get("checkjwt/:userID")
+    async checkJwt(@Req() request: Request, @Res({ passthrough: true }) response: Response) {
+        const userID = Number(request.params.userID);
+
+        if (isNaN(userID)) {
+            response.status(422);
+            return {
+                status: "KO",
+                code: 422,
+                description: "ID is not a number",
+            };
+        }
+
+        const cookie = request.cookies['jwt'];
+        if (!cookie) {
+            response.status(401);
+            return {
+                status: "KO",
+                code: 401,
+                description: "JWT must be provided",
+            };
+        }
+
+        const data = await this.jwtService.verifyAsync(cookie);
+        if (!data) {
+            response.status(401);
+            return {
+                status: "KO",
+                code: 401,
+                description: "JWT is not valid",
+            };
+        }
+
+        if (data['id'] !== userID) {
+            response.status(401);
+            return {
+                status: "KO",
+                code: 401,
+                description: "JWT is not valid for this user, ID is not the same",
+            };
+        }
+
+        const usr = await this.userService.findOne({ id: userID });
+        if (!usr) {
+            response.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description: "User not found",
+            };
+        }
+
+        if (usr && usr.email === data['email']) {
+            response.status(200);
+            return {
+                status: "OK",
+                code: 200,
+                description: "JWT is valid for this user",
+            };
+        } else {
+            response.status(401);
+            return {
+                status: "KO",
+                code: 401,
+                description: "JWT is not valid for this user, email is not the same",
+            };
+        }
+    }
+
     @Get("register/google")
     @UseGuards(AuthGuard("google"))
     async googleAuth(@Req() req) {
