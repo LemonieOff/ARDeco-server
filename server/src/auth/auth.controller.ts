@@ -113,12 +113,6 @@ export class AuthController {
         const requestedUserByEmail = await this.userService.findOne({
             email: body.email
         });
-        if (requestedUserByEmail.deleted)
-            return {
-                status: "KO",
-                description: "Account deleted",
-                code: 401
-            };
         if (!requestedUserByEmail) {
             response.status(401);
             return {
@@ -126,6 +120,14 @@ export class AuthController {
                 description: "Wrong email or password",
                 code: 401,
                 data: body.email
+            };
+        }
+        if (requestedUserByEmail.deleted) {
+            response.status(401);
+            return {
+                status: "KO",
+                description: "Account deleted",
+                code: 401
             };
         }
         if (
