@@ -3,6 +3,8 @@ import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { google } from "googleapis";
 import { Options } from "nodemailer/lib/smtp-transport";
+import { sendMailDTO } from "./models/sendMail.dto";
+import { sendMailPasswordDTO } from "./models/sendMailPassword";
 
 // 296799252497-m015kpmeiedhi0lf9f442tdqe8q97djl.apps.googleusercontent.com
 // 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
@@ -47,19 +49,18 @@ export class MailService {
         this.mailerService.addTransporter("gmail", config);
     }
 
-    public async sendMail(dest: string, content : string) {
+    public async sendMail(content : sendMailDTO) {
         await this.setTransport(await this.getToken());
         this.mailerService
             .sendMail({
                 transporterName: "gmail",
-                to: dest, // list of receivers
+                to: content.email, // list of receivers
                 from: "noreply@nestjs.com", // sender address
                 subject: "Verfication Code", // Subject line
-                template: "./confirmation",
+                template: "./welcome",
                 context: {
-                    name: "name",
-                    url: "test.com",
-                    code: content,
+                    email: content.email,
+                    user: content.user,
                 },
             })
             .then(success => {
@@ -70,17 +71,18 @@ export class MailService {
             });
     }
 
-    public async sendMailPassword(dest: string, content : string) {
+    public async sendMailPassword(content : sendMailPasswordDTO) {
         await this.setTransport(await this.getToken());
         this.mailerService
             .sendMail({
                 transporterName: 'gmail',
-                to: dest, // list of receivers
+                to: content.email, // list of receivers
                 from: 'noreply@nestjs.com', // sender address
-                subject: 'CHange password', // Subject line
+                subject: 'Change your ARDeco password', // Subject line
                 template: './password',
                 context: {
-                    token : content
+                    token : content.token,
+                    user : content.user,
                 },
             })
             .then((success) => {

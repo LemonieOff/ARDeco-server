@@ -17,6 +17,7 @@ import { JwtService } from "@nestjs/jwt";
 import { Catalog } from "./models/catalog.entity";
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 import { User } from "../user/models/user.entity";
+import { CatalogFilterDto } from "./models/catalog-filter.dto";
 
 @Controller("catalog")
 export class CatalogController {
@@ -500,4 +501,11 @@ export class CatalogController {
 
         return company;
     }
+
+    @Get('filter')
+    async filterCatalog(@Body() filterDto: CatalogFilterDto) {
+      const result = await this.catalogService.filterCatalog(filterDto);
+      return { data: result };
+    }
+  
 }

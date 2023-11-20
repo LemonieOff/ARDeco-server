@@ -7,6 +7,7 @@ import {
     Res,
     UseGuards
 } from "@nestjs/common";
+
 import { UserService } from "src/user/user.service";
 import * as bcrypt from "bcryptjs";
 import { RegisterDto } from "./models/register.dto";
@@ -21,6 +22,7 @@ import { CartService } from "src/cart/cart.service";
 import { randomBytes } from "crypto";
 import { AuthService } from './auth.service';
 import { use } from 'passport';
+import { sendMailPasswordDTO } from "src/mail/models/sendMailPassword";
 
 // idclient 720605484975-ohe2u21jk3k6e2cdekgifiliipd4e6oh.apps.googleusercontent.com
 // secret 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
@@ -50,7 +52,10 @@ export class AuthController {
         await this.authService.createReset({email: email, link : resetToken})
         console.log("rt:", resetToken)
 
-        this.mailService.sendMailPassword(email, resetToken)
+        let content: sendMailPasswordDTO;
+        content.email = email
+        content.token = resetToken
+        this.mailService.sendMailPassword(content)
         return resetToken;
       }
 
@@ -84,9 +89,11 @@ export class AuthController {
         const hashed = await bcrypt.hash(body.password, 12);
         body.password = hashed;
         try {
-            const res = await this.userService.create(body);
-            ///this.mailService.sendMail({"email": body.email, "content": `Salut ${body.first_name}, Bienvenue a toi`}) // To uncomment
-            console.log("ID", res.id);
+            const res = await this.userService.create(body)
+            let content : sendMailDTO
+            content.email = body.email
+            this.mailService.sendMail(content) // To uncomment
+            console.log("ID", res.id)
             const jwt = await this.jwtService.signAsync({ id: res.id, email: res.email });
             response.cookie("jwt", jwt, { httpOnly: true, sameSite: "none", secure: true });
             return {
@@ -254,13 +261,28 @@ export class AuthController {
         if (!req.user) {
             return "No user from google";
         }
-        console.log("req :", req);
-        if (await this.userService.findOne({ email: req.user.email })) {
+        console.log("req :", req)
+        const user = await this.userService.findOne({email: req.user.email});
+        if (user) {
+            const jwt = await this.jwtService.signAsync({ id: user.id, email: user.email });
+            response.cookie("jwt", jwt, { httpOnly: true, sameSite: "none", secure: true });
+            response.status(200);
             return {
+                "status": "OK",
+                "description": "User is successfully logged in",
+                "code": 200,
+                "data": {
+                    "jwt": jwt,
+                    "userID": user.id,
+                }
+            }
+
+            // Double return ???
+            /*return {
                 status: "KO",
                 description: "User already created",
                 code: 424
-            };
+            };*/
         }
         const body = {
             email: req.user.email,
