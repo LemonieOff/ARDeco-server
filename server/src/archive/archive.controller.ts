@@ -76,17 +76,18 @@ export class ArchiveController {
         };
     }
 
-    @Put("restore/:item_id")
+    @Put("restore/:id/:item_id")
     async restore(
         @Req() req: Request,
-        @Param("item_id") item_id: number,
+        @Param("id") company_id: number,
+        @Param("item_id") item_id: string,
         @Res({ passthrough: true }) res: Response
     ) {
         const authorizedCompany = await this.checkAuthorization(
             req,
             res,
-            item_id,
-            "restore"
+            company_id,
+          item_id
         );
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
@@ -115,7 +116,7 @@ export class ArchiveController {
         req: Request,
         res: Response,
         id: number, // Company id in normal cases, archive item id in other cases
-        type = "company"
+        object_id: string = null
     ) {
         const cookie = req.cookies["jwt"];
         const data = cookie ? this.jwtService.verify(cookie) : null;
@@ -131,20 +132,18 @@ export class ArchiveController {
             };
         }
 
-        // Company mode : Targeted company id is not the same as the one in the JWT
-        // Other mode : Company id in JWT is not the same of owner of the archive item
-        if (type === "company") {
-            if (id.toString() !== data["id"].toString()) {
-                res.status(403);
-                return {
-                    status: "KO",
-                    code: 403,
-                    description: "You are not allowed to access this resource",
-                    data: null
-                };
-            }
-        } else {
-            const object = await this.archiveService.findById(id);
+        if (id.toString() !== data["id"].toString()) {
+            res.status(403);
+            return {
+                status: "KO",
+                code: 403,
+                description: "You are not allowed to access this resource",
+                data: null
+            };
+        }
+
+        if (object_id) {
+            const object = await this.archiveService.findByObjectId(object_id);
 
             if (object === null) {
                 res.status(404);
@@ -156,7 +155,7 @@ export class ArchiveController {
                 };
             }
 
-            if (object.company !== data["id"].toString()) {
+            if (object.company.toString() !== data["id"].toString()) {
                 res.status(403);
                 return {
                     status: "KO",

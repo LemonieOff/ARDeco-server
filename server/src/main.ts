@@ -4,12 +4,20 @@ import { ValidationPipe } from "@nestjs/common";
 import * as cookieParser from "cookie-parser";
 
 async function bootstrap() {
-    const app = await NestFactory.create(AppModule);
+    const app = await NestFactory.create(AppModule, {
+        logger: ["error", "warn", "debug", "log", "verbose"]
+    });
     app.useGlobalPipes(new ValidationPipe());
     app.use(cookieParser());
     app.enableCors({
-      origin: 'https://ardeco.app/',
-      methods: 'POST',
+        origin: [
+            "http://localhost:3000",
+            "https://ardeco.app",
+            "https://api.ardeco.app",
+            "https://support.ardeco.app",
+        ],
+        credentials: true,
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
     });
     await app.listen(8000);
 }
