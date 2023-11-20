@@ -3,6 +3,7 @@ import { PaymentsService } from './payments.service';
 import { PaymentRequestBody } from './models/PaymentsRequestBody';
 import { Response } from 'express';
 import { MailService } from 'src/mail/mail.service';
+import { sendMailDTO } from 'src/mail/models/sendMail.dto';
 
 @Controller("payments")
 export class PaymentsController {
@@ -28,7 +29,9 @@ export class PaymentsController {
     @Post()
     confirmPayments(@Body() pi_id) {
         console.log(pi_id);
-        this.mailService.sendMail(pi_id.email, "Your payment have been received");
+        let content : sendMailDTO
+        content.email = pi_id.email
+        this.mailService.sendMail(pi_id.email);
         return this.paymentService.confirmPayment(pi_id.id)
     }
 }

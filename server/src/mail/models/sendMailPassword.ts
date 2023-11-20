@@ -1,10 +1,13 @@
 import { IsEmail, IsNotEmpty } from "class-validator";
 
-export class sendMailDTO {
+export class sendMailPasswordDTO {
     @IsNotEmpty()
     @IsEmail()
     email: string;
 
     @IsNotEmpty()
-    user: string;
+    token: string;
+
+    @IsNotEmpty()
+    user: string
 }
