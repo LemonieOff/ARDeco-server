@@ -7,6 +7,7 @@ import {
     Res,
     UseGuards
 } from "@nestjs/common";
+
 import { UserService } from "src/user/user.service";
 import * as bcrypt from "bcryptjs";
 import { RegisterDto } from "./models/register.dto";
@@ -21,6 +22,7 @@ import { CartService } from "src/cart/cart.service";
 import { randomBytes } from "crypto";
 import { AuthService } from './auth.service';
 import { use } from 'passport';
+import { sendMailPasswordDTO } from "src/mail/models/sendMailPassword";
 
 // idclient 720605484975-ohe2u21jk3k6e2cdekgifiliipd4e6oh.apps.googleusercontent.com
 // secret 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
@@ -50,7 +52,10 @@ export class AuthController {
         await this.authService.createReset({email: email, link : resetToken})
         console.log("rt:", resetToken)
 
-        this.mailService.sendMailPassword(email, resetToken)
+        let aze: sendMailPasswordDTO;
+        aze.email = email
+        aze.token = resetToken
+        this.mailService.sendMailPassword(aze)
         return resetToken;
       }
 
@@ -85,7 +90,9 @@ export class AuthController {
         body.password = hashed;
         try {
             const res = await this.userService.create(body)
-            this.mailService.sendMail(body.email, "Welcome") // To uncomment
+            let content : sendMailDTO
+            content.email = body.email
+            this.mailService.sendMail(content) // To uncomment
             console.log("ID", res.id)
             const jwt = await this.jwtService.signAsync({ id: res.id })
             response.cookie("jwt", jwt, { httpOnly: true })
