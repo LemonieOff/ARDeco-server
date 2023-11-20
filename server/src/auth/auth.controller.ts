@@ -52,10 +52,10 @@ export class AuthController {
         await this.authService.createReset({email: email, link : resetToken})
         console.log("rt:", resetToken)
 
-        let aze: sendMailPasswordDTO;
-        aze.email = email
-        aze.token = resetToken
-        this.mailService.sendMailPassword(aze)
+        let content: sendMailPasswordDTO;
+        content.email = email
+        content.token = resetToken
+        this.mailService.sendMailPassword(content)
         return resetToken;
       }
 
@@ -262,9 +262,10 @@ export class AuthController {
             return "No user from google";
         }
         console.log("req :", req)
-        if (await this.userService.findOne({email: req.user.email})) {
-            const jwt = await this.jwtService.signAsync({ id: (await this.userService.findOne({email: req.user.email})).id })
-            response.cookie("jwt", jwt, { httpOnly: true })
+        const user = await this.userService.findOne({email: req.user.email});
+        if (user) {
+            const jwt = await this.jwtService.signAsync({ id: user.id, email: user.email });
+            response.cookie("jwt", jwt, { httpOnly: true, sameSite: "none", secure: true });
             response.status(200);
             return {
                 "status": "OK",
@@ -272,23 +273,16 @@ export class AuthController {
                 "code": 200,
                 "data": {
                     "jwt": jwt,
-                    "userID": (await this.userService.findOne({email: req.user.email})).id,
+                    "userID": user.id,
                 }
             }
-            return {
-                "status": "OK",
-                "description": "User is successfully logged in",
-                "code": 200,
-                "data": {
-                    "jwt": jwt,
-                    "userID": (await this.userService.findOne({email: req.user.email})).id,
-                }
-            }
-            return {
+
+            // Double return ???
+            /*return {
                 status: "KO",
                 description: "User already created",
                 code: 424
-            };
+            };*/
         }
         const body = {
             email: req.user.email,
