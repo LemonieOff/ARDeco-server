@@ -52,10 +52,10 @@ export class AuthController {
         await this.authService.createReset({email: email, link : resetToken})
         console.log("rt:", resetToken)
 
-        let aze: sendMailPasswordDTO;
-        aze.email = email
-        aze.token = resetToken
-        this.mailService.sendMailPassword(aze)
+        let content: sendMailPasswordDTO;
+        content.email = email
+        content.token = resetToken
+        this.mailService.sendMailPassword(content)
         return resetToken;
       }
 
@@ -94,8 +94,8 @@ export class AuthController {
             content.email = body.email
             this.mailService.sendMail(content) // To uncomment
             console.log("ID", res.id)
-            const jwt = await this.jwtService.signAsync({ id: res.id })
-            response.cookie("jwt", jwt, { httpOnly: true })
+            const jwt = await this.jwtService.signAsync({ id: res.id, email: res.email });
+            response.cookie("jwt", jwt, { httpOnly: true, sameSite: "none", secure: true });
             return {
                 status: "OK",
                 description: "User was created",
@@ -120,12 +120,6 @@ export class AuthController {
         const requestedUserByEmail = await this.userService.findOne({
             email: body.email
         });
-        if (requestedUserByEmail.deleted)
-            return {
-                status: "KO",
-                description: "Account deleted",
-                code: 401
-            };
         if (!requestedUserByEmail) {
             response.status(401);
             return {
@@ -133,6 +127,14 @@ export class AuthController {
                 description: "Wrong email or password",
                 code: 401,
                 data: body.email
+            };
+        }
+        if (requestedUserByEmail.deleted) {
+            response.status(401);
+            return {
+                status: "KO",
+                description: "Account deleted",
+                code: 401
             };
         }
         if (
@@ -150,9 +152,10 @@ export class AuthController {
         }
         try {
             const jwt = await this.jwtService.signAsync({
-                id: requestedUserByEmail.id
+                id: requestedUserByEmail.id,
+                email: requestedUserByEmail.email
             });
-            response.cookie("jwt", jwt, { httpOnly: true });
+            response.cookie("jwt", jwt, { httpOnly: true, sameSite: "none", secure: true });
             response.status(200);
             return {
                 status: "OK",
@@ -174,6 +177,75 @@ export class AuthController {
         }
     }
 
+    @Get("checkjwt/:userID")
+    async checkJwt(@Req() request: Request, @Res({ passthrough: true }) response: Response) {
+        const userID = Number(request.params.userID);
+
+        if (isNaN(userID)) {
+            response.status(422);
+            return {
+                status: "KO",
+                code: 422,
+                description: "ID is not a number",
+            };
+        }
+
+        const cookie = request.cookies['jwt'];
+        if (!cookie) {
+            response.status(401);
+            return {
+                status: "KO",
+                code: 401,
+                description: "JWT must be provided",
+            };
+        }
+
+        const data = await this.jwtService.verifyAsync(cookie);
+        if (!data) {
+            response.status(401);
+            return {
+                status: "KO",
+                code: 401,
+                description: "JWT is not valid",
+            };
+        }
+
+        if (data['id'] !== userID) {
+            response.status(401);
+            return {
+                status: "KO",
+                code: 401,
+                description: "JWT is not valid for this user, ID is not the same",
+            };
+        }
+
+        const usr = await this.userService.findOne({ id: userID });
+        if (!usr) {
+            response.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description: "User not found",
+            };
+        }
+
+        if (usr && usr.email === data['email']) {
+            response.status(200);
+            return {
+                status: "OK",
+                code: 200,
+                description: "JWT is valid for this user",
+            };
+        } else {
+            response.status(401);
+            return {
+                status: "KO",
+                code: 401,
+                description: "JWT is not valid for this user, email is not the same",
+            };
+        }
+    }
+
     @Get("register/google")
     @UseGuards(AuthGuard("google"))
     async googleAuth(@Req() req) {
@@ -190,9 +262,10 @@ export class AuthController {
             return "No user from google";
         }
         console.log("req :", req)
-        if (await this.userService.findOne({email: req.user.email})) {
-            const jwt = await this.jwtService.signAsync({ id: (await this.userService.findOne({email: req.user.email})).id })
-            response.cookie("jwt", jwt, { httpOnly: true })
+        const user = await this.userService.findOne({email: req.user.email});
+        if (user) {
+            const jwt = await this.jwtService.signAsync({ id: user.id, email: user.email });
+            response.cookie("jwt", jwt, { httpOnly: true, sameSite: "none", secure: true });
             response.status(200);
             return {
                 "status": "OK",
@@ -200,23 +273,16 @@ export class AuthController {
                 "code": 200,
                 "data": {
                     "jwt": jwt,
-                    "userID": (await this.userService.findOne({email: req.user.email})).id,
+                    "userID": user.id,
                 }
             }
-            return {
-                "status": "OK",
-                "description": "User is successfully logged in",
-                "code": 200,
-                "data": {
-                    "jwt": jwt,
-                    "userID": (await this.userService.findOne({email: req.user.email})).id,
-                }
-            }
-            return {
+
+            // Double return ???
+            /*return {
                 status: "KO",
                 description: "User already created",
                 code: 424
-            };
+            };*/
         }
         const body = {
             email: req.user.email,
@@ -230,8 +296,8 @@ export class AuthController {
         };
         const res = await this.userService.create(body);
         console.log("ID", res.id);
-        const jwt = await this.jwtService.signAsync({ id: res.id });
-        response.cookie("jwt", jwt, { httpOnly: true });
+        const jwt = await this.jwtService.signAsync({ id: res.id, email: res.email });
+        response.cookie("jwt", jwt, { httpOnly: true, sameSite: "none", secure: true });
         return {
             message: "User information from google",
             user: req.user
