@@ -165,7 +165,8 @@ export class AuthController {
                 code: 200,
                 data: {
                     jwt: jwt,
-                    userID: requestedUserByEmail.id
+                    userID: requestedUserByEmail.id,
+                    role: requestedUserByEmail.role
                 }
             };
         } catch (e) {
