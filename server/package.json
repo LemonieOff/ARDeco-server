@@ -57,7 +57,7 @@
     "@types/supertest": "^2.0.11",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
-    "axios": "^1.4.0",
+    "axios": "^1.6.0",
     "bcryptjs": "^2.4.3",
     "concurrently": "^8.2.0",
     "del": "^7.0.0",
