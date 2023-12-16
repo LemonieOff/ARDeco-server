@@ -55,6 +55,43 @@ export class GalleryController {
         };
     }
 
+    // Get all gallery items from a specific user
+    @Get("user/:user_id")
+    async getFromUser(
+        @Req() req: Request,
+        @Param("user_id") user_id: number,
+        @Res({ passthrough: true }) res: Response
+    ) {
+        try {
+            user_id = Number(user_id);
+        } catch (e) {
+            res.status(400);
+            return {
+                status: "KO",
+                code: 400,
+                description: "User id is not a number",
+                data: null
+            };
+        }
+
+        const user = await this.checkAuthorization(req, res, null, "user_gallery", user_id);
+        if (!(user instanceof User)) return user;
+
+        // If user is not the creator nor an admin, can't see private items
+        // Visibility false means all items, and true means only public items
+        const visibility = !(user.id === user_id || user.role === "admin");
+
+        const items = await this.galleryService.findForUser(user_id, visibility);
+
+        res.status(200);
+        return {
+            status: "OK",
+            code: 200,
+            description: "Gallery items",
+            data: items
+        };
+    }
+
     @Post()
     async post(
         @Req() req: Request,
@@ -198,16 +235,20 @@ export class GalleryController {
         req: Request,
         res: Response,
         item: Gallery,
-        action: string
+        action: string,
+        user_id: number | null = null
     ) {
-        if (!item) {
-            res.status(404);
-            return {
-                status: "KO",
-                code: 404,
-                description: "Resource was not found",
-                data: null
-            };
+        // Check if item exists only for "view", "edit" and "delete" actions
+        if (action === "view" || action === "edit" || action === "delete") {
+            if (!item) {
+                res.status(404);
+                return {
+                    status: "KO",
+                    code: 404,
+                    description: "Resource was not found",
+                    data: null
+                };
+            }
         }
 
         const cookie = req.cookies["jwt"];
@@ -255,7 +296,7 @@ export class GalleryController {
                     }
                 }
             }
-        } else {
+        } else if (action === "edit" || action === "delete") {
             // Check if user is the creator
             if (item.user_id !== user.id) {
                 // If not, check if it's an admin
@@ -269,6 +310,17 @@ export class GalleryController {
                         data: null
                     };
                 }
+            }
+        } else if (action === "user_gallery") {
+            if (user_id === null) {
+                console.error("User gallery fetch check auth : gallery_id is null");
+                res.status(501);
+                return {
+                    status: "KO",
+                    code: 501,
+                    description: "Server internal error",
+                    data: null
+                };
             }
         }
 
