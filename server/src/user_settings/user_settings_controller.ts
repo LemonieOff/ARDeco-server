@@ -33,7 +33,12 @@ export class UserSettingsController {
     ) {
         const item = await this.userSettingsService.findOne({ id: id });
 
-        const authorizedUser = await this.checkAuthorization(req, res, item);
+        const authorizedUser = await this.checkAuthorization(
+            req,
+            res,
+            true,
+            item
+        );
         if (!(authorizedUser instanceof User)) return authorizedUser;
 
         res.status(200);
@@ -50,31 +55,8 @@ export class UserSettingsController {
         @Req() req: Request,
         @Res({ passthrough: true }) res: Response
     ) {
-        const cookie = req.cookies["jwt"];
-        const data = cookie ? this.jwtService.verify(cookie) : null;
-
-        // Cookie or JWT not valid
-        if (!cookie || !data) {
-            res.status(401);
-            return {
-                status: "KO",
-                code: 401,
-                description: "You have to login in order to see your settings",
-                data: null
-            };
-        }
-
-        const user = await this.userService.findOne({ id: data["id"] });
-
-        if (!user) {
-            res.status(403);
-            return {
-                status: "KO",
-                code: 403,
-                description: "You are not allowed to access this resource",
-                data: null
-            };
-        }
+        const user = await this.checkAuthorization(req, res, false, null);
+        if (!(user instanceof User)) return user;
 
         const existingSettings = await this.userSettingsService.findOne({
             user_id: user.id
@@ -176,7 +158,12 @@ export class UserSettingsController {
     ) {
         const item = await this.userSettingsService.findOne({ id: id });
 
-        const authorizedUser = await this.checkAuthorization(req, res, item);
+        const authorizedUser = await this.checkAuthorization(
+            req,
+            res,
+            true,
+            item
+        );
         if (!(authorizedUser instanceof User)) return authorizedUser;
 
         try {
@@ -206,8 +193,75 @@ export class UserSettingsController {
         @Body() item: QueryPartialEntity<UserSettings>,
         @Res({ passthrough: true }) res: Response
     ) {
-        console.log(item);
         return await this.editItem(req, id, item, res);
+    }
+
+    // Edit current user's settings
+    @Put()
+    async editOwnSettings(
+        @Req() req: Request,
+        @Body() item: QueryPartialEntity<UserSettings>,
+        @Res({ passthrough: true }) res: Response
+    ) {
+        const user = await this.checkAuthorization(req, res, false, null);
+        if (!(user instanceof User)) return user;
+
+        const existingSettings = await this.userSettingsService.findOne(
+            { user_id: user.id },
+            { id: true }
+        );
+
+        if (!existingSettings) {
+            res.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description: "You don't have any user settings yet",
+                data: null
+            };
+        }
+
+        return await this.editItem(req, existingSettings.id, item, res);
+    }
+
+    // Edit current user's settings
+    @Put("/user/:user_id")
+    async editSpecificUserSettings(
+      @Req() req: Request,
+      @Param("user_id") user_id: number,
+      @Body() item: QueryPartialEntity<UserSettings>,
+      @Res({ passthrough: true }) res: Response
+    ) {
+        try {
+            user_id = Number(user_id);
+        } catch (e) {
+            res.status(400);
+            return {
+                status: "KO",
+                code: 400,
+                description: "User id is not a number",
+                data: null
+            };
+        }
+
+        const existingSettings = await this.userSettingsService.findOne(
+          { user_id: user_id },
+          { id: true }
+        );
+
+        console.log(existingSettings);
+
+        if (!existingSettings) {
+            res.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description: "There are no settings for this user yet",
+                data: null
+            };
+        }
+
+        return await this.editItem(req, existingSettings.id, item, res);
     }
 
     async editItem(
@@ -217,11 +271,12 @@ export class UserSettingsController {
         res: Response
     ) {
         try {
-            const item = await this.userSettingsService.findOne({ id: id });
+            const item = await this.userSettingsService.findOne({ id: id }, { id: true, user_id: true });
 
             const authorizedUser = await this.checkAuthorization(
                 req,
                 res,
+                true,
                 item
             );
             if (!(authorizedUser instanceof User)) return authorizedUser;
@@ -250,16 +305,19 @@ export class UserSettingsController {
     async checkAuthorization(
         req: Request,
         res: Response,
-        settings: UserSettings
+        check_settings: boolean,
+        settings: UserSettings | null
     ) {
-        if (!settings) {
-            res.status(404);
-            return {
-                status: "KO",
-                code: 404,
-                description: "Resource was not found",
-                data: null
-            };
+        if (check_settings) {
+            if (!settings) {
+                res.status(404);
+                return {
+                    status: "KO",
+                    code: 404,
+                    description: "Resource was not found",
+                    data: null
+                };
+            }
         }
 
         const cookie = req.cookies["jwt"];
@@ -289,16 +347,15 @@ export class UserSettingsController {
             };
         }
 
-        // Check if user is the creator
-        if (settings.user_id !== user.id) {
-            // If not, check if it's an admin
-            if (user.role !== "admin") {
+        if (check_settings) {
+            // Forbidden access if user is neither the creator nor an admin
+            if (settings.user_id !== user.id && user.role !== "admin") {
                 res.status(403);
                 return {
                     status: "KO",
                     code: 403,
                     description:
-                        "You are not allowed to access/modify this resource",
+                        "You are not allowed to access/modify/delete this resource",
                     data: null
                 };
             }
