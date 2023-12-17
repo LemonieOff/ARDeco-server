@@ -90,9 +90,10 @@ export class AuthController {
         body.password = hashed;
         try {
             const res = await this.userService.create(body)
+            /* Uncomment to send mail on production
             let content : sendMailDTO
             content.email = body.email
-            this.mailService.sendMail(content) // To uncomment
+            this.mailService.sendMail(content)*/
             console.log("ID", res.id)
             const jwt = await this.jwtService.signAsync({ id: res.id, email: res.email });
             response.cookie("jwt", jwt, { httpOnly: true, sameSite: "none", secure: true });
@@ -103,6 +104,7 @@ export class AuthController {
                 data: res
             };
         } catch (e) {
+            console.error(e);
             return {
                 status: "KO",
                 description: "Error happen while creating the account",
@@ -163,7 +165,8 @@ export class AuthController {
                 code: 200,
                 data: {
                     jwt: jwt,
-                    userID: requestedUserByEmail.id
+                    userID: requestedUserByEmail.id,
+                    role: requestedUserByEmail.role
                 }
             };
         } catch (e) {

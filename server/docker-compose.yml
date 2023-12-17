@@ -16,7 +16,7 @@ services:
       DB_PASSWORD: mnw4xav-bud*eha*DCE
 
   db:
-    image: mysql:latest 
+    image: mysql:latest
     restart: always
     environment:
       MYSQL_DATABASE: ardeco
