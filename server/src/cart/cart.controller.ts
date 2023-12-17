@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
-import { Body, Controller, Delete, Get, Post, Req, UseGuards } from "@nestjs/common";
-import { Request } from "express";
+import { Body, Controller, Delete, Get, Post, Req, Res, UseGuards } from "@nestjs/common";
+import { Request, Response } from "express";
 import { AuthGuard } from "src/auth/auth.guard";
 import { UserService } from "../user/user.service";
 import { JwtService } from "@nestjs/jwt";
@@ -66,29 +66,32 @@ export class CartController {
     @Get()
     @UseGuards(AuthGuard)
     async getCurrentCart(
-        @Req() request: Request
+        @Req() request: Request,
+        @Res({ passthrough: true }) resp: Response
     ) {
         const cookie = request.cookies["jwt"];
         const data = await this.jwtService.verifyAsync(cookie);
         const usr = await this.userService.findOne({ id: data["id"] });
+        
         if (!usr.cart) {
+            resp.status(404)
             return {
                 status: "KO",
-                code: 603,
+                code: 404,
                 description: "No cart found",
                 data: null
             };        
         }
         console.log(
             "Getting cart of user : ",
-            await this.userService.findOne({ id: data["id"] })
+            await this.userService.findOne({ id: data["id"] }) // On trouve le panier
         );
         await this.cartService.findOne({ id: usr.cart.id })
         let catalogItem = (await this.cartService.findOne({ user: usr }))
         .catalogItems;
         const values = catalogItem.split(",");
         let itemsInCart = []
-        for (let i = 0; i != values.length; i++) {
+        for (let i = 0; i != values.length; i++) { // Fonction pour convertir les id des meubles en json de meuble
             const parsedId = parseInt(values[i]);
             if (isNaN(parsedId)) {
                 console.error(`Invalid id: ${values[i]}`);
@@ -102,7 +105,7 @@ export class CartController {
             code: 200,
             description: "Current cart",
             data: {
-                ids: (await this.cartService.findOne({ id: usr.cart.id })).catalogItems,
+                ids: (await this.cartService.findOne({ id: usr.cart.id })).catalogItems, // On return les meubles
                 catalogInfo: itemsInCart
             }
         };
@@ -176,20 +179,13 @@ export class CartController {
         const data = await this.jwtService.verifyAsync(cookie);
         const usr = await this.userService.findOne({ id: data["id"] });
 
-        if (!usr.cart) {
-            const obj = {
-                capacity: 101,
-                catalogItems: "",
-                user: usr
-            };
-            const cart = await this.cartService.create(obj);
-            this.userService.update(usr.id, { cart: cart });
+        if (!usr.cart) { // Verification si il y a un panier
+            return
         }
         console.log(
-            "Reseting cart of user : ",
-            await this.userService.findOne({ id: data["id"] })
+            await this.userService.findOne({ id: data["id"] }) // On cherche la panier de l'user
         );
-        await this.cartService.update(usr.cart.id, { catalogItems: "" });
+        await this.cartService.update(usr.cart.id, { catalogItems: "" }); // On delete tout
         return {
             status: "OK",
             code: 200,
