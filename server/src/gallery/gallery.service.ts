@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { FindManyOptions, FindOptionsWhere, Repository } from "typeorm";
 import { Gallery } from "./models/gallery.entity";
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
@@ -10,10 +10,6 @@ export class GalleryService {
         @InjectRepository(Gallery)
         private readonly galleryRepository: Repository<Gallery>
     ) {}
-
-    async all(): Promise<Gallery[]> {
-        return this.galleryRepository.find();
-    }
 
     async create(data): Promise<Gallery> {
         try {
@@ -27,13 +23,40 @@ export class GalleryService {
                 });
             });
         }
-        const item = await this.galleryRepository.save(data);
-        console.log("Create gallery item :", item);
-        return item;
+        return await this.galleryRepository.save(data);
     }
 
-    async findOne(condit): Promise<Gallery> {
-        return this.galleryRepository.findOne({ where: condit });
+    async findOne(where: FindOptionsWhere<Gallery>): Promise<Gallery> {
+        return this.galleryRepository.findOne({ where: where });
+    }
+
+    async findAll(
+        user_id: number | null,
+        limit: number | null,
+        begin_pos: number | null
+    ): Promise<Gallery[]> {
+        let where: FindOptionsWhere<Gallery> = { visibility: true }; // Public items only
+        if (user_id) {
+            where = {
+                ...where,
+                user_id: user_id
+            };
+        }
+
+        let options: FindManyOptions<Gallery> = { where: where };
+        if (limit) {
+            options = {
+                ...options,
+                take: limit
+            };
+        }
+        if (begin_pos && limit) {
+            options = {
+                ...options,
+                skip: begin_pos
+            };
+        }
+        return this.galleryRepository.find(options);
     }
 
     async update(
@@ -45,7 +68,6 @@ export class GalleryService {
     }
 
     async delete(id: number): Promise<any> {
-        console.log("Deleting gallery item", id);
         return this.galleryRepository
             .createQueryBuilder("gallery")
             .delete()
