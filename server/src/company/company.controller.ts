@@ -46,7 +46,9 @@ export class CompanyController {
     ) {
         try {
             const cookie = req.cookies["jwt"];
-            const data = this.jwtService.verify(cookie);
+            const data = cookie ? this.jwtService.verify(cookie) : null;
+
+            // Cookie or JWT not valid
             if (!cookie || !data) {
                 res.status(401);
                 return {

@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { FindOptionsSelect, Repository } from "typeorm";
 import { UserSettings } from "./models/user_settings.entity";
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
@@ -19,8 +19,13 @@ export class UserSettingsService {
         return this.userRepository.save(data);
     }
 
-    async findOne(condit): Promise<UserSettings> {
-        return this.userRepository.findOne({ where: condit });
+    async findOne(condit: {}, select: FindOptionsSelect<UserSettings> | null = null): Promise<UserSettings> {
+        if (select === null) {
+            return this.userRepository.findOne({ where: condit });
+        }
+        else {
+            return this.userRepository.findOne({ where: condit, select : select });
+        }
     }
 
     async update(
