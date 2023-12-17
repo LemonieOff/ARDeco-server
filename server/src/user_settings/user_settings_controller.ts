@@ -224,6 +224,46 @@ export class UserSettingsController {
         return await this.editItem(req, existingSettings.id, item, res);
     }
 
+    // Edit current user's settings
+    @Put("/user/:user_id")
+    async editSpecificUserSettings(
+      @Req() req: Request,
+      @Param("user_id") user_id: number,
+      @Body() item: QueryPartialEntity<UserSettings>,
+      @Res({ passthrough: true }) res: Response
+    ) {
+        try {
+            user_id = Number(user_id);
+        } catch (e) {
+            res.status(400);
+            return {
+                status: "KO",
+                code: 400,
+                description: "User id is not a number",
+                data: null
+            };
+        }
+
+        const existingSettings = await this.userSettingsService.findOne(
+          { user_id: user_id },
+          { id: true }
+        );
+
+        console.log(existingSettings);
+
+        if (!existingSettings) {
+            res.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description: "There are no settings for this user yet",
+                data: null
+            };
+        }
+
+        return await this.editItem(req, existingSettings.id, item, res);
+    }
+
     async editItem(
         req: Request,
         id: number,
