@@ -231,7 +231,7 @@ export class UserSettingsController {
         res: Response
     ) {
         try {
-            const item = await this.userSettingsService.findOne({ id: id });
+            const item = await this.userSettingsService.findOne({ id: id }, { id: true, user_id: true });
 
             const authorizedUser = await this.checkAuthorization(
                 req,
@@ -308,19 +308,16 @@ export class UserSettingsController {
         }
 
         if (check_settings) {
-            // Check if user is the creator
-            if (settings.user_id !== user.id) {
-                // If not, check if it's an admin
-                if (user.role !== "admin") {
-                    res.status(403);
-                    return {
-                        status: "KO",
-                        code: 403,
-                        description:
-                            "You are not allowed to access/modify/delete this resource",
-                        data: null
-                    };
-                }
+            // Forbidden access if user is neither the creator nor an admin
+            if (settings.user_id !== user.id && user.role !== "admin") {
+                res.status(403);
+                return {
+                    status: "KO",
+                    code: 403,
+                    description:
+                        "You are not allowed to access/modify/delete this resource",
+                    data: null
+                };
             }
         }
         return user;
