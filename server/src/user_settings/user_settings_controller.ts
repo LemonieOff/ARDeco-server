@@ -196,6 +196,34 @@ export class UserSettingsController {
         return await this.editItem(req, id, item, res);
     }
 
+    // Edit current user's settings
+    @Put()
+    async editOwnSettings(
+        @Req() req: Request,
+        @Body() item: QueryPartialEntity<UserSettings>,
+        @Res({ passthrough: true }) res: Response
+    ) {
+        const user = await this.checkAuthorization(req, res, false, null);
+        if (!(user instanceof User)) return user;
+
+        const existingSettings = await this.userSettingsService.findOne(
+            { user_id: user.id },
+            { id: true }
+        );
+
+        if (!existingSettings) {
+            res.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description: "You don't have any user settings yet",
+                data: null
+            };
+        }
+
+        return await this.editItem(req, existingSettings.id, item, res);
+    }
+
     async editItem(
         req: Request,
         id: number,
