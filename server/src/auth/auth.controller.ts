@@ -79,16 +79,28 @@ export class AuthController {
         @Res({ passthrough: true }) response: Response
     ) {
         if (body.password != body.password_confirm) {
+            response.status(400);
             return {
                 status: "KO",
                 description: "Password do not match",
-                code: 423,
+                code: 400,
                 data: body
             };
         }
         const hashed = await bcrypt.hash(body.password, 12);
         body.password = hashed;
         try {
+            const existingUser = await this.userService.findOne({ email: body.email });
+            if (existingUser) {
+                response.status(400);
+                return {
+                    status: 'KO',
+                    description: 'E-mail already in use',
+                    code: 400,
+                    data: null,
+                };
+            }
+
             const res = await this.userService.create(body)
             /* Uncomment to send mail on production
             let content : sendMailDTO
@@ -97,14 +109,16 @@ export class AuthController {
             console.log("ID", res.id)
             const jwt = await this.jwtService.signAsync({ id: res.id, email: res.email });
             response.cookie("jwt", jwt, { httpOnly: true, sameSite: "none", secure: true });
+            response.status(200);
             return {
                 status: "OK",
                 description: "User was created",
-                code: 100,
+                code: 200,
                 data: res
             };
         } catch (e) {
             console.error(e);
+            response.status(422);
             return {
                 status: "KO",
                 description: "Error happen while creating the account",
