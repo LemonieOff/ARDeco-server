@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { FavoriteGallery } from "./models/favorite_Gallery.entity";
+import { FavoriteGallery } from "./models/favorite_gallery.entity";
 
 @Injectable()
 export class FavoriteGalleryService {

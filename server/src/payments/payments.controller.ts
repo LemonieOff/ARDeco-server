@@ -5,7 +5,7 @@ import { Response } from 'express';
 import { MailService } from 'src/mail/mail.service';
 import { sendMailDTO } from 'src/mail/models/sendMail.dto';
 import { commandDto } from './models/command.dto';
-import { command } from './models/command.entity';
+import { Command } from './models/command.entity';
 
 @Controller("payments")
 export class PaymentsController {
@@ -40,7 +40,7 @@ export class PaymentsController {
         dtoToMail.user = c_dto.name
         this.mailService.sendMail(dtoToMail);
 
-        let newOrder: command
+        let newOrder: Command
         newOrder.delivery_adress_line_1 = c_dto.delivery_adress_line_1
         newOrder.delivery_adress_line_2 = c_dto.delivery_adress_line_2
         newOrder.delivery_city = c_dto.delivery_city
