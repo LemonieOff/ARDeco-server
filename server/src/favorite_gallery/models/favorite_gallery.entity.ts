@@ -17,7 +17,7 @@ export class FavoriteGallery {
         default: () => "CURRENT_TIMESTAMP",
         update: false
     })
-    timestqmp: Date;
+    timestamp: Date;
 
   
 }

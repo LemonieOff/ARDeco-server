@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import Stripe from "stripe";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, UpdateResult } from "typeorm";
-import { command} from "./models/command.entity";
+import { Command} from "./models/command.entity";
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 import { commandDto } from "./models/command.dto";
 
@@ -16,8 +16,8 @@ export class PaymentsService {
     private stripe;
 
     constructor(
-        @InjectRepository(command)
-        private readonly commandRepository: Repository<command>
+        @InjectRepository(Command)
+        private readonly commandRepository: Repository<Command>
     ) {
         this.stripe = new Stripe(
             "sk_test_51NputjKvy7BFowS9fdbY0S1Zjp0HDC2WRZwp8vRzyHSAsUOSOxfzWNCF0nboryWA8Jp5ZJZVHWgPQI8orwTzYCZD00dGeVzihA",
@@ -46,23 +46,23 @@ export class PaymentsService {
         });
     }
 
-    async all(): Promise<command[]> {
+    async all(): Promise<Command[]> {
         return this.commandRepository.find();
     }
 
-    async create(data): Promise<command> {
+    async create(data): Promise<Command> {
         const u = this.commandRepository.save(data);
         console.log("Create command :", await u);
         return u;
     }
 
-    async findOne(condit): Promise<command> {
+    async findOne(condit): Promise<Command> {
         return this.commandRepository.findOne({ where: condit });
     }
 
     async update(
         id: number,
-        data: QueryPartialEntity<command>
+        data: QueryPartialEntity<Command>
     ): Promise<UpdateResult> {
         console.log("ID : ", id, ", DATA : ", data)
         return this.commandRepository.update(id, data);
@@ -74,7 +74,7 @@ export class PaymentsService {
         this.commandRepository
             .createQueryBuilder("command")
             .delete()
-            .from(command)
+            .from(Command)
             .where("id = id", { id: id })
             .execute();
     }
