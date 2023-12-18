@@ -25,11 +25,116 @@ export class GalleryController {
         private userService: UserService
     ) {}
 
+    // Get all gallery items
     @Get()
-    all() {
-        return ["gallery"];
+    async all(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+        const cookie = req.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+
+        // Cookie or JWT not valid
+        if (!cookie || !data) {
+            res.status(401);
+            return {
+                status: "KO",
+                code: 401,
+                description: "You are not connected",
+                data: null
+            };
+        }
+
+        // Get all query parameters
+        const user_id_query = req.query["user_id"];
+        const limit_query = req.query["limit"];
+        const begin_pos_query = req.query["begin_pos"];
+
+        let user_id: number = Number(user_id_query);
+        let limit: number | null = Number(limit_query);
+        let begin_pos: number | null = Number(begin_pos_query);
+
+        // If user_id query is set, check if it's a number and if the user exists
+        if (user_id_query) {
+            if (isNaN(user_id)) {
+                res.status(400);
+                return {
+                    status: "KO",
+                    code: 400,
+                    description: "User id must be a number",
+                    data: null
+                };
+            }
+
+            const user = await this.userService.findOne({ id: user_id });
+
+            if (!user) {
+                res.status(404);
+                return {
+                    status: "KO",
+                    code: 404,
+                    description: "User was not found",
+                    data: null
+                };
+            }
+        } else {
+            user_id = null;
+        }
+
+        // If limit query is set, check if it's a number
+        if (limit_query) {
+            if (isNaN(limit)) {
+                res.status(400);
+                return {
+                    status: "KO",
+                    code: 400,
+                    description: "Limit must be a number",
+                    data: null
+                };
+            }
+        } else {
+            limit = null;
+        }
+
+        // If begin_pos query is set, check if it's a number
+        if (begin_pos_query) {
+            if (isNaN(begin_pos)) {
+                res.status(400);
+                return {
+                    status: "KO",
+                    code: 400,
+                    description: "Begin position must be a number",
+                    data: null
+                };
+            }
+
+            // limit is mandatory if begin_pos is set
+            if (!limit) {
+                res.status(400);
+                return {
+                    status: "KO",
+                    code: 400,
+                    description: "Limit is mandatory if begin position is set",
+                    data: null
+                };
+            }
+        } else {
+            begin_pos = null;
+        }
+
+        const items = await this.galleryService.findAll(
+            user_id,
+            limit,
+            begin_pos
+        );
+
+        res.status(200);
+        return {
+            status: "OK",
+            code: 200,
+            description: "Gallery items",
+            data: items
+        };
     }
 
+    // Get a specific gallery item from its unique id
     @Get(":id")
     async get(
         @Req() req: Request,
@@ -52,6 +157,43 @@ export class GalleryController {
             code: 200,
             description: "Gallery item",
             data: item
+        };
+    }
+
+    // Get all gallery items from a specific user
+    @Get("user/:user_id")
+    async getFromUser(
+        @Req() req: Request,
+        @Param("user_id") user_id: number,
+        @Res({ passthrough: true }) res: Response
+    ) {
+        try {
+            user_id = Number(user_id);
+        } catch (e) {
+            res.status(400);
+            return {
+                status: "KO",
+                code: 400,
+                description: "User id is not a number",
+                data: null
+            };
+        }
+
+        const user = await this.checkAuthorization(req, res, null, "user_gallery", user_id);
+        if (!(user instanceof User)) return user;
+
+        // If user is not the creator nor an admin, can't see private items
+        // Visibility false means all items, and true means only public items
+        const visibility = !(user.id === user_id || user.role === "admin");
+
+        const items = await this.galleryService.findForUser(user_id, visibility);
+
+        res.status(200);
+        return {
+            status: "OK",
+            code: 200,
+            description: "Gallery items",
+            data: items
         };
     }
 
@@ -153,7 +295,6 @@ export class GalleryController {
         @Body() item: QueryPartialEntity<Gallery>,
         @Res({ passthrough: true }) res: Response
     ) {
-        console.log(item);
         return await this.editItem(req, id, item, res);
     }
 
@@ -198,16 +339,20 @@ export class GalleryController {
         req: Request,
         res: Response,
         item: Gallery,
-        action: string
+        action: string,
+        user_id: number | null = null
     ) {
-        if (!item) {
-            res.status(404);
-            return {
-                status: "KO",
-                code: 404,
-                description: "Resource was not found",
-                data: null
-            };
+        // Check if item exists only for "view", "edit" and "delete" actions
+        if (action === "view" || action === "edit" || action === "delete") {
+            if (!item) {
+                res.status(404);
+                return {
+                    status: "KO",
+                    code: 404,
+                    description: "Resource was not found",
+                    data: null
+                };
+            }
         }
 
         const cookie = req.cookies["jwt"];
@@ -255,7 +400,7 @@ export class GalleryController {
                     }
                 }
             }
-        } else {
+        } else if (action === "edit" || action === "delete") {
             // Check if user is the creator
             if (item.user_id !== user.id) {
                 // If not, check if it's an admin
@@ -269,6 +414,17 @@ export class GalleryController {
                         data: null
                     };
                 }
+            }
+        } else if (action === "user_gallery") {
+            if (user_id === null) {
+                console.error("User gallery fetch check auth : gallery_id is null");
+                res.status(501);
+                return {
+                    status: "KO",
+                    code: 501,
+                    description: "Server internal error",
+                    data: null
+                };
             }
         }
 
