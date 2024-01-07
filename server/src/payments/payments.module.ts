@@ -8,8 +8,8 @@ import { PaymentsService } from './payments.service';
 
 @Module({
   imports: [
-    MailModule,
     CatalogModule,
+    MailModule,
     TypeOrmModule.forFeature([command]),
   ],
   controllers: [PaymentsController],

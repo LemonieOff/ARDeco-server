@@ -18,4 +18,10 @@ export class MailController {
         this.mailService.sendMailPassword(sendMailPass)
         return 'send'
     }
+
+    @Get('invoice')
+    invoice(@Body() sendMailPass: sendMailPasswordDTO) {
+        this.mailService.sendMailPassword(sendMailPass)
+        return 'send'
+    }
 }

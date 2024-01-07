@@ -1,8 +1,9 @@
 import { MailerService } from "@nestjs-modules/mailer";
-import { Injectable } from "@nestjs/common";
+import { forwardRef, Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { google } from "googleapis";
 import { Options } from "nodemailer/lib/smtp-transport";
+import { PaymentsService } from "src/payments/payments.service";
 import { sendMailDTO } from "./models/sendMail.dto";
 import { sendMailPasswordDTO } from "./models/sendMailPassword";
 
@@ -12,7 +13,9 @@ import { sendMailPasswordDTO } from "./models/sendMailPassword";
 export class MailService {
     constructor(
         private mailerService: MailerService,
-        private readonly configService: ConfigService
+        private readonly configService: ConfigService,
+        @Inject(forwardRef(() => PaymentsService))
+        private paymentService: PaymentsService
     ) {}
 
     private async setTransport(token) {
@@ -92,6 +95,31 @@ export class MailService {
                 console.log(err);
             });
     }
+
+    public async sendMailInvoice(content : sendMailPasswordDTO) {
+        await this.setTransport(await this.getToken());
+        const command = await  
+        this.mailerService
+            .sendMail({
+                transporterName: 'gmail',
+                to: content.email, // list of receivers
+                from: 'noreply@nestjs.com', // sender address
+                subject: 'Récapitulatif de comande ARdeco', // Subject line
+                template: './invoice',
+                context: {
+                    name : content.token,
+                    total : content.user,
+
+                },
+            })
+            .then((success) => {
+                console.log(success);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    }
+
 
     private async getToken(){
         const axios = require('axios');
