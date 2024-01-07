@@ -15,48 +15,48 @@ export class command {
     })
     datetime: Date;
 
-    @Column({ type: "float", update: false })
+    @Column()
     total_amount: number;
 
-    @Column({ type: "float", update: false })
+    @Column()
     total_excl_taxes: number;
 
-    @Column({ type: "float", update: false })
+    @Column()
     total_taxes: number;
 
-    @Column({ type: "float", update: false })
+    @Column()
     vat_rate: number;
 
-    @Column({ type: "string", update: false })
+    @Column()
     delivery_country: string;
 
-    @Column({ type: "string", update: false })
+    @Column()
     delivery_region: string;
 
-    @Column({ type: "string", update: false })
+    @Column()
     delivery_city: string;
 
-    @Column({ type: "string", update: false })
+    @Column()
     delivery_postal_code: string;
 
-    @Column({ type: "string", update: false })
+    @Column()
     delivery_adress_line_1: string;
 
-    @Column({ type: "string", update: false })
+    @Column()
     delivery_adress_line_2: string;
 
-    @Column({ type: "string", update: false })
+    @Column()
     delivery_complement: string;
 
-    @Column({ type: "string", update: false })
+    @Column()
     name: string;
 
-    @Column({ type: "string", update: false })
+    @Column()
     surname: string;
 
-    @Column({ type: "string", update: false })
+    @Column()
     payment_method: string;
 
-    @Column({ type: "json", update: false })
-    furniture: JSON;
+    @Column()
+    furniture: string;
 }

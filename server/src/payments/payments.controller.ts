@@ -1,7 +1,7 @@
 import { Body, Controller, Get, HttpStatus, Post, Res } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { PaymentRequestBody } from './models/PaymentsRequestBody';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 import { MailService } from 'src/mail/mail.service';
 import { sendMailDTO } from 'src/mail/models/sendMail.dto';
 import { commandDto } from './models/command.dto';
@@ -14,12 +14,10 @@ export class PaymentsController {
     private mailService: MailService) { }
 
     @Get()
-    createPayments(
+    async createPayments(
         @Res() response: Response,
         @Body() c_dto: commandDto
     ) {
-        console.log(c_dto)
-        console.log("azeazeazeazeeaza")
         this.paymentService
             .createPayment(c_dto)
             .then(res => {
@@ -30,17 +28,44 @@ export class PaymentsController {
             });
     }
 
+    @Get("all")
+    async getAll() {
+        return this.paymentService.all()
+    }
+
+    @Post("invoice")
+    async generateInvoice
+    (
+        @Body() id
+    ) {
+        console.log("ID : ", id.id);
+        this.paymentService.createInvoice(id.id)
+    }
+
     @Post()
-    confirmPayments(@Body() c_dto: commandDto) {
-        console.log(c_dto.pi_id);
-        let content : sendMailDTO
+    async confirmPayments (
+        @Body() c_dto: commandDto,
+        @Res({ passthrough: true }) resp: Response
+    ) 
+    {
+        if (!c_dto.pi_id) {
+            resp.status(404)
+            return {
+                status: "KO",
+                code: 404,
+                description: "No pi_id given",
+                data: null
+            };
+        }
+        let content : sendMailDTO = new sendMailDTO()
         content.email = c_dto.mail
-        let dtoToMail :sendMailDTO
+        let dtoToMail :sendMailDTO = new sendMailDTO()
         dtoToMail.email = c_dto.mail
         dtoToMail.user = c_dto.name
-        this.mailService.sendMail(dtoToMail);
 
-        let newOrder: command
+        //this.mailService.sendMail(dtoToMail);
+
+        let newOrder: command = new command()
         newOrder.delivery_adress_line_1 = c_dto.delivery_adress_line_1
         newOrder.delivery_adress_line_2 = c_dto.delivery_adress_line_2
         newOrder.delivery_city = c_dto.delivery_city
@@ -56,7 +81,13 @@ export class PaymentsController {
         newOrder.total_excl_taxes = c_dto.total_excl_taxes
         newOrder.total_taxes = c_dto.total_taxes
         newOrder.vat_rate = c_dto.vat_rate
+        newOrder.user_id = c_dto.user_id
         this.paymentService.create(newOrder)
-        return this.paymentService.confirmPayment(c_dto.pi_id)
+        resp.status(200)
+        return {
+            status: "OK",
+            code: 200,
+            data: await this.paymentService.confirmPayment(c_dto.pi_id)
+        };
     }
 }

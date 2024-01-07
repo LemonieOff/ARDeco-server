@@ -56,7 +56,7 @@ export class MailService {
                 transporterName: "gmail",
                 to: content.email, // list of receivers
                 from: "noreply@nestjs.com", // sender address
-                subject: "Verfication Code", // Subject line
+                subject: "Bienvenue", // Subject line
                 template: "./welcome",
                 context: {
                     email: content.email,
