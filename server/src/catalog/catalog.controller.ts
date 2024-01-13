@@ -205,11 +205,11 @@ export class CatalogController {
                 authorizedCompany.id
             );
         if (removedObjects === null) {
-            res.status(400);
+            res.status(500);
             return {
                 status: "KO",
-                code: 400,
-                description: "Objects not removed",
+                code: 500,
+                description: "Some objects have not been removed due to a server error",
                 data: null
             };
         }
@@ -250,11 +250,11 @@ export class CatalogController {
 
         const removedObject = await this.catalogService.delete(object.id);
         if (removedObject === null) {
-            res.status(400);
+            res.status(500);
             return {
                 status: "KO",
-                code: 400,
-                description: "Object doesn't exists in catalog",
+                code: 500,
+                description: "Object has not been removed due to a server error",
                 data: null
             };
         } else {
@@ -325,11 +325,11 @@ export class CatalogController {
 
         const removedObjects = await this.catalogService.deleteArray(ids);
         if (removedObjects === null) {
-            res.status(400);
+            res.status(500);
             return {
                 status: "KO",
-                code: 400,
-                description: "Some objects doesn't exists in catalog",
+                code: 500,
+                description: "Some objects have not been removed due to a server error",
                 data: null
             };
         } else {
