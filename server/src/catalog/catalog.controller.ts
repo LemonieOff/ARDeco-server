@@ -28,14 +28,24 @@ export class CatalogController {
     ) {}
 
     @Get()
-    async getCatalog(@Query() filters: any) {
+    async getCatalog(
+        @Query() filters: any,
+        @Res({ passthrough: true }) res: Response
+    ) {
         const items = await this.catalogService.all();
 
         if (!filters) {
             // If no filters provided, return all items
-            return items;
+            res.status(200);
+            return {
+                status: "OK",
+                code: 200,
+                description: "All objects from catalog",
+                data: items
+            };
         }
 
+        // TODO : Make a better and coherent response here
         // Filter the catalog items based on the provided filters
         return items.filter(item => {
             console.log(item);
@@ -502,10 +512,9 @@ export class CatalogController {
         return company;
     }
 
-    @Get('filter')
+    @Get("filter")
     async filterCatalog(@Body() filterDto: CatalogFilterDto) {
-      const result = await this.catalogService.filterCatalog(filterDto);
-      return { data: result };
+        const result = await this.catalogService.filterCatalog(filterDto);
+        return { data: result };
     }
-  
 }
