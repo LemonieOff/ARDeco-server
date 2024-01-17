@@ -34,7 +34,7 @@ export class CatalogController {
     ) {
         const items = await this.catalogService.all();
 
-        if (!filters) {
+        if (!filters || (typeof filters === "object" && Object.keys(filters).length === 0)) {
             // If no filters provided, return all items
             res.status(200);
             return {
