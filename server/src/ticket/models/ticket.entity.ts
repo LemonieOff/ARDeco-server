@@ -18,8 +18,8 @@ export class Ticket {
     @Column()
     description: string; // The description of the ticket
 
-    @Column()
-    date: string; // The date of the ticket
+    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    date: Date; // The date of the ticket
 
     @Column("longtext") // The messages of the ticket
     messages: string;
