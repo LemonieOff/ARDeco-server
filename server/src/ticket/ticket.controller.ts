@@ -28,7 +28,7 @@ export class TicketController {
         private userService: UserService,
     ) {}
 
-    @UseGuards(AuthGuard)
+  //  @UseGuards(AuthGuard)
     @Get('pending')
     async getPending(@Req() req: Request): Promise<any> {
         const data = await this.jwtService.verifyAsync(req.cookies['jwt'])
@@ -58,7 +58,7 @@ export class TicketController {
         };
     }
 
-    @UseGuards(AuthGuard)
+   // @UseGuards(AuthGuard)
     @Get('random')
     async getRandom(@Req() req: Request): Promise<any> {
         const data = await this.jwtService.verifyAsync(req.cookies['jwt'])
@@ -96,7 +96,7 @@ export class TicketController {
         };
     }
 
-    @UseGuards(AuthGuard)
+   // @UseGuards(AuthGuard)
     @Get('stats')
     async getStats(@Req() req: Request): Promise<any> {
         const data = await this.jwtService.verifyAsync(req.cookies['jwt'])
@@ -138,7 +138,7 @@ export class TicketController {
         };
     }
 
-    @UseGuards(AuthGuard)
+    //@UseGuards(AuthGuard)
     @Get('stats/last7days')
     async getStatsLast7Days(@Req() req: Request): Promise<any> {
         const data = await this.jwtService.verifyAsync(req.cookies['jwt'])
@@ -256,7 +256,7 @@ export class TicketController {
         };
     }
 
-    @UseGuards(AuthGuard)
+    //@UseGuards(AuthGuard)
     @Get('whoami')
     async whoami(@Req() request: Request): Promise<any> {
         const cookie = request.cookies['jwt'];
@@ -264,7 +264,7 @@ export class TicketController {
         return this.ticketService.findOne({ id: data['id'] });
     }
 
-    @UseGuards(AuthGuard)
+    //@UseGuards(AuthGuard)
     @Put(':id')
     async editViaParam(
         @Req() req: Request,
@@ -300,7 +300,7 @@ export class TicketController {
         }
     }
 
-    @UseGuards(AuthGuard)
+    //@UseGuards(AuthGuard)
     @Put('close/:id')
     async closeTicket(
         @Req() req: Request,
@@ -323,7 +323,7 @@ export class TicketController {
         return await this.editTicket(req, id, ticket, res);
     }
 
-    @UseGuards(AuthGuard)
+    //@UseGuards(AuthGuard)
     @Put('delete/:id')
     async delete(@Param('id') id: number,
                  @Req() req: Request,
@@ -344,7 +344,7 @@ export class TicketController {
         return await this.editTicket(req, id, ticket, res);
     }
 
-    @UseGuards(AuthGuard)
+    //@UseGuards(AuthGuard)
     @Post('create')
     async createTicket(
         @Req() req: Request,
@@ -373,7 +373,7 @@ export class TicketController {
         };
     }
 
-    @UseGuards(AuthGuard)
+    //@UseGuards(AuthGuard)
     @Put('write/:id')
     async writeTicket(
         @Req() req: Request,
@@ -453,7 +453,7 @@ export class TicketController {
         };
     }
 
-    @UseGuards(AuthGuard)
+    //@UseGuards(AuthGuard)
     @Get('all')
     async getAll(@Req() req: Request): Promise<any> {
         const data = await this.jwtService.verifyAsync(req.cookies['jwt'])
