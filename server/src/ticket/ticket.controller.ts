@@ -31,8 +31,10 @@ export class TicketController {
   //  @UseGuards(AuthGuard)
     @Get('pending')
     async getPending(@Req() req: Request): Promise<any> {
+        console.log(req.cookies);
         console.log("jwt in cookie is " + req.cookies['jwt']);
         const data = await this.jwtService.verifyAsync(req.cookies['jwt'])
+        console.log(data);
         const usr = await this.userService.findOne({id: data['id']})
         console.log("User", usr);
         if (usr.role != "admin") {
@@ -100,8 +102,10 @@ export class TicketController {
    // @UseGuards(AuthGuard)
     @Get('stats')
     async getStats(@Req() req: Request): Promise<any> {
+        console.log(req.cookies);
         console.log("jwt in cookie is " + req.cookies['jwt']);
         const data = await this.jwtService.verifyAsync(req.cookies['jwt'])
+        console.log(data);
         const usr = await this.userService.findOne({id: data['id']})
         console.log("User", usr);
         if (usr.role != "admin") {
@@ -143,8 +147,10 @@ export class TicketController {
     //@UseGuards(AuthGuard)
     @Get('stats/last7days')
     async getStatsLast7Days(@Req() req: Request): Promise<any> {
+        console.log(req.cookies);
         console.log("jwt in cookie is " + req.cookies['jwt']);
         const data = await this.jwtService.verifyAsync(req.cookies['jwt'])
+        console.log(data);
         const usr = await this.userService.findOne({id: data['id']})
         console.log("User", usr);
         console.log("Role", usr.role);
