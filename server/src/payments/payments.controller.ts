@@ -65,7 +65,7 @@ export class PaymentsController {
 
         //this.mailService.sendMail(dtoToMail);
 
-        let newOrder: command = new command()
+        let newOrder: Command = new Command()
         newOrder.delivery_adress_line_1 = c_dto.delivery_adress_line_1
         newOrder.delivery_adress_line_2 = c_dto.delivery_adress_line_2
         newOrder.delivery_city = c_dto.delivery_city
