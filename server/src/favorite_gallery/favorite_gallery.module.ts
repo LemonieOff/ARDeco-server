@@ -5,6 +5,7 @@ import { UserModule } from "../user/user.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { JwtModule } from "@nestjs/jwt";
 import { FavoriteGallery } from "./models/favorite_gallery.entity";
+import { CatalogModule } from "../catalog/catalog.module";
 
 @Module({
   imports: [
@@ -13,7 +14,8 @@ import { FavoriteGallery } from "./models/favorite_gallery.entity";
     JwtModule.register({
       secret: "secret",
       signOptions: { expiresIn: "1d" }
-    })
+    }),
+      CatalogModule
   ],
   controllers: [FavoriteGalleryController],
   providers: [FavoriteGalleryService],
