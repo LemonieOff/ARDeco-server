@@ -5,7 +5,6 @@ import {
     Get,
     Param,
     Post,
-    Put,
     Req,
     Res
 } from "@nestjs/common";
@@ -16,8 +15,7 @@ import { JwtService } from "@nestjs/jwt";
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 import { User } from "../user/models/user.entity";
 import { UserService } from "../user/user.service";
-import { FindOptionsWhere } from "typeorm";
-import { CatalogService } from "src/catalog/catalog.service";
+import { GalleryService } from "../gallery/gallery.service";
 
 @Controller("favorite/gallery")
 export class FavoriteGalleryController {
@@ -25,16 +23,13 @@ export class FavoriteGalleryController {
         private favgalleryService: FavoriteGalleryService,
         private jwtService: JwtService,
         private userService: UserService,
-        private catalogService: CatalogService
+        private galleryService: GalleryService
     ) {}
 
     @Get()
     async all(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
         const user = await this.checkAuthorization(req, res);
-        if (!(user instanceof User)) {
-            console.log("NO");
-            return user;
-        }
+        if (!(user instanceof User)) return user;
 
         // Get all query parameters
         const limit_query = req.query["limit"];
@@ -59,7 +54,7 @@ export class FavoriteGalleryController {
                     code: 404,
                     description: "You don't have any favorite gallery items",
                     data: null
-                }
+                };
             }
 
             res.status(200);
@@ -82,60 +77,63 @@ export class FavoriteGalleryController {
         }
     }
 
-    @Post() // remettre en param le fourniture_id une fois que ca marche
+    @Post("/:gallery_id")
     async post(
         @Req() req: Request,
-        @Body() item: QueryPartialEntity<FavoriteGallery>,
+        @Param("gallery_id") gallery_id: number,
         @Res({ passthrough: true }) res: Response
     ) {
-        const cookie = req.cookies["jwt"];
-        const data = cookie ? this.jwtService.verify(cookie) : null;
+        const user = await this.checkAuthorization(req, res);
+        if (!(user instanceof User)) return user;
 
-        // Cookie or JWT not valid
-        if (!cookie || !data) {
-            res.status(401);
+        try {
+            gallery_id = Number(gallery_id);
+        } catch (e) {
+            res.status(400);
             return {
                 status: "KO",
-                code: 401,
-                description:
-                    "You have to login in order to create a Favorite gallery",
+                code: 400,
+                description: "Gallery id is not a number",
                 data: null
             };
         }
 
-        const user = await this.userService.findOne({ id: data["id"] });
-
-        if (!user) {
-            // c'est pas le bon if il me faut "l’aménagement désigné n’est pas existant"
+        const gallery = await this.galleryService.findOne({ id: gallery_id });
+        if (!gallery) {
             res.status(404);
             return {
                 status: "KO",
                 code: 404,
                 description:
-                    "You are not allowed to create a Favorite gallery because it does not exist",
+                    "You are not allowed to add this gallery to your favorites because it does not exist",
                 data: null
             };
         }
 
-        if (!item) {
+        const existingItem = await this.favgalleryService.findOne({
+            gallery_id: gallery_id,
+            user_id: user.id
+        });
+        if (existingItem) {
             res.status(409);
             return {
                 status: "KO",
                 code: 409,
-                description:
-                    "You are not allowed to create a Favorite gallery that is already existing",
+                description: "You already have this gallery in your favorites",
                 data: null
             };
         }
 
         try {
-            item.user_id = user.id;
-            const result = await this.favgalleryService.create(item);
+            const favoriteGallery = new FavoriteGallery();
+            favoriteGallery.gallery_id = gallery_id;
+            favoriteGallery.user_id = user.id;
+            const result = await this.favgalleryService.create(favoriteGallery);
             res.status(201);
             return {
                 status: "OK",
                 code: 201,
-                description: "Favorite Gallery item was created",
+                description: "Gallery item was added to your favorites",
                 data: result
             };
         } catch (e) {
@@ -144,7 +142,7 @@ export class FavoriteGalleryController {
                 status: "KO",
                 code: 501,
                 description:
-                    "Favorite Gallery item was not created because of an error",
+                    "Gallery item was not added to your favorites because of an error",
                 error: e,
                 data: null
             };

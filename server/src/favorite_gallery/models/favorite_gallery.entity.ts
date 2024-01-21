@@ -10,7 +10,7 @@ export class FavoriteGallery {
     user_id: number;
 
     @Column({ type: "int" })
-    furniture_id: string;
+    gallery_id: number;
 
     @Column({
         type: "timestamp",
