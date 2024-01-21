@@ -27,10 +27,10 @@ import { FavoriteGalleryModule } from './favorite_gallery/favorite_gallery.modul
         UserModule,
         TypeOrmModule.forRoot({
             type: "mysql",
-            host: process.env.DB_HOST || "localhost",
+            host: "localhost",
             port: parseInt(process.env.DB_PORT) || 3306,
             username: process.env.DB_USER || "root",
-            password: process.env.DB_PASSWORD || "root",
+            password: "root",
             database: process.env.DB_NAME || "ardeco",
             autoLoadEntities: true,
             entities: [],
@@ -54,7 +54,7 @@ import { FavoriteGalleryModule } from './favorite_gallery/favorite_gallery.modul
         FavoriteFurnitureModule,
         FavoriteGalleryModule
     ],
-    controllers: [AppController],
+    controllers: [AppController, PaymentsController],
     providers: [AppService, ConfigService]
 })
 export class AppModule {}
