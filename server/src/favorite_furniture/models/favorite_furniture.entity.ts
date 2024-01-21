@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
-@Entity("favoriteFurniture")
+@Entity("favorite_furniture")
 export class FavoriteFurniture {
     @PrimaryGeneratedColumn()
     id: number;
@@ -8,7 +8,7 @@ export class FavoriteFurniture {
     @Column({ type: "int", update: false })
     user_id: number;
 
-    @Column({ type: "int" })
+    @Column({ type: "varchar" })
     furniture_id: string;
 
     @Column({
