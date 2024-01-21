@@ -1,7 +1,6 @@
 import { IsEmail, IsNotEmpty, isNotEmpty } from "class-validator";
 
 export class commandDto{
-    @IsNotEmpty()
     pi_id: string
 
     @IsEmail()
@@ -51,5 +50,8 @@ export class commandDto{
     payment_method: string;
 
     @IsNotEmpty()
-    furniture: JSON;
+    furniture: string;
+
+    @IsNotEmpty()
+    user_id: number;
 }
