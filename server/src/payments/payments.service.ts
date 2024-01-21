@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import Stripe from "stripe";
 import { InjectRepository } from "@nestjs/typeorm";
 import { CommandFailedEvent, Repository, UpdateResult } from "typeorm";
-import { command } from "./models/command.entity";
+import { Command } from "./models/command.entity";
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 import { commandDto } from "./models/command.dto";
 import * as fs from 'fs';
@@ -22,8 +22,8 @@ export class PaymentsService {
     private stripe;
 
     constructor(
-        @InjectRepository(command)
-        private readonly commandRepository: Repository<command>,
+        @InjectRepository(Command)
+        private readonly commandRepository: Repository<Command>,
         private catalogService: CatalogService
     ) {
         this.stripe = new Stripe(
@@ -47,7 +47,7 @@ export class PaymentsService {
         });
     }
 
-    private async generateHeader(pdfDoc :PDFDocument, command :command) 
+    private async generateHeader(pdfDoc :PDFDocument, command :Command)
     {
 		pdfDoc.image('ardeco_logo.webp', 50, 45, { width: 50 })
         .fillColor('#444444')
@@ -70,7 +70,7 @@ export class PaymentsService {
 		)
     }
 
-    private async addItem(pdfDoc :PDFDocument, command :command, item : Catalog, y : number) {
+    private async addItem(pdfDoc :PDFDocument, command :Command, item : Catalog, y : number) {
         pdfDoc.fontSize(10)
 		.text(item.name, 50, y)
 		.text(item.company_name, 150, y)
@@ -95,7 +95,7 @@ export class PaymentsService {
 		.moveDown();
     }
 
-    private async generateFooter(pdfDoc :PDFDocument, command :command) {
+    private async generateFooter(pdfDoc :PDFDocument, command :Command) {
         
     }
 
