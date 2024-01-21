@@ -53,7 +53,7 @@ export class FavoriteGalleryController {
                     status: "KO",
                     code: 404,
                     description: "You don't have any favorite gallery items",
-                    data: null
+                    data: []
                 };
             }
 
