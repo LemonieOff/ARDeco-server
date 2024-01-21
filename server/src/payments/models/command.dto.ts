@@ -1,11 +1,11 @@
 import { IsEmail, IsNotEmpty, isNotEmpty } from "class-validator";
 
-export class commandDto{
-    pi_id: string
+export class commandDto {
+    pi_id: string;
 
     @IsEmail()
     @IsNotEmpty()
-    mail: string
+    mail: string;
 
     @IsNotEmpty()
     total_amount: number;

@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
-@Entity("favoriteGallery")
+@Entity("favorite_gallery")
 export class FavoriteGallery {
     @PrimaryGeneratedColumn()
     id: number;
@@ -10,7 +10,7 @@ export class FavoriteGallery {
     user_id: number;
 
     @Column({ type: "int" })
-    furniture_id: string;
+    gallery_id: number;
 
     @Column({
         type: "timestamp",
@@ -18,6 +18,4 @@ export class FavoriteGallery {
         update: false
     })
     timestamp: Date;
-
-  
 }
