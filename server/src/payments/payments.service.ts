@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import Stripe from "stripe";
 import { InjectRepository } from "@nestjs/typeorm";
 import { CommandFailedEvent, Repository, UpdateResult } from "typeorm";
-import { command} from "./models/command.entity";
+import { command } from "./models/command.entity";
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 import { commandDto } from "./models/command.dto";
 import * as fs from 'fs';
@@ -24,7 +24,7 @@ export class PaymentsService {
     constructor(
         @InjectRepository(command)
         private readonly commandRepository: Repository<command>,
-        private catalogService: CatalogService
+        private catalogService: CatalogService,
     ) {
         this.stripe = new Stripe(
             "sk_test_51NputjKvy7BFowS9fdbY0S1Zjp0HDC2WRZwp8vRzyHSAsUOSOxfzWNCF0nboryWA8Jp5ZJZVHWgPQI8orwTzYCZD00dGeVzihA",
@@ -32,7 +32,7 @@ export class PaymentsService {
                 apiVersion: "2023-08-16"
             }
         );
-        
+
     }
 
     createPayment(paymentRequestBody: commandDto): Promise<any> {
@@ -40,6 +40,7 @@ export class PaymentsService {
         //    paymentRequestBody.products.forEach((product) => {
         //      sumAmount = sumAmount + product.price * product.quantity;
         //    });
+    
         return this.stripe.paymentIntents.create({
             amount: paymentRequestBody.total_amount,
             currency: "eur",
@@ -47,69 +48,68 @@ export class PaymentsService {
         });
     }
 
-    private async generateHeader(pdfDoc :PDFDocument, command :command) 
-    {
-		pdfDoc.image('ardeco_logo.webp', 50, 45, { width: 50 })
-        .fillColor('#444444')
-		.fontSize(20)
-		.text('ARDeco', 110, 57)
-		.fontSize(10)
-		.text('La place rouge', 200, 65, { align: 'right' })
-		.text('Moscou', 200, 80, { align: 'right' })
-		.moveDown()
-        .text(`N° Facture: ${command.id}`, 50, 200)
-		.text(`Date de paiement: ${command.datetime.toUTCString()}`, 50, 215)
-		.text(`Total: ${command.total_amount}`, 50, 130)
+    private async generateHeader(pdfDoc: PDFDocument, command: command) {
+        pdfDoc.image('ardeco_logo.png', 50, 45, { width: 50 })
+            .fillColor('#444444')
+            .fontSize(20)
+            .text('ARDeco', 110, 57)
+            .fontSize(10)
+            .text('La place rouge', 200, 65, { align: 'right' })
+            .text('Moscou', 200, 80, { align: 'right' })
+            .moveDown()
+            .text(`N° Facture: ${command.id}`, 50, 200)
+            .text(`Date de paiement: ${command.datetime.toUTCString()}`, 50, 215)
+            .text(`Total: ${command.total_amount}`, 50, 130)
 
-		.text(command.name, 300, 200)
-		.text(command.delivery_adress_line_1, 300, 215)
-		.text(
-			`${command.delivery_city}, ${command.delivery_country}, ${command.delivery_postal_code} ${command.delivery_region}`,
-			300,
-			150,
-		)
+            .text(command.name, 300, 200)
+            .text(command.delivery_adress_line_1, 300, 215)
+            .text(
+                `${command.delivery_city}, ${command.delivery_country}, ${command.delivery_postal_code} ${command.delivery_region}`,
+                300,
+                150,
+            )
     }
 
-    private async addItem(pdfDoc :PDFDocument, command :command, item : Catalog, y : number) {
+    private async addItem(pdfDoc: PDFDocument, command: command, item: Catalog, y: number) {
         pdfDoc.fontSize(10)
-		.text(item.name, 50, y)
-		.text(item.company_name, 150, y)
-		.text(item.price, 280, y, { width: 90, align: 'right' })
-		.text(command.total_taxes, 0, y, { align: 'right' })
-        .strokeColor("#aaaaaa")
-        .lineWidth(1)
-        .moveTo(50, y - 13)
-        .lineTo(550, y - 13)
-        .stroke()
-		.moveDown();
+            .text(item.name, 50, y)
+            .text(item.company_name, 150, y)
+            .text(item.price, 280, y, { width: 90, align: 'right' })
+            .text(command.total_taxes, 0, y, { align: 'right' })
+            .strokeColor("#aaaaaa")
+            .lineWidth(1)
+            .moveTo(50, y - 13)
+            .lineTo(550, y - 13)
+            .stroke()
+            .moveDown();
     }
 
-    private async addCommandPrice(pdfDoc :PDFDocument, price : number, y : number) {
+    private async addCommandPrice(pdfDoc: PDFDocument, price: number, y: number, label: string) {
         pdfDoc.fontSize(10)
-		.text(price, 0, y, { align: 'right' })
-        .strokeColor("#aaaaaa")
-        .lineWidth(1)
-        .moveTo(50, y - 13)
-        .lineTo(550, y - 13)
-        .stroke()
-		.moveDown();
+            .text(label, 450, y, { align: 'left' })
+            .text(price, 0, y, { align: 'right' })
+            .strokeColor("#aaaaaa")
+            .lineWidth(1)
+            .moveTo(50, y - 13)
+            .lineTo(550, y - 13)
+            .stroke()
+            .moveDown();
     }
 
-    private async generateFooter(pdfDoc :PDFDocument, command :command) {
-        
+    private async generateFooter(pdfDoc: PDFDocument, command: command) {
+
     }
 
-    async createInvoice(id : number) 
-    {
+    async createInvoice(id: number) {
         console.log(id)
-        const command = await this.findOne({id : id});
+        const command = await this.findOne({ id: id });
         console.log(command)
         if (command == null)
             return "Error"
 
         const invoiceFileName = `invoice_${command.id}.pdf`;
-        
-        let invoicesDir = process.env.ARDECO_INVOICES_DIR || path.join(__dirname,'../..', 'ardeco_invoices');
+
+        let invoicesDir = process.env.ARDECO_INVOICES_DIR || path.join(__dirname, '../..', 'ardeco_invoices');
         if (!fs.existsSync(invoicesDir)) {
             fs.mkdirSync(invoicesDir);
         }
@@ -119,23 +119,23 @@ export class PaymentsService {
         pdfDoc.pipe(fs.createWriteStream(invoicePath));
 
         this.generateHeader(pdfDoc, command)
-        
+
         const values = command.furniture.split(",");
         let itemsInCart = []
         let y = 1
-        
+
         pdfDoc.
-        text("Nom", 50, 280)
-		.text("Fournisseur", 150, 280)
-		.text("Prix", 280, 280, { width: 90, align: 'right' })
-		.text("Taxe %", 0, 280, { align: 'right' })
+            text("Nom", 50, 280)
+            .text("Fournisseur", 150, 280)
+            .text("Prix", 280, 280, { width: 90, align: 'right' })
+            .text("Taxe %", 0, 280, { align: 'right' })
 
         for (let i = 0; i != values.length; i++) { // A pour fonction de convertir les id des meubles en json de meuble
             const parsedId = parseInt(values[i]);
             if (isNaN(parsedId)) {
                 console.error(`Invalid id: ${values[i]}`);
             } else {
-                let item : Catalog = await this.catalogService.findOne({ id: parsedId })
+                let item: Catalog = await this.catalogService.findOne({ id: parsedId })
                 if (item) {
                     await this.addItem(pdfDoc, command, item, y * 30 + 280);
                     y += 1
@@ -144,14 +144,64 @@ export class PaymentsService {
                 }
             }
         }
-        this.addCommandPrice(pdfDoc, command.total_excl_taxes, y * 30 + 280)
-        this.addCommandPrice(pdfDoc, command.total_excl_taxes, y * 30 + 280)
+        this.addCommandPrice(pdfDoc, command.total_taxes, y * 30 + 280, "Prix HT")
+        this.addCommandPrice(pdfDoc, command.total_amount, y * 30 + 310, "Prix TTC")
         this.generateFooter(pdfDoc, command)
-        
+
         pdfDoc.end();
     }
 
-    async confirmPayment(paymentIntentId): Promise<any> {
+    async confirmPayment(paymentIntentId, order : command, mail: string): Promise<any> {
+        
+        const axios = require('axios');
+        
+        let dataInvoice = JSON.stringify({
+            "id": order.id
+          });
+          
+          let configInvoice = {
+            method: 'post',
+            maxBodyLength: Infinity,
+            url: 'https://api.ardeco.app/payments/invoice',
+            headers: { 
+              'Content-Type': 'application/json'
+            },
+            data : dataInvoice
+          };
+          axios.request(configInvoice)
+          .then((response) => {
+            console.log(JSON.stringify(response.data));
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+        
+        
+        let dataMail = JSON.stringify({
+            "email": mail,
+            "id_invoice": order.id,
+            "name": order.name,
+            "total": order.total_amount
+        });
+        let configMail = {
+            method: 'get',
+            maxBodyLength: Infinity,
+            url: 'https://api.ardeco.app/mail/invoice',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            data: dataMail
+        };
+
+        axios.request(configMail)
+            .then((response) => {
+                console.log(JSON.stringify(response.data));
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+        
+        
         return await this.stripe.paymentIntents.confirm(paymentIntentId, {
             payment_method: "pm_card_visa"
         });
