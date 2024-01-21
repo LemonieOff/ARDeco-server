@@ -103,8 +103,9 @@ export class MailService {
         
         let filePath = `ardeco_invoices/invoice_${content.id_invoice}.pdf`
 
-        const attachmentContent = fs.readFileSync(filePath, 'utf-8');
+        const attachmentContent = fs.readFileSync(filePath);
         
+        console.log()
         const command = await
         this.mailerService
             .sendMail({
@@ -116,13 +117,14 @@ export class MailService {
                 context: {
                     name : content.name,
                     total : content.total,
+                    order_id: content.id_invoice
 
                 },
                 attachments: [
                     {
                         filename: "invoice.pdf",
                         content: attachmentContent,
-                        encoding: 'utf-8'
+                        //encoding: 'utf-8'
                     },
                 ]
             })

@@ -82,12 +82,12 @@ export class PaymentsController {
         newOrder.total_taxes = c_dto.total_taxes
         newOrder.vat_rate = c_dto.vat_rate
         newOrder.user_id = c_dto.user_id
-        this.paymentService.create(newOrder)
+        let order = await this.paymentService.create(newOrder)
         resp.status(200)
         return {
             status: "OK",
             code: 200,
-            data: await this.paymentService.confirmPayment(c_dto.pi_id)
+            data: await this.paymentService.confirmPayment(c_dto.pi_id, order, c_dto.mail)
         };
     }
 }
