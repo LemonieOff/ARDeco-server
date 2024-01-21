@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CatalogModule } from 'src/catalog/catalog.module';
 import { MailModule } from 'src/mail/mail.module';
@@ -8,8 +8,8 @@ import { PaymentsService } from './payments.service';
 
 @Module({
   imports: [
-    CatalogModule,
-    MailModule,
+    forwardRef(() => CatalogModule),
+    forwardRef(() => MailModule),
     TypeOrmModule.forFeature([command]),
   ],
   controllers: [PaymentsController],

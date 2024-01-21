@@ -49,7 +49,8 @@ export class PaymentsService {
 
     private async generateHeader(pdfDoc :PDFDocument, command :command) 
     {
-		pdfDoc.fillColor('#444444')
+		pdfDoc.image('ardeco_logo.webp', 50, 45, { width: 50 })
+        .fillColor('#444444')
 		.fontSize(20)
 		.text('ARDeco', 110, 57)
 		.fontSize(10)
@@ -81,7 +82,17 @@ export class PaymentsService {
         .lineTo(550, y - 13)
         .stroke()
 		.moveDown();
+    }
 
+    private async addCommandPrice(pdfDoc :PDFDocument, price : number, y : number) {
+        pdfDoc.fontSize(10)
+		.text(price, 0, y, { align: 'right' })
+        .strokeColor("#aaaaaa")
+        .lineWidth(1)
+        .moveTo(50, y - 13)
+        .lineTo(550, y - 13)
+        .stroke()
+		.moveDown();
     }
 
     private async generateFooter(pdfDoc :PDFDocument, command :command) {
@@ -133,6 +144,8 @@ export class PaymentsService {
                 }
             }
         }
+        this.addCommandPrice(pdfDoc, command.total_excl_taxes, y * 30 + 280)
+        this.addCommandPrice(pdfDoc, command.total_excl_taxes, y * 30 + 280)
         this.generateFooter(pdfDoc, command)
         
         pdfDoc.end();

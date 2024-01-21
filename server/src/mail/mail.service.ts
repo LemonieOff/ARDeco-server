@@ -5,7 +5,9 @@ import { google } from "googleapis";
 import { Options } from "nodemailer/lib/smtp-transport";
 import { PaymentsService } from "src/payments/payments.service";
 import { sendMailDTO } from "./models/sendMail.dto";
+import { sendMailInvoiceDTO } from "./models/sendMailInvoice.dto";
 import { sendMailPasswordDTO } from "./models/sendMailPassword";
+import * as fs from 'fs';
 
 // 296799252497-m015kpmeiedhi0lf9f442tdqe8q97djl.apps.googleusercontent.com
 // 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
@@ -96,9 +98,14 @@ export class MailService {
             });
     }
 
-    public async sendMailInvoice(content : sendMailPasswordDTO) {
+    public async sendMailInvoice(content : sendMailInvoiceDTO) {
         await this.setTransport(await this.getToken());
-        const command = await  
+        
+        let filePath = `ardeco_invoices/invoice_${content.id_invoice}.pdf`
+
+        const attachmentContent = fs.readFileSync(filePath, 'utf-8');
+        
+        const command = await
         this.mailerService
             .sendMail({
                 transporterName: 'gmail',
@@ -107,10 +114,17 @@ export class MailService {
                 subject: 'Récapitulatif de comande ARdeco', // Subject line
                 template: './invoice',
                 context: {
-                    name : content.token,
-                    total : content.user,
+                    name : content.name,
+                    total : content.total,
 
                 },
+                attachments: [
+                    {
+                        filename: "invoice.pdf",
+                        content: attachmentContent,
+                        encoding: 'utf-8'
+                    },
+                ]
             })
             .then((success) => {
                 console.log(success);
