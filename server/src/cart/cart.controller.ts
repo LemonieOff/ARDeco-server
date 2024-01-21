@@ -91,7 +91,7 @@ export class CartController {
         .catalogItems;
         const values = catalogItem.split(",");
         let itemsInCart = []
-        for (let i = 0; i != values.length; i++) { // A pour fonction de convertir les id des meubles en json de meuble
+        for (let i = 0; i != values.length; i++) { // Fonction pour convertir les id des meubles en json de meuble / A pour fonction de convertir les id des meubles en json de meuble
             const parsedId = parseInt(values[i]);
             if (isNaN(parsedId)) {
                 console.error(`Invalid id: ${values[i]}`);

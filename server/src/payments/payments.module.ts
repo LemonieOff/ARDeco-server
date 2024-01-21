@@ -5,6 +5,8 @@ import { MailModule } from 'src/mail/mail.module';
 import { command } from './models/command.entity';
 import { PaymentsController } from './payments.controller';
 import { PaymentsService } from './payments.service';
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { Command } from "./models/command.entity";
 
 @Module({
   imports: [

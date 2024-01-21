@@ -19,6 +19,8 @@ import { PaymentsModule } from "./payments/payments.module";
 import { OrderHistoryModule } from "./order_history/order_history_module";
 import { TicketModule } from "./ticket/ticket.module";
 import { ArchiveModule } from "./archive/archive.module";
+import { FavoriteFurnitureModule } from './favorite_furniture/favorite_furniture.module';
+import { FavoriteGalleryModule } from './favorite_gallery/favorite_gallery.module';
 
 @Module({
     imports: [
@@ -48,9 +50,11 @@ import { ArchiveModule } from "./archive/archive.module";
         MailModule,
         PaymentsModule,
         TicketModule,
-        ArchiveModule
+        ArchiveModule,
+        FavoriteFurnitureModule,
+        FavoriteGalleryModule
     ],
-    controllers: [AppController, PaymentsController],
-    providers: [AppService, ConfigService, PaymentsService]
+    controllers: [AppController],
+    providers: [AppService, ConfigService]
 })
 export class AppModule {}

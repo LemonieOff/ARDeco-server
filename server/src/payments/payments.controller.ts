@@ -5,7 +5,7 @@ import { Response, Request } from 'express';
 import { MailService } from 'src/mail/mail.service';
 import { sendMailDTO } from 'src/mail/models/sendMail.dto';
 import { commandDto } from './models/command.dto';
-import { command } from './models/command.entity';
+import { Command } from './models/command.entity';
 
 @Controller("payments")
 export class PaymentsController {

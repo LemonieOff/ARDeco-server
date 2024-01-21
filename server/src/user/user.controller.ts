@@ -10,6 +10,7 @@ import {
 } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { Request, Response } from "express";
+import * as bcrypt from "bcryptjs";
 import { AuthGuard } from "../auth/auth.guard";
 import { JwtService } from "@nestjs/jwt";
 import { User } from "./models/user.entity";
@@ -118,6 +119,8 @@ export class UserController {
                     data: null
                 };
             }
+
+            // Change role only if requester is an admin
             if (
                 user["role"] !== undefined &&
                 request_user_id["role"] != "admin"
@@ -131,6 +134,13 @@ export class UserController {
                     data: null
                 };
             }
+
+            // Check password in case of password change
+            // TEMPORARY SOLUTION
+            if (user["password"] !== undefined) {
+                user["password"] = await bcrypt.hash(user["password"], 12);
+            }
+
             const result = await this.userService.update(data["id"], user);
             res.status(200);
             return {

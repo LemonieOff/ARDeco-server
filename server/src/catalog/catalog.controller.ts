@@ -28,14 +28,24 @@ export class CatalogController {
     ) {}
 
     @Get()
-    async getCatalog(@Query() filters: any) {
+    async getCatalog(
+        @Query() filters: any,
+        @Res({ passthrough: true }) res: Response
+    ) {
         const items = await this.catalogService.all();
 
-        if (!filters) {
+        if (!filters || (typeof filters === "object" && Object.keys(filters).length === 0)) {
             // If no filters provided, return all items
-            return items;
+            res.status(200);
+            return {
+                status: "OK",
+                code: 200,
+                description: "All objects from catalog",
+                data: items
+            };
         }
 
+        // TODO : Make a better and coherent response here
         // Filter the catalog items based on the provided filters
         return items.filter(item => {
             console.log(item);
@@ -205,11 +215,11 @@ export class CatalogController {
                 authorizedCompany.id
             );
         if (removedObjects === null) {
-            res.status(400);
+            res.status(500);
             return {
                 status: "KO",
-                code: 400,
-                description: "Objects not removed",
+                code: 500,
+                description: "Some objects have not been removed due to a server error",
                 data: null
             };
         }
@@ -250,11 +260,11 @@ export class CatalogController {
 
         const removedObject = await this.catalogService.delete(object.id);
         if (removedObject === null) {
-            res.status(400);
+            res.status(500);
             return {
                 status: "KO",
-                code: 400,
-                description: "Object doesn't exists in catalog",
+                code: 500,
+                description: "Object has not been removed due to a server error",
                 data: null
             };
         } else {
@@ -325,11 +335,11 @@ export class CatalogController {
 
         const removedObjects = await this.catalogService.deleteArray(ids);
         if (removedObjects === null) {
-            res.status(400);
+            res.status(500);
             return {
                 status: "KO",
-                code: 400,
-                description: "Some objects doesn't exists in catalog",
+                code: 500,
+                description: "Some objects have not been removed due to a server error",
                 data: null
             };
         } else {
@@ -502,10 +512,9 @@ export class CatalogController {
         return company;
     }
 
-    @Get('filter')
+    @Get("filter")
     async filterCatalog(@Body() filterDto: CatalogFilterDto) {
-      const result = await this.catalogService.filterCatalog(filterDto);
-      return { data: result };
+        const result = await this.catalogService.filterCatalog(filterDto);
+        return { data: result };
     }
-  
 }
