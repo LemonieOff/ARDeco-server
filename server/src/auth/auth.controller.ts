@@ -23,6 +23,7 @@ import { randomBytes } from "crypto";
 import { AuthService } from './auth.service';
 import { use } from 'passport';
 import { sendMailPasswordDTO } from "src/mail/models/sendMailPassword";
+import { emit } from "process";
 
 // idclient 720605484975-ohe2u21jk3k6e2cdekgifiliipd4e6oh.apps.googleusercontent.com
 // secret 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
@@ -99,10 +100,10 @@ export class AuthController {
             }
 
             const res = await this.userService.create(body)
-            /* Uncomment to send mail on production
-            let content : sendMailDTO
+            let content : sendMailDTO = new sendMailDTO()
             content.email = body.email
-            this.mailService.sendMail(content)*/
+            content.user = body.first_name
+            this.mailService.sendMail(content)
             console.log("ID", res.id)
             const jwt = await this.jwtService.signAsync({ id: res.id, email: res.email });
             response.cookie("jwt", jwt, { httpOnly: true, sameSite: "none", secure: true });
