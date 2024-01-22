@@ -1,5 +1,4 @@
 import { forwardRef, Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { CatalogModule } from 'src/catalog/catalog.module';
 import { MailModule } from 'src/mail/mail.module';
 import { Command } from './models/command.entity';

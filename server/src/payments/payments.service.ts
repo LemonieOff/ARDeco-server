@@ -24,7 +24,7 @@ export class PaymentsService {
     constructor(
         @InjectRepository(Command)
         private readonly commandRepository: Repository<Command>,
-        private catalogService: CatalogService,
+        private catalogService: CatalogService
     ) {
         this.stripe = new Stripe(
             "sk_test_51NputjKvy7BFowS9fdbY0S1Zjp0HDC2WRZwp8vRzyHSAsUOSOxfzWNCF0nboryWA8Jp5ZJZVHWgPQI8orwTzYCZD00dGeVzihA",
@@ -95,6 +95,7 @@ export class PaymentsService {
             .stroke()
             .moveDown();
     }
+
 
     private async generateFooter(pdfDoc: PDFDocument, command: Command) {
 
