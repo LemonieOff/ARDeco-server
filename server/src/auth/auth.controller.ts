@@ -45,16 +45,13 @@ export class AuthController {
         if (!user) {
             throw new Error("User not found");
         }
-
         const resetToken = randomBytes(32).toString('hex');
         const expirationDate = new Date();
         expirationDate.setHours(expirationDate.getHours() + 1); // Lien valable pendant 1 heure
         await this.authService.createReset({email: email, link : resetToken})
         console.log("rt:", resetToken)
 
-        let content: sendMailPasswordDTO;
-        content.email = email
-        content.token = resetToken
+        let content: sendMailPasswordDTO = {email: email, token: resetToken, user: user.first_name};
         this.mailService.sendMailPassword(content)
         return resetToken;
       }
