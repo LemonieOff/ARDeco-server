@@ -152,7 +152,17 @@ export class FavoriteGalleryController {
         @Res({ passthrough: true }) res: Response
     ) {
         const gallery = await this.galleryService.findOne({ id: gallery_id });
-
+        
+        if (!gallery) {
+            res.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description:
+                    "You are not allowed to delete this gallery to your favorites because it does not exist",
+                data: null
+            };
+        }
         const authorizedUser = await this.checkAuthorization(
             req,
             res
@@ -160,7 +170,7 @@ export class FavoriteGalleryController {
         if (!(authorizedUser instanceof User)) return authorizedUser;
 
         try {
-            const result = await this.favgalleryService.delete(gallery_id);
+            const result = await this.favGalleryService.delete(gallery_id);
             res.status(200);
             return {
                 status: "OK",
@@ -175,7 +185,7 @@ export class FavoriteGalleryController {
                 status: "OK",
                 code: 501,
                 description: "Server error",
-                data: gallery_id
+                data: gallery
             };
         }
     }

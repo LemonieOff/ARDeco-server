@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Req, Res } from "@nestjs/common";
+import { Controller, Delete, Get, Param, Post, Req, Res } from "@nestjs/common";
 import { Request, Response } from "express";
 import { FavoriteFurniture } from "./models/favorite_furniture.entity";
 import { FavoriteFurnitureService } from "./favorite_furniture.service";
@@ -119,6 +119,52 @@ export class FavoriteFurnitureController {
         }
     }
 
+    @Delete("/:furniture_id")
+    async deleteItem(
+        @Req() req: Request,
+        @Param("furniture_id") furniture_id: number,
+        @Res({ passthrough: true }) res: Response
+    ) {
+        const furniture = await this.favFurnitureService.findOne({ id: furniture_id });
+        
+        if (!furniture) {
+            res.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description:
+                    "You are not allowed to delete this furniture to your favorites because it does not exist",
+                data: null
+            };
+        }
+        const authorizedUser = await this.checkAuthorization(
+            req,
+            res,
+            // item,
+            // "delete"
+        );
+        if (!(authorizedUser instanceof User)) return authorizedUser;
+    
+        try {
+            const result = await this.favFurnitureService.delete(furniture_id);
+            res.status(200);
+            return {
+                status: "OK",
+                code: 200,
+                description: "Gallery item has successfully been deleted",
+                 data: result
+            };
+        } catch (e) {
+            res.status(500);
+            return {
+                status: "OK",
+                code: 500,
+                description: "Server error",
+                data: furniture
+            };
+        }
+    }
+
     async checkAuthorization(
         req: Request,
         res: Response,
@@ -149,6 +195,7 @@ export class FavoriteFurnitureController {
                 data: null
             };
         }
+
         return user;
     }
 }
