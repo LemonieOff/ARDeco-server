@@ -21,7 +21,8 @@ export class UserController {
     constructor(
         private userService: UserService,
         private jwtService: JwtService
-    ) {}
+    ) {
+    }
 
     @Get()
     all() {
@@ -90,8 +91,8 @@ export class UserController {
         }
     }
 
-    @Get ("basicusers")
-    async getBasicUsers(req: Request) {
+    @Get("basicusers")
+    async getBasicUsers(@Req() req: Request) {
         try {
             const cookie = req.cookies["jwt"];
             const data = this.jwtService.verify(cookie);
@@ -105,11 +106,11 @@ export class UserController {
                     data: null
                 };
             }
-            const users = await this.userService.all()
-            let basicUsers = []
+            const users = await this.userService.all();
+            let basicUsers = [];
             for (let i = 0; i < users.length; i++) {
-                if (users[i].role == "user") {
-                    basicUsers.push(users[i])
+                if (users[i].role === "client") {
+                    basicUsers.push(users[i]);
                 }
             }
             return {
@@ -117,15 +118,16 @@ export class UserController {
                 code: 200,
                 description: "Basic users have been found",
                 data: basicUsers
-            }
+            };
         } catch (e) {
+            console.error("Error in getBasicUsers:", e);
             return {
                 status: "KO",
                 code: 400,
                 description: "Error while fetching basic users",
                 error: e,
                 data: null
-            }
+            };
         }
     }
 
