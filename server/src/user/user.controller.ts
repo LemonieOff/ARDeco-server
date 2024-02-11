@@ -28,6 +28,107 @@ export class UserController {
         return ["users"];
     }
 
+    @Get("usertypes")
+    async getUserTypes(@Req() req: Request) {
+
+        try {
+            const cookie = req.cookies["jwt"];
+            const data = this.jwtService.verify(cookie);
+            const usr = await this.userService.findOne({id: data['id']})
+
+            if (usr["role"] != "admin") {
+                return {
+                    status: "KO",
+                    code: 403,
+                    description: "You are not allowed to use this endpoint",
+                    data: null
+                };
+            }
+
+            const users = await this.userService.all();
+
+            let admin = 0;
+            let company = 0;
+            let user = 0;
+            let deleted = 0;
+
+            for (let i = 0; i < users.length; i++) {
+                if (users[i].deleted == true) {
+                    deleted++;
+                }
+                if (users[i].role == "admin") {
+                    admin++;
+                } else if (users[i].role == "company") {
+                    company++;
+                } else {
+                    user++;
+                }
+            }
+
+            return {
+                status: "OK",
+                code: 200,
+                description: "User types have been found",
+                data: {
+                    admin,
+                    company,
+                    user,
+                    deleted,
+                    totalActive: admin + company + user - deleted,
+                    totalWithDeleted: admin + company + user
+                }
+            };
+        } catch (e) {
+            console.error("Error in getUserTypes:", e);
+            return {
+                status: "KO",
+                code: 400,
+                description: "Error while fetching user types",
+                error: e,
+                data: null
+            };
+        }
+    }
+
+    @Get ("basicusers")
+    async getBasicUsers(req: Request) {
+        try {
+            const cookie = req.cookies["jwt"];
+            const data = this.jwtService.verify(cookie);
+            const usr = await this.userService.findOne({id: data['id']})
+
+            if (usr["role"] != "admin") {
+                return {
+                    status: "KO",
+                    code: 403,
+                    description: "You are not allowed to use this endpoint",
+                    data: null
+                };
+            }
+            const users = await this.userService.all()
+            let basicUsers = []
+            for (let i = 0; i < users.length; i++) {
+                if (users[i].role == "user") {
+                    basicUsers.push(users[i])
+                }
+            }
+            return {
+                status: "OK",
+                code: 200,
+                description: "Basic users have been found",
+                data: basicUsers
+            }
+        } catch (e) {
+            return {
+                status: "KO",
+                code: 400,
+                description: "Error while fetching basic users",
+                error: e,
+                data: null
+            }
+        }
+    }
+
     @Get(":id")
     async getOne(@Param("id") id: number) {
         const requestedUser = await this.userService.findOne({ id: id });
