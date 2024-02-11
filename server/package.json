@@ -34,6 +34,7 @@
     "gulp-handlebars": "^5.0.2",
     "mysql2": "^3.2.1",
     "passport-jwt": "^4.0.1",
+    "pdfkit": "^0.14.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0",
     "stripe": "^13.5.0",

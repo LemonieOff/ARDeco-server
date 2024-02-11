@@ -1,10 +1,13 @@
 import { MailerService } from "@nestjs-modules/mailer";
-import { Injectable } from "@nestjs/common";
+import { forwardRef, Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { google } from "googleapis";
 import { Options } from "nodemailer/lib/smtp-transport";
+import { PaymentsService } from "src/payments/payments.service";
 import { sendMailDTO } from "./models/sendMail.dto";
+import { sendMailInvoiceDTO } from "./models/sendMailInvoice.dto";
 import { sendMailPasswordDTO } from "./models/sendMailPassword";
+import * as fs from 'fs';
 
 // 296799252497-m015kpmeiedhi0lf9f442tdqe8q97djl.apps.googleusercontent.com
 // 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
@@ -12,7 +15,9 @@ import { sendMailPasswordDTO } from "./models/sendMailPassword";
 export class MailService {
     constructor(
         private mailerService: MailerService,
-        private readonly configService: ConfigService
+        private readonly configService: ConfigService,
+        @Inject(forwardRef(() => PaymentsService))
+        private paymentService: PaymentsService
     ) {}
 
     private async setTransport(token) {
@@ -56,7 +61,7 @@ export class MailService {
                 transporterName: "gmail",
                 to: content.email, // list of receivers
                 from: "noreply@nestjs.com", // sender address
-                subject: "Verfication Code", // Subject line
+                subject: "Bienvenue", // Subject line
                 template: "./welcome",
                 context: {
                     email: content.email,
@@ -92,6 +97,45 @@ export class MailService {
                 console.log(err);
             });
     }
+
+    public async sendMailInvoice(content : sendMailInvoiceDTO) {
+        await this.setTransport(await this.getToken());
+        
+        let filePath = `ardeco_invoices/invoice_${content.id_invoice}.pdf`
+
+        const attachmentContent = fs.readFileSync(filePath);
+        
+        console.log()
+        const command = await
+        this.mailerService
+            .sendMail({
+                transporterName: 'gmail',
+                to: content.email, // list of receivers
+                from: 'noreply@nestjs.com', // sender address
+                subject: 'Récapitulatif de comande ARdeco', // Subject line
+                template: './invoice',
+                context: {
+                    name : content.name,
+                    total : content.total,
+                    order_id: content.id_invoice
+
+                },
+                attachments: [
+                    {
+                        filename: "invoice.pdf",
+                        content: attachmentContent,
+                        //encoding: 'utf-8'
+                    },
+                ]
+            })
+            .then((success) => {
+                console.log(success);
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    }
+
 
     private async getToken(){
         const axios = require('axios');

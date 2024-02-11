@@ -54,7 +54,7 @@ import { FavoriteGalleryModule } from './favorite_gallery/favorite_gallery.modul
         FavoriteFurnitureModule,
         FavoriteGalleryModule
     ],
-    controllers: [AppController],
+    controllers: [AppController, PaymentsController],
     providers: [AppService, ConfigService]
 })
 export class AppModule {}

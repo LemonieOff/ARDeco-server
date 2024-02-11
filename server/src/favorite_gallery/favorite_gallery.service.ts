@@ -18,9 +18,9 @@ export class FavoriteGalleryService {
 
 
     async findAll(
-        user_id: number | null,
-        limit: number | null,
-        begin_pos: number | null
+        user_id: number | null = null,
+        limit: number | null = null,
+        begin_pos: number | null = null
     ): Promise<FavoriteGallery[]> {
         let where: FindOptionsWhere<FavoriteGallery> = { /*visibility: true*/ }; // Public items only
         if (user_id) {

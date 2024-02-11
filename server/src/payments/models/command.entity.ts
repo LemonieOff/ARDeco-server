@@ -15,16 +15,16 @@ export class Command {
     })
     datetime: Date;
 
-    @Column({ type: "float", update: false })
+    @Column()
     total_amount: number;
 
-    @Column({ type: "float", update: false })
+    @Column()
     total_excl_taxes: number;
 
-    @Column({ type: "float", update: false })
+    @Column()
     total_taxes: number;
 
-    @Column({ type: "float", update: false })
+    @Column()
     vat_rate: number;
 
     @Column({ type: "varchar", update: false })
@@ -57,6 +57,6 @@ export class Command {
     @Column({ type: "varchar", update: false })
     payment_method: string;
 
-    @Column({ type: "json", update: false })
-    furniture: JSON;
+    @Column()
+    furniture: string;
 }
