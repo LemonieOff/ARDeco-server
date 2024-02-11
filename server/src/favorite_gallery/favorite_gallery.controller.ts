@@ -149,24 +149,24 @@ export class FavoriteGalleryController {
         }
     }
 
-    @Delete(":id")
+    @Delete("/:gallery_id")
     async deleteItem(
         @Req() req: Request,
-        @Param("id") id: number,
+        @Param("gallery_id") gallery_id: number,
         @Res({ passthrough: true }) res: Response
     ) {
-        const item = await this.favgalleryService.findOne({ id: id });
+        const gallery = await this.galleryService.findOne({ id: gallery_id });
 
-        const authorizedUser = await this.checkAuthorization(
-            req,
-            res,
-            item,
-            "delete"
-        );
-        if (!(authorizedUser instanceof User)) return authorizedUser;
+        // const authorizedUser = await this.checkAuthorization(
+        //     req,
+        //     res,
+        //     //gallery_id,
+        //    // "delete"
+        // );
+        // if (!(authorizedUser instanceof User)) return authorizedUser;
 
         try {
-            const result = await this.favgalleryService.delete(id);
+            const result = await this.favgalleryService.delete(gallery_id);
             res.status(200);
             return {
                 status: "OK",
@@ -181,7 +181,7 @@ export class FavoriteGalleryController {
                 status: "OK",
                 code: 501,
                 description: "Server error",
-                data: item
+                data: gallery_id
             };
         }
     }
