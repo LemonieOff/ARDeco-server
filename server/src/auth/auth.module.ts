@@ -9,6 +9,7 @@ import { CartService } from 'src/cart/cart.service';
 import { AuthService } from './auth.service';
 import { Reset } from './models/password_reset.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { UserSettingsModule } from "../user_settings/user_settings_module";
 
 @Module({
     imports: [
@@ -16,6 +17,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         UserModule,
         MailModule,
         CartModule,
+        UserSettingsModule,
         JwtModule.register({
             secret: "secret",
             signOptions: { expiresIn: "1d" }

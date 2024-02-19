@@ -24,6 +24,7 @@ import { AuthService } from './auth.service';
 import { use } from 'passport';
 import { sendMailPasswordDTO } from "src/mail/models/sendMailPassword";
 import { emit } from "process";
+import { UserSettingsService } from "../user_settings/user_settings_service";
 
 // idclient 720605484975-ohe2u21jk3k6e2cdekgifiliipd4e6oh.apps.googleusercontent.com
 // secret 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
@@ -35,7 +36,8 @@ export class AuthController {
         private jwtService: JwtService,
         private mailService: MailService,
         private cartService: CartService,
-        private authService: AuthService
+        private authService: AuthService,
+        private userSettingsService: UserSettingsService
     ) { }
 
     @Post('reset')
@@ -99,12 +101,20 @@ export class AuthController {
                 };
             }
 
-            const res = await this.userService.create(body)
-            let content : sendMailDTO = new sendMailDTO()
-            content.email = body.email
-            content.user = body.first_name
-            this.mailService.sendMail(content)
-            console.log("ID", res.id)
+            const res = await this.userService.create(body);
+
+            // Create settings for the user
+            const settings = await this.userSettingsService.create({ user_id: res.id });
+            console.log("Settings created for user ", settings.user_id);
+
+            // Email sent to the user
+            let content : sendMailDTO = new sendMailDTO();
+            content.email = body.email;
+            content.user = body.first_name;
+            this.mailService.sendMail(content);
+            console.log("ID", res.id);
+
+            // Send JWT token
             const jwt = await this.jwtService.signAsync({ id: res.id, email: res.email });
             response.cookie("jwt", jwt, { httpOnly: true, sameSite: "none", secure: true });
             response.status(200);
