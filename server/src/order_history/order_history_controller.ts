@@ -7,7 +7,7 @@ import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 import { User } from "../user/models/user.entity";
 import { UserService } from "../user/user.service";
 
-@Controller(["order"])
+@Controller(["order", "order_history"])
 export class OrderHistoryController {
     constructor(
         private orderHistoryService: OrderHistoryService,
