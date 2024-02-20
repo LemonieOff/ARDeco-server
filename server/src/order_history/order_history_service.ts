@@ -14,6 +14,10 @@ export class OrderHistoryService {
         return this.orderHistoryRepository.find();
     }
 
+    async allIds(): Promise<number[]> {
+        return (await this.orderHistoryRepository.find()).map((item) => item.id);
+    }
+
     async create(data): Promise<OrderHistory> {
         try {
             JSON.parse(data.furniture);
