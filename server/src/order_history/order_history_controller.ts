@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Post, Req, Res } from "@nestjs/common";
+import {
+    Body,
+    Controller,
+    Get,
+    Param,
+    Post,
+    Query,
+    Req,
+    Res
+} from "@nestjs/common";
 import { OrderHistoryService } from "./order_history_service";
 import { Request, Response } from "express";
 import { JwtService } from "@nestjs/jwt";
@@ -6,6 +15,23 @@ import { OrderHistory } from "./models/order_history.entity";
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 import { User } from "../user/models/user.entity";
 import { UserService } from "../user/user.service";
+
+enum GetMode {
+    DEFAULT,
+    ID,
+    DETAILS
+}
+
+enum Type {
+    GET_ALL,
+    GET_USER,
+    GET_ORDER,
+    POST
+}
+
+type QueryMode = {
+    mode: string | [string];
+};
 
 @Controller(["order", "order_history"])
 export class OrderHistoryController {
