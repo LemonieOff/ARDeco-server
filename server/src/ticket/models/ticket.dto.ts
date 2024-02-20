@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty } from "class-validator";
+import { IsEmail, IsNotEmpty } from "@nestjs/class-validator";
 
 export class TicketDto {
     @IsNotEmpty()

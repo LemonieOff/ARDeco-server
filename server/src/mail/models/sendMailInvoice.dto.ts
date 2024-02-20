@@ -1,4 +1,4 @@
-import { IsEmail, isNotEmpty, IsNotEmpty } from "class-validator";
+import { IsEmail, isNotEmpty, IsNotEmpty } from "@nestjs/class-validator";
 
 export class sendMailInvoiceDTO {
     @IsNotEmpty()

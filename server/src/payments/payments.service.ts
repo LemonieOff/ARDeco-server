@@ -29,7 +29,7 @@ export class PaymentsService {
         this.stripe = new Stripe(
             "sk_test_51NputjKvy7BFowS9fdbY0S1Zjp0HDC2WRZwp8vRzyHSAsUOSOxfzWNCF0nboryWA8Jp5ZJZVHWgPQI8orwTzYCZD00dGeVzihA",
             {
-                apiVersion: "2023-08-16"
+                apiVersion: "2023-10-16"
             }
         );
 

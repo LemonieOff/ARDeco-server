@@ -13,7 +13,7 @@ import * as bcrypt from "bcryptjs";
 import { RegisterDto } from "./models/register.dto";
 import { JwtService } from "@nestjs/jwt";
 import { Response, Request } from "express";
-import { AuthGuard } from "@nestjs/passport";
+// import { AuthGuard } from "@nestjs/passport";
 import { MailService } from "../mail/mail.service";
 import { sendMailDTO } from "src/mail/models/sendMail.dto";
 import { LoginDto } from "src/auth/models/login.dto";
@@ -21,7 +21,7 @@ import { CatalogService } from "src/catalog/catalog.service";
 import { CartService } from "src/cart/cart.service";
 import { randomBytes } from "crypto";
 import { AuthService } from './auth.service';
-import { use } from 'passport';
+// import { use } from 'passport';
 import { sendMailPasswordDTO } from "src/mail/models/sendMailPassword";
 import { emit } from "process";
 import { UserSettingsService } from "../user_settings/user_settings_service";
@@ -271,6 +271,7 @@ export class AuthController {
         }
     }
 
+    /*
     @Get("register/google")
     @UseGuards(AuthGuard("google"))
     async googleAuth(@Req() req) {
@@ -307,7 +308,7 @@ export class AuthController {
                 status: "KO",
                 description: "User already created",
                 code: 424
-            };*/
+            };*\/
         }
         const body = {
             email: req.user.email,
@@ -328,6 +329,7 @@ export class AuthController {
             user: req.user
         };
     }
+     */
 
     @Get("logout")
     async logout(@Res({ passthrough: true }) response: Response) {

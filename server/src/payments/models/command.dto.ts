@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, isNotEmpty } from "class-validator";
+import { IsEmail, IsNotEmpty, isNotEmpty } from "@nestjs/class-validator";
 
 export class commandDto {
     pi_id: string;
