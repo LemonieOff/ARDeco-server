@@ -14,8 +14,8 @@ import { RegisterDto } from "./models/register.dto";
 import { JwtService } from "@nestjs/jwt";
 import { Response, Request } from "express";
 // import { AuthGuard } from "@nestjs/passport";
-import { MailService } from "../mail/mail.service";
-import { sendMailDTO } from "src/mail/models/sendMail.dto";
+//import { MailService } from "../mail/mail.service";
+//import { sendMailDTO } from "src/mail/models/sendMail.dto";
 import { LoginDto } from "src/auth/models/login.dto";
 import { CatalogService } from "src/catalog/catalog.service";
 import { CartService } from "src/cart/cart.service";
@@ -34,7 +34,7 @@ export class AuthController {
     constructor(
         private userService: UserService,
         private jwtService: JwtService,
-        private mailService: MailService,
+        //private mailService: MailService,
         private cartService: CartService,
         private authService: AuthService,
         private userSettingsService: UserSettingsService
@@ -55,7 +55,7 @@ export class AuthController {
         console.log("rt:", resetToken)
 
         let content: sendMailPasswordDTO = {email: email, token: resetToken, user: user.first_name};
-        this.mailService.sendMailPassword(content)
+        // this.mailService.sendMailPassword(content)
         return resetToken;
       }
 
@@ -108,11 +108,11 @@ export class AuthController {
             console.log("Settings created for user ", settings.user_id);
 
             // Email sent to the user
-            let content : sendMailDTO = new sendMailDTO();
+            /*let content : sendMailDTO = new sendMailDTO();
             content.email = body.email;
             content.user = body.first_name;
             this.mailService.sendMail(content);
-            console.log("ID", res.id);
+            console.log("ID", res.id);*/
 
             // Send JWT token
             const jwt = await this.jwtService.signAsync({ id: res.id, email: res.email });
