@@ -244,7 +244,7 @@ export class UserController {
                 user["password"] = await bcrypt.hash(user["password"], 12);
             }
 
-            const result = await this.userService.update(data["id"], user);
+            const result = await this.userService.update(id, user);
             res.status(200);
             return {
                 status: "OK",
