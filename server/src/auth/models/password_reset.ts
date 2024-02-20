@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty } from "class-validator";
+import { IsEmail, IsNotEmpty } from "@nestjs/class-validator";
 import { PrimaryGeneratedColumn } from "typeorm";
 
 export class LoginDto {

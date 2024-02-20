@@ -6,6 +6,7 @@ COPY ./package.json .
 RUN --mount=type=cache,target=/node_modules npm install
 
 RUN --mount=type=cache,target=/node_modules npm install gulp-cli -g
+RUN --mount=type=cache,target=/node_modules npm install @nestjs/cli -g
 
 COPY . .
 RUN npm run build

@@ -3,7 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { UserModule } from '../user/user.module';
 import { AuthController } from './auth.controller';
 import { MailModule } from '../mail/mail.module';
-import { GoogleStrategy } from './google.strategy';
+// import { GoogleStrategy } from './google.strategy';
 import { CartModule } from 'src/cart/cart.module';
 import { CartService } from 'src/cart/cart.service';
 import { AuthService } from './auth.service';
@@ -27,7 +27,7 @@ import { UserSettingsModule } from "../user_settings/user_settings_module";
         AuthController
     ],
     providers: [
-        GoogleStrategy, AuthService
+        /*GoogleStrategy, */AuthService
     ]
 })
 export class AuthModule {}

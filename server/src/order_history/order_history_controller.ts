@@ -42,7 +42,6 @@ export class OrderHistoryController {
     ) {}
 
     private selectGetMode = (mode: QueryMode): GetMode => {
-        console.log(mode);
         if (!mode.mode) return GetMode.DEFAULT;
         if (typeof mode.mode === "string") {
             if (mode.mode === "id") return GetMode.ID;
