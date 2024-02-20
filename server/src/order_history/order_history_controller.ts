@@ -61,17 +61,40 @@ export class OrderHistoryController {
         @Query() query: QueryMode,
         @Res({ passthrough: true }) res: Response
     ) {
-        const mode = this.selectGetMode(query);
-        console.log("mode " + mode);
         const user = await this.checkAuthorization(req, res, Type.GET_ALL);
         if (!(user instanceof User)) return user;
 
-        return {
-            status: "OK",
-            code: 200,
-            description: "All orders",
-            data: "Oé oé oé"
-        };
+        const mode = this.selectGetMode(query);
+
+        switch (mode) {
+            case GetMode.DEFAULT:
+                const totalOrdersNumber = await this.orderHistoryService.allIds();
+                res.status(200);
+                return {
+                    status: "OK",
+                    code: 200,
+                    description: "Total number of orders",
+                    data: totalOrdersNumber.length
+                };
+            case GetMode.ID:
+                const totalOrders = await this.orderHistoryService.allIds();
+                res.status(200);
+                return {
+                    status: "OK",
+                    code: 200,
+                    description: "All orders ids",
+                    data: totalOrders
+                };
+            case GetMode.DETAILS:
+                const totalOrdersDetails = await this.orderHistoryService.all();
+                res.status(200);
+                return {
+                    status: "OK",
+                    code: 200,
+                    description: "All orders details",
+                    data: totalOrdersDetails
+                };
+        }
     }
 
     @Get("/user/:user_id")
