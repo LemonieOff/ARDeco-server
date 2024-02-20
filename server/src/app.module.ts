@@ -47,14 +47,14 @@ import { FavoriteGalleryModule } from './favorite_gallery/favorite_gallery.modul
         ConfigModule.forRoot({
             isGlobal: true // no need to import into other modules
         }),
-        MailModule,
-        PaymentsModule,
+        //MailModule,
+        //PaymentsModule,
         TicketModule,
         ArchiveModule,
         FavoriteFurnitureModule,
         FavoriteGalleryModule
     ],
-    controllers: [AppController, PaymentsController],
+    controllers: [AppController, /*PaymentsController*/],
     providers: [AppService, ConfigService]
 })
 export class AppModule {}
