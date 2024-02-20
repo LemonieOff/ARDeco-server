@@ -100,21 +100,43 @@ export class OrderHistoryController {
     @Get("/user/:user_id")
     async getUserOrders(
         @Req() req: Request,
+        @Query() query: QueryMode,
         @Param("user_id") user_id: number,
         @Res({ passthrough: true }) res: Response
     ) {
         const user = await this.checkAuthorization(req, res, Type.GET_USER, null, user_id);
         if (!(user instanceof User)) return user;
 
-        const orders = await this.orderHistoryService.find({ user_id: user_id });
+        const mode = this.selectGetMode(query);
 
-        res.status(200);
-        return {
-            status: "OK",
-            code: 200,
-            description: "User orders",
-            data: orders
-        };
+        const totalOrders = await this.orderHistoryService.find({ user_id: user_id });
+
+        switch (mode) {
+            case GetMode.DEFAULT:
+                res.status(200);
+                return {
+                    status: "OK",
+                    code: 200,
+                    description: "Total number of orders",
+                    data: totalOrders.length
+                };
+            case GetMode.ID:
+                res.status(200);
+                return {
+                    status: "OK",
+                    code: 200,
+                    description: "All orders ids",
+                    data: totalOrders.map((item) => item.id)
+                };
+            case GetMode.DETAILS:
+                res.status(200);
+                return {
+                    status: "OK",
+                    code: 200,
+                    description: "All orders details",
+                    data: totalOrders
+                };
+        }
     }
 
     @Get("/order/:order_id")
