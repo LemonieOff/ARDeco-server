@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { FindOptionsWhere, Repository } from "typeorm";
 import { OrderHistory } from "./models/order_history.entity";
 
 @Injectable()
@@ -36,7 +36,11 @@ export class OrderHistoryService {
         return item;
     }
 
-    async findOne(condit): Promise<OrderHistory> {
+    async findOne(condit: FindOptionsWhere<OrderHistory>): Promise<OrderHistory> {
         return this.orderHistoryRepository.findOne({ where: condit });
+    }
+
+    async find(condit: FindOptionsWhere<OrderHistory>): Promise<OrderHistory[]> {
+        return this.orderHistoryRepository.find({ where: condit });
     }
 }
