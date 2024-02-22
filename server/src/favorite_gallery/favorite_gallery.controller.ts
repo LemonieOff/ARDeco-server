@@ -151,7 +151,7 @@ export class FavoriteGalleryController {
         @Param("gallery_id") gallery_id: number,
         @Res({ passthrough: true }) res: Response
     ) {
-        const gallery = await this.galleryService.findOne({ id: gallery_id });
+        const gallery = await this.favGalleryService.findOne({ gallery_id: gallery_id });
         
         if (!gallery) {
             res.status(404);
@@ -165,7 +165,10 @@ export class FavoriteGalleryController {
         }
         const authorizedUser = await this.checkAuthorization(
             req,
-            res
+            res,
+            gallery,
+            "delete"
+
         );
         if (!(authorizedUser instanceof User)) return authorizedUser;
 
@@ -193,6 +196,8 @@ export class FavoriteGalleryController {
     async checkAuthorization(
         req: Request,
         res: Response,
+        item: FavoriteGallery | null = null,
+        type: String | null = null,
     ) {
         const cookie = req.cookies["jwt"];
         const data = cookie ? this.jwtService.verify(cookie) : null;
@@ -210,16 +215,21 @@ export class FavoriteGalleryController {
 
         const user = await this.userService.findOne({ id: data["id"] });
 
-        if (!user) {
-            res.status(403);
-            return {
-                status: "KO",
-                code: 403,
-                description:
-                    "You are not allowed to access/modify this resource",
-                data: null
-            };
+        if (type === "delete") {
+            if (item.user_id !== user.id) {
+                if (user.role !== "admin") {
+                    res.status(403);
+                    return {
+                        status: "KO",
+                        code: 403,
+                        description:
+                            "You are not allowed to access/modify this resource",
+                        data: null
+                    };
+                }
+            }
         }
+
         return user;
     }
 }

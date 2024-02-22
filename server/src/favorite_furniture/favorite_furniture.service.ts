@@ -51,12 +51,12 @@ export class FavoriteFurnitureService {
         return this.favoriteFurnitureRepository.findOne({ where: where });
     }
 
-    async delete(id: number): Promise<any> {
+    async delete(furniture_id: string): Promise<any> {
         return this.favoriteFurnitureRepository
             .createQueryBuilder("furniture")
             .delete()
             .from(FavoriteFurniture)
-            .where("id = id", { id: id }) // chamger id par furniture Id
+            .where("furniture_id = furniture_id", { furniture_id: furniture_id }) // chamger id par furniture Id
             .execute();
     }
 }
