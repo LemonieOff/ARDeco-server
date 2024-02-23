@@ -9,6 +9,9 @@ on:
 
 jobs:
   build:
+    defaults:
+      run:
+        working-directory: ./server
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
@@ -21,11 +24,9 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        working-directory: ./server
         run: npm install
 
       - name: Run tests
-        working-directory: ./server
         run: npm run test
 
       - name: Build the Docker image
