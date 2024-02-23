@@ -3,14 +3,24 @@ name: Docker Image CI
 on:
   push:
     branches: [ "main" ]
+  workflow_dispatch:
 #  pull_request:
-#    branches: [ "master" ]
+#    branches: [ "main" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
+      - name: Build tests the Docker image
+        working-directory: ./server
+        run: docker build . --file Dockerfile --target ardeco-server-test:$(date +%s)
+
+      - name: Run tests
+        working-directory: ./server
+        run: docker run ardeco-server-test:$(date +%s)
+
       - name: Build the Docker image
         working-directory: ./server
         run: docker build . --file Dockerfile --tag ardeco-server:$(date +%s)
