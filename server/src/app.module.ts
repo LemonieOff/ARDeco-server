@@ -21,6 +21,7 @@ import { TicketModule } from "./ticket/ticket.module";
 import { ArchiveModule } from "./archive/archive.module";
 import { FavoriteFurnitureModule } from './favorite_furniture/favorite_furniture.module';
 import { FavoriteGalleryModule } from './favorite_gallery/favorite_gallery.module';
+import { BlockedUsersModule } from './blocked_users/blocked_users.module';
 
 @Module({
     imports: [
@@ -52,7 +53,8 @@ import { FavoriteGalleryModule } from './favorite_gallery/favorite_gallery.modul
         TicketModule,
         ArchiveModule,
         FavoriteFurnitureModule,
-        FavoriteGalleryModule
+        FavoriteGalleryModule,
+        BlockedUsersModule
     ],
     controllers: [AppController, /*PaymentsController*/],
     providers: [AppService, ConfigService]

@@ -5,9 +5,9 @@ export class StatusService {
     getStatus(): Object {
         return {
             api: "internal",
-            version: "0.0.1",
+            version: "1.0.0",
             reachable: true,
-            host: "localhost",
+            host: "https://api.ardeco.app",
             last_update: new Date().getTime()
         };
     }
