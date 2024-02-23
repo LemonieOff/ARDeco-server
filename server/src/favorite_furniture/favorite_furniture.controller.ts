@@ -6,6 +6,7 @@ import { JwtService } from "@nestjs/jwt";
 import { User } from "../user/models/user.entity";
 import { UserService } from "../user/user.service";
 import { CatalogService } from "../catalog/catalog.service";
+import { Catalog } from "src/catalog/models/catalog.entity";
 
 @Controller("favorite/furniture")
 export class FavoriteFurnitureController {
@@ -23,6 +24,26 @@ export class FavoriteFurnitureController {
 
         const items = await this.favFurnitureService.findAll(user.id);
 
+        let furnitureItems: any[] = [];
+
+        for (const item of items) {
+            const furniture : Catalog = await this.catalogService.findOne({id: item.furniture_id});
+            furnitureItems.push({
+                furniture: {
+                    id: furniture.object_id,
+                    name: furniture.name,
+                    price: furniture.price,
+                    styles: furniture.styles,
+                    colors: furniture.colors,
+                    room: furniture.rooms,
+                    height: furniture.height,
+                    width: furniture.width,
+                    depth: furniture.depth,
+                    company: furniture.company_name,
+                }   
+            });
+        }
+
         try {
             if (items.length === 0) {
                 res.status(404);
@@ -39,7 +60,7 @@ export class FavoriteFurnitureController {
                 status: "OK",
                 code: 200,
                 description: "Favorite furniture items",
-                data: items
+                data: furnitureItems
             };
         } catch (e) {
             res.status(501);

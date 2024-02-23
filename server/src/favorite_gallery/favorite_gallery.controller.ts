@@ -14,6 +14,7 @@ import { JwtService } from "@nestjs/jwt";
 import { User } from "../user/models/user.entity";
 import { UserService } from "../user/user.service";
 import { GalleryService } from "../gallery/gallery.service";
+import { Gallery } from "src/gallery/models/gallery.entity";
 
 @Controller("favorite/gallery")
 export class FavoriteGalleryController {
@@ -29,18 +30,28 @@ export class FavoriteGalleryController {
         const user = await this.checkAuthorization(req, res);
         if (!(user instanceof User)) return user;
 
-        /*// Get all query parameters
-        const limit_query = req.query["limit"];
-        const begin_pos_query = req.query["begin_pos"];
-        //const furniture_id_query = req.query["furniture_id"];
+        const items = await this.favGalleryService.findAll(user.id);
 
-        let limit: number | null = Number(limit_query);
-        let begin_pos: number | null = Number(begin_pos_query);
-        // let furniture_id: string | null = String(furniture_id_query);*/
+        let galleryItems: any[] = [];
 
-        const items = await this.favGalleryService.findAll(
-            user.id,
-        );
+        for (const item of items) {
+            const user : User = await this.userService.findOne({id:item.user_id});
+            const gallery : Gallery = await this.galleryService.findOne({id: item.gallery_id})
+            galleryItems.push({
+                gallery: {
+                    id: gallery.id,
+                    name: gallery.name,
+                    description: gallery.description,
+                    type: gallery.room_type,
+                    furniture: [...gallery.furniture],
+                },
+                user: {
+                    id: user.id,
+                    first_name: user.first_name,
+                    last_name: user.last_name
+                }     
+            });
+        }
 
         try {
             if (items.length === 0) {
@@ -58,7 +69,7 @@ export class FavoriteGalleryController {
                 status: "OK",
                 code: 200,
                 description: "Favorite Gallery items",
-                data: items
+                data: galleryItems
             };
         } catch (e) {
             res.status(501);
