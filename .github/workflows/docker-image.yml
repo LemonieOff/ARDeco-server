@@ -15,11 +15,11 @@ jobs:
 
       - name: Build tests the Docker image
         working-directory: ./server
-        run: docker build . --file Dockerfile --target test --tag ardeco-server-test:$(date +%s)
+        run: docker build . --file Dockerfile --target test --tag ardeco-server-test
 
       - name: Run tests
         working-directory: ./server
-        run: docker run ardeco-server-test:$(date +%s)
+        run: docker run ardeco-server-test
 
       - name: Build the Docker image
         working-directory: ./server
