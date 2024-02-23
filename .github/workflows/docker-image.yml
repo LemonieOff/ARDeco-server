@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: Tests and Docker Image
 
 on:
   push:
@@ -11,15 +11,22 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout the repository
+        uses: actions/checkout@v3
 
-      - name: Build tests the Docker image
+      - name: Setup Node.js
+        uses: actions/setup-node@v4.0.2
+        with:
+          node-version: '14'
+          cache: 'npm'
+
+      - name: Install dependencies
         working-directory: ./server
-        run: docker build . --file Dockerfile --target test --tag ardeco-server-test
+        run: npm install
 
       - name: Run tests
         working-directory: ./server
-        run: docker run ardeco-server-test
+        run: npm run test
 
       - name: Build the Docker image
         working-directory: ./server
