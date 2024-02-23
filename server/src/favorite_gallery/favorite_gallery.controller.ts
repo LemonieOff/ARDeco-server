@@ -145,22 +145,35 @@ export class FavoriteGalleryController {
         }
     }
 
-    @Delete(":id")
+    @Delete("/:gallery_id")
     async deleteItem(
         @Req() req: Request,
-        @Param("id") id: number,
+        @Param("gallery_id") gallery_id: number,
         @Res({ passthrough: true }) res: Response
     ) {
-        const item = await this.favGalleryService.findOne({ id: id });
-
+        const gallery = await this.favGalleryService.findOne({ gallery_id: gallery_id });
+        
+        if (!gallery) {
+            res.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description:
+                    "You are not allowed to delete this gallery to your favorites because it does not exist",
+                data: null
+            };
+        }
         const authorizedUser = await this.checkAuthorization(
             req,
-            res
+            res,
+            gallery,
+            "delete"
+
         );
         if (!(authorizedUser instanceof User)) return authorizedUser;
 
         try {
-            const result = await this.favGalleryService.delete(id);
+            const result = await this.favGalleryService.delete(gallery_id);
             res.status(200);
             return {
                 status: "OK",
@@ -175,7 +188,7 @@ export class FavoriteGalleryController {
                 status: "OK",
                 code: 501,
                 description: "Server error",
-                data: item
+                data: gallery
             };
         }
     }
@@ -183,6 +196,8 @@ export class FavoriteGalleryController {
     async checkAuthorization(
         req: Request,
         res: Response,
+        item: FavoriteGallery | null = null,
+        type: String | null = null,
     ) {
         const cookie = req.cookies["jwt"];
         const data = cookie ? this.jwtService.verify(cookie) : null;
@@ -200,16 +215,21 @@ export class FavoriteGalleryController {
 
         const user = await this.userService.findOne({ id: data["id"] });
 
-        if (!user) {
-            res.status(403);
-            return {
-                status: "KO",
-                code: 403,
-                description:
-                    "You are not allowed to access/modify this resource",
-                data: null
-            };
+        if (type === "delete") {
+            if (item.user_id !== user.id) {
+                if (user.role !== "admin") {
+                    res.status(403);
+                    return {
+                        status: "KO",
+                        code: 403,
+                        description:
+                            "You are not allowed to access/modify this resource",
+                        data: null
+                    };
+                }
+            }
         }
+
         return user;
     }
 }
