@@ -52,11 +52,6 @@ export class FavoriteFurnitureService {
     }
 
     async delete(furniture_id: string): Promise<any> {
-        return this.favoriteFurnitureRepository
-            .createQueryBuilder("furniture")
-            .delete()
-            .from(FavoriteFurniture)
-            .where("furniture_id = furniture_id", { furniture_id: furniture_id }) // chamger id par furniture Id
-            .execute();
+        return this.favoriteFurnitureRepository.delete({ furniture_id: furniture_id });
     }
 }
