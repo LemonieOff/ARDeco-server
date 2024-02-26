@@ -1,12 +1,4 @@
-import {
-    Controller,
-    Delete,
-    Get,
-    Param,
-    Post,
-    Req,
-    Res
-} from "@nestjs/common";
+import { Controller, Delete, Get, Param, Post, Req, Res } from "@nestjs/common";
 import { Request, Response } from "express";
 import { FavoriteGallery } from "./models/favorite_gallery.entity";
 import { FavoriteGalleryService } from "./favorite_gallery.service";
@@ -32,27 +24,6 @@ export class FavoriteGalleryController {
 
         const items = await this.favGalleryService.findAll(user.id);
 
-        let galleryItems: any[] = [];
-
-        for (const item of items) {
-            const user : User = await this.userService.findOne({id:item.user_id});
-            const gallery : Gallery = await this.galleryService.findOne({id: item.gallery_id})
-            galleryItems.push({
-                gallery: {
-                    id: gallery.id,
-                    name: gallery.name,
-                    description: gallery.description,
-                    type: gallery.room_type,
-                    furniture: [...gallery.furniture],
-                },
-                user: {
-                    id: user.id,
-                    first_name: user.first_name,
-                    last_name: user.last_name
-                }     
-            });
-        }
-
         try {
             if (items.length === 0) {
                 res.status(404);
@@ -62,6 +33,31 @@ export class FavoriteGalleryController {
                     description: "You don't have any favorite gallery items",
                     data: []
                 };
+            }
+
+            let galleryItems: any[] = [];
+
+            for (const item of items) {
+                const item_user: User = await this.userService.findOne({
+                    id: item.user_id
+                });
+                const gallery: Gallery = await this.galleryService.findOne({
+                    id: item.gallery_id
+                });
+                galleryItems.push({
+                    gallery: {
+                        id: gallery.id,
+                        name: gallery.name,
+                        description: gallery.description,
+                        type: gallery.room_type,
+                        furniture: [...gallery.furniture]
+                    },
+                    user: {
+                        id: item_user.id,
+                        first_name: item_user.first_name,
+                        last_name: item_user.last_name
+                    }
+                });
             }
 
             res.status(200);
@@ -162,36 +158,28 @@ export class FavoriteGalleryController {
         @Param("gallery_id") gallery_id: number,
         @Res({ passthrough: true }) res: Response
     ) {
-        const gallery = await this.favGalleryService.findOne({ gallery_id: gallery_id });
-        
-        if (!gallery) {
-            res.status(404);
-            return {
-                status: "KO",
-                code: 404,
-                description:
-                    "You are not allowed to delete this gallery to your favorites because it does not exist",
-                data: null
-            };
-        }
         const authorizedUser = await this.checkAuthorization(
             req,
             res,
-            gallery,
+            gallery_id,
             "delete"
-
         );
         if (!(authorizedUser instanceof User)) return authorizedUser;
 
         try {
+            const gallery = await this.favGalleryService.findOne({
+                user_id: authorizedUser.id,
+                gallery_id: gallery_id
+            });
+
             const result = await this.favGalleryService.delete(gallery_id);
             res.status(200);
             return {
                 status: "OK",
                 code: 200,
                 description:
-                    "Favorite gallery item has successfully been deleted",
-                data: result
+                    "Favorite gallery item has successfully been deleted from your favorites",
+                data: gallery
             };
         } catch (e) {
             res.status(501);
@@ -199,7 +187,7 @@ export class FavoriteGalleryController {
                 status: "OK",
                 code: 501,
                 description: "Server error",
-                data: gallery
+                data: e
             };
         }
     }
@@ -207,8 +195,8 @@ export class FavoriteGalleryController {
     async checkAuthorization(
         req: Request,
         res: Response,
-        item: FavoriteGallery | null = null,
-        type: String | null = null,
+        gallery_id: number | null = null,
+        type: String | null = null
     ) {
         const cookie = req.cookies["jwt"];
         const data = cookie ? this.jwtService.verify(cookie) : null;
@@ -226,8 +214,35 @@ export class FavoriteGalleryController {
 
         const user = await this.userService.findOne({ id: data["id"] });
 
+        if (!user) {
+            res.status(403);
+            return {
+                status: "KO",
+                code: 403,
+                description:
+                    "You are not allowed to access/modify this resource",
+                data: null
+            };
+        }
+
         if (type === "delete") {
-            if (item.user_id !== user.id) {
+            const gallery = await this.favGalleryService.findOne({
+                user_id: user.id,
+                gallery_id: gallery_id
+            });
+
+            if (!gallery) {
+                res.status(404);
+                return {
+                    status: "KO",
+                    code: 404,
+                    description:
+                        "This gallery item is not in this user's favorites gallery list",
+                    data: null
+                };
+            }
+
+            if (gallery.user_id !== user.id) {
                 if (user.role !== "admin") {
                     res.status(403);
                     return {

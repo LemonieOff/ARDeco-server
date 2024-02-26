@@ -169,7 +169,8 @@ export class FavoriteFurnitureController {
             return {
                 status: "OK",
                 code: 200,
-                description: "Furniture item was removed from your favorites",
+                description:
+                    "Furniture furniture was removed from your favorites",
                 data: furniture
             };
         } catch (e) {
