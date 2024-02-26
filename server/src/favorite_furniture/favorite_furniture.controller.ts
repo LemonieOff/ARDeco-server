@@ -27,7 +27,10 @@ export class FavoriteFurnitureController {
         let furnitureItems: any[] = [];
 
         for (const item of items) {
-            const furniture : Catalog = await this.catalogService.findOne({id: item.furniture_id});
+            const furniture: Catalog = await this.catalogService.findOne({
+                object_id: item.furniture_id
+            });
+            if (!furniture) continue;
             furnitureItems.push({
                 furniture: {
                     id: furniture.object_id,
@@ -39,8 +42,9 @@ export class FavoriteFurnitureController {
                     height: furniture.height,
                     width: furniture.width,
                     depth: furniture.depth,
-                    company: furniture.company_name,
-                }   
+                    company: furniture.company_name
+                },
+                favorite_furniture: item
             });
         }
 
