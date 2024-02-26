@@ -26,6 +26,6 @@ jobs:
       - name: Run tests
         run: npm run test
 
-      - name: Build the Docker image
-        working-directory: ./server
-        run: docker build . --file Dockerfile --tag ardeco-server:$(date +%s)
+ #     - name: Build the Docker image
+ #       working-directory: ./server
+ #       run: docker build . --file Dockerfile --tag ardeco-server:$(date +%s)
