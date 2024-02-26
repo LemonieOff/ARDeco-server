@@ -150,34 +150,27 @@ export class FavoriteFurnitureController {
         @Param("furniture_id") furniture_id: string,
         @Res({ passthrough: true }) res: Response
     ) {
-        const furniture = await this.favFurnitureService.findOne({ furniture_id: furniture_id });
-        
-        if (!furniture) {
-            res.status(404);
-            return {
-                status: "KO",
-                code: 404,
-                description:
-                    "You are not allowed to delete this furniture to your favorites because it does not exist",
-                data: null
-            };
-        }
         const authorizedUser = await this.checkAuthorization(
             req,
             res,
-            furniture,
+            furniture_id,
             "delete"
         );
         if (!(authorizedUser instanceof User)) return authorizedUser;
-    
+
         try {
-            const result = await this.favFurnitureService.delete(furniture_id);
+            const furniture = await this.favFurnitureService.findOne({
+                user_id: authorizedUser.id,
+                furniture_id: furniture_id
+            });
+
+            await this.favFurnitureService.delete(furniture_id);
             res.status(200);
             return {
                 status: "OK",
                 code: 200,
-                description: "Gallery item has successfully been deleted",
-                 data: result
+                description: "Furniture item was removed from your favorites",
+                data: furniture
             };
         } catch (e) {
             res.status(500);
@@ -185,7 +178,7 @@ export class FavoriteFurnitureController {
                 status: "OK",
                 code: 500,
                 description: "Server error",
-                data: furniture
+                data: e
             };
         }
     }
@@ -193,8 +186,8 @@ export class FavoriteFurnitureController {
     async checkAuthorization(
         req: Request,
         res: Response,
-        item: FavoriteFurniture | null = null,
-        type: String | null = null,
+        furniture_id: string | null = null,
+        type: String | null = null
     ) {
         const cookie = req.cookies["jwt"];
         const data = cookie ? this.jwtService.verify(cookie) : null;
@@ -212,8 +205,35 @@ export class FavoriteFurnitureController {
 
         const user = await this.userService.findOne({ id: data["id"] });
 
+        if (!user) {
+            res.status(403);
+            return {
+                status: "KO",
+                code: 403,
+                description:
+                    "You are not allowed to access/modify this resource",
+                data: null
+            };
+        }
+
         if (type === "delete") {
-            if (item.user_id !== user.id) {
+            const furniture = await this.favFurnitureService.findOne({
+                user_id: user.id,
+                furniture_id: furniture_id
+            });
+
+            if (!furniture) {
+                res.status(404);
+                return {
+                    status: "KO",
+                    code: 404,
+                    description:
+                        "This furniture item is not in this user's favorites furniture list",
+                    data: null
+                };
+            }
+
+            if (furniture.user_id !== user.id) {
                 if (user.role !== "admin") {
                     res.status(403);
                     return {
