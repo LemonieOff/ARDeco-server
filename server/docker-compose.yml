@@ -1,19 +1,19 @@
 version: '3'
 services:
-  backend:
-    build: .
-    ports:
-      - "8000:8000"
-    volumes:
-      - backend_dir:/app
-    depends_on:
-      - db
-    environment:
-      DB_HOST: db
-      DB_PORT: 3306
-      DB_NAME: ardeco
-      DB_USER: root
-      DB_PASSWORD: mnw4xav-bud*eha*DCE
+#  backend:
+#    build: .
+#    ports:
+#      - "8000:8000"
+#    volumes:
+#      - backend_dir:/app
+#    depends_on:
+#      - db
+#    environment:
+#      DB_HOST: db
+#      DB_PORT: 3306
+#      DB_NAME: ardeco
+#      DB_USER: root
+#      DB_PASSWORD: mnw4xav-bud*eha*DCE
 
   db:
     image: mysql:latest
@@ -29,4 +29,4 @@ services:
 volumes:
   dbdata:
     external: true
-  backend_dir:
+#  backend_dir:
