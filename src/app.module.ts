@@ -19,8 +19,8 @@ import { PaymentsModule } from "./payments/payments.module";
 import { OrderHistoryModule } from "./order_history/order_history_module";
 import { TicketModule } from "./ticket/ticket.module";
 import { ArchiveModule } from "./archive/archive.module";
-import { FavoriteFurnitureModule } from './favorite_furniture/favorite_furniture.module';
-import { FavoriteGalleryModule } from './favorite_gallery/favorite_gallery.module';
+import { FavoriteFurnitureModule } from '../server/src/favorite_furniture/favorite_furniture.module';
+import { FavoriteGalleryModule } from '../server/src/favorite_gallery/favorite_gallery.module';
 import { BlockedUsersModule } from './blocked_users/blocked_users.module';
 
 @Module({

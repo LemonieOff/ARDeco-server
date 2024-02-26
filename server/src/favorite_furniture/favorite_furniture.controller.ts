@@ -3,9 +3,9 @@ import { Request, Response } from "express";
 import { FavoriteFurniture } from "./models/favorite_furniture.entity";
 import { FavoriteFurnitureService } from "./favorite_furniture.service";
 import { JwtService } from "@nestjs/jwt";
-import { User } from "../user/models/user.entity";
-import { UserService } from "../user/user.service";
-import { CatalogService } from "../catalog/catalog.service";
+import { User } from "../../../src/user/models/user.entity";
+import { UserService } from "../../../src/user/user.service";
+import { CatalogService } from "../../../src/catalog/catalog.service";
 import { Catalog } from "src/catalog/models/catalog.entity";
 
 @Controller("favorite/furniture")
