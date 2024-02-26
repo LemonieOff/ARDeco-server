@@ -3,9 +3,9 @@ import { Request, Response } from "express";
 import { FavoriteGallery } from "./models/favorite_gallery.entity";
 import { FavoriteGalleryService } from "./favorite_gallery.service";
 import { JwtService } from "@nestjs/jwt";
-import { User } from "../../../src/user/models/user.entity";
-import { UserService } from "../../../src/user/user.service";
-import { GalleryService } from "../../../src/gallery/gallery.service";
+import { User } from "../user/models/user.entity";
+import { UserService } from "../user/user.service";
+import { GalleryService } from "../gallery/gallery.service";
 import { Gallery } from "src/gallery/models/gallery.entity";
 
 @Controller("favorite/gallery")

@@ -1,11 +1,11 @@
 import { Module } from "@nestjs/common";
 import { FavoriteFurnitureService } from "./favorite_furniture.service";
 import { FavoriteFurnitureController } from "./favorite_furniture.controller";
-import { UserModule } from "../../../src/user/user.module";
+import { UserModule } from "../user/user.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { JwtModule } from "@nestjs/jwt";
 import { FavoriteFurniture } from "./models/favorite_furniture.entity";
-import { CatalogModule } from "../../../src/catalog/catalog.module";
+import { CatalogModule } from "../catalog/catalog.module";
 
 @Module({
     imports: [
