@@ -51,11 +51,6 @@ export class FavoriteGalleryService {
 
 
     async delete(gallery_id: number): Promise<any> {
-        return this.favoriteGalleryRepository
-            .createQueryBuilder("gallery")
-            .delete()
-            .from(FavoriteGallery)
-            .where("gallery_id = gallery_id", { gallery_id: gallery_id })
-            .execute();
+        return this.favoriteGalleryRepository.delete({ gallery_id: gallery_id });
     }
 }
