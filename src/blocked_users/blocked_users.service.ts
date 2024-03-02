@@ -17,8 +17,12 @@ export class BlockedUsersService {
         return this.blockedUsersRepository.save(createBlockedUserDto);
     }
 
-    findAll() {
-        return `This action returns all blockedUsers`;
+    findAll(user_id: number) {
+        return this.blockedUsersRepository.find({
+            where: {
+                user_id: user_id
+            }
+        });
     }
 
     findOne(user_id: number, blocked_user_id: number) {
@@ -29,10 +33,6 @@ export class BlockedUsersService {
             },
             select: ["id"]
         });
-    }
-
-    update(id: number, updateBlockedUserDto: UpdateBlockedUserDto) {
-        return `This action updates a #${id} blockedUser`;
     }
 
     remove(user_id: number, blocked_user_id: number) {
