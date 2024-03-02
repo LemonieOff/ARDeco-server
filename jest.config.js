@@ -2,7 +2,7 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  "moduleFileExtensions": [
+  moduleFileExtensions: [
     "js",
     "json",
     "ts"
