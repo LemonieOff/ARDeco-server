@@ -131,6 +131,46 @@ export class UserController {
         }
     }
 
+    @Get("companies")
+    async getCompanies(@Req() req: Request) {
+        try {
+            const cookie = req.cookies["jwt"];
+            const data = this.jwtService.verify(cookie);
+            const usr = await this.userService.findOne({id: data['id']})
+
+            if (usr["role"] != "admin") {
+                return {
+                    status: "KO",
+                    code: 403,
+                    description: "You are not allowed to use this endpoint",
+                    data: null
+                };
+            }
+            const users = await this.userService.all();
+            let companies = [];
+            for (let i = 0; i < users.length; i++) {
+                if (users[i].role === "company") {
+                    companies.push(users[i]);
+                }
+            }
+            return {
+                status: "OK",
+                code: 200,
+                description: "Companies have been found",
+                data: companies
+            };
+        } catch (e) {
+            console.error("Error in getCompanies:", e);
+            return {
+                status: "KO",
+                code: 400,
+                description: "Error while fetching companies",
+                error: e,
+                data: null
+            };
+        }
+    }
+
     @Get(":id")
     async getOne(@Param("id") id: number) {
         const requestedUser = await this.userService.findOne({ id: id });
