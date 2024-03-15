@@ -25,18 +25,24 @@ import { BlockedUsersModule } from './blocked_users/blocked_users.module';
 
 @Module({
     imports: [
-        UserModule,
+        ConfigModule.forRoot({
+            isGlobal: true, // no need to import into other modules
+            cache: true,
+            envFilePath: [".env", ".env.misc"],
+            expandVariables: true
+        }),
         TypeOrmModule.forRoot({
             type: "mysql",
-            host: process.env.DB_HOST || "localhost",
-            port: parseInt(process.env.DB_PORT) || 3306,
-            username: process.env.DB_USER || "root",
-            password: process.env.DB_PASSWORD || "root",
-            database: process.env.DB_NAME || "ardeco",
+            host: process.env.DB_HOST,
+            port: parseInt(process.env.DB_PORT),
+            username: process.env.DB_USER,
+            password: process.env.DB_PASSWORD,
+            database: process.env.DB_NAME,
             autoLoadEntities: true,
             entities: [],
             synchronize: true
         }),
+        UserModule,
         AuthModule,
         StatusModule,
         CatalogModule,
@@ -45,9 +51,6 @@ import { BlockedUsersModule } from './blocked_users/blocked_users.module';
         UserSettingsModule,
         GalleryModule,
         OrderHistoryModule,
-        ConfigModule.forRoot({
-            isGlobal: true // no need to import into other modules
-        }),
         //MailModule,
         //PaymentsModule,
         TicketModule,
