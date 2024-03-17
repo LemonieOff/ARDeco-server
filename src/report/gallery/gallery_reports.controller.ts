@@ -93,6 +93,61 @@ export class GalleryReportsController {
         };
     }
 
+    @Delete("/gallery_report/:gallery_id/close/:report_id")
+    async closeReport(
+        @Req() req: Request,
+        @Res({ passthrough: true }) res: Response,
+        @Param("gallery_id") gallery_id: number,
+        @Param("report_id") report_id: number
+    ) {
+        const userAndGallery = await this.checkAuthorization(req, res, gallery_id, "close");
+        if (!(userAndGallery instanceof Array)) return userAndGallery;
+
+        const [user, gallery] = userAndGallery;
+
+        const report = await this.galleryReportsService.findOne(report_id);
+        if (!report || report.status !== "open") {
+            res.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description: "This report has not been found",
+                data: null
+            };
+        }
+
+        const report_gallery_id = report.gallery as unknown as number;
+
+        if (report_gallery_id !== gallery.id) {
+            res.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description: "This report does not belong to this gallery",
+                data: null
+            };
+        }
+
+        const result = await this.galleryReportsService.edit(report.id, { status: "close" });
+        if (!result) {
+            res.status(501);
+            return {
+                status: "KO",
+                code: 501,
+                description: "Report has not been closed because of an error",
+                data: null
+            };
+        }
+
+        res.status(200);
+        return {
+            status: "OK",
+            code: 200,
+            description: "Report has been closed successfully",
+            data: null
+        };
+    }
+
     private async checkAuthorization(
         req: Request,
         res: Response,

@@ -57,7 +57,8 @@ export class GalleryReportsService {
         return this.galleryReportRepository.findOne({
             where: {
                 id: id
-            }
+            },
+            loadRelationIds: true
         });
     }
 
@@ -65,10 +66,7 @@ export class GalleryReportsService {
         return this.galleryReportRepository.update(id, updateBlockedUserDto);
     }
 
-    /*close() {
-        return this.galleryReportRepository.delete({
-            user_id: user_id,
-            blocked_user_id: blocked_user_id
-        });
-    }*/
+    editAll(where: FindOptionsWhere<GalleryReport>, updateBlockedUserDto: UpdateGalleryReportDto) {
+        return this.galleryReportRepository.update(where, updateBlockedUserDto);
+    }
 }
