@@ -93,6 +93,48 @@ export class GalleryReportsController {
         };
     }
 
+    @Delete("/gallery_report/:gallery_id/close/all")
+    async closeAllReports(
+        @Req() req: Request,
+        @Res({ passthrough: true }) res: Response,
+        @Param("gallery_id") gallery_id: number
+    ) {
+        const userAndGallery = await this.checkAuthorization(req, res, gallery_id, "close");
+        if (!(userAndGallery instanceof Array)) return userAndGallery;
+
+        const [user, gallery] = userAndGallery;
+
+        const reports = await this.galleryReportsService.findAllByGallery(gallery.id, { status: "open" });
+        if (!reports || reports.length === 0) {
+            res.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description: "No reports found for this gallery",
+                data: null
+            };
+        }
+
+        const result = await this.galleryReportsService.editAll({ gallery: { id: gallery.id }, status: "open" }, { status: "close" });
+        if (!result) {
+            res.status(501);
+            return {
+                status: "KO",
+                code: 501,
+                description: "Reports have not been closed because of an error",
+                data: null
+            };
+        }
+
+        res.status(200);
+        return {
+            status: "OK",
+            code: 200,
+            description: "Reports have been closed successfully",
+            data: result.affected
+        };
+    }
+
     @Delete("/gallery_report/:gallery_id/close/:report_id")
     async closeReport(
         @Req() req: Request,
