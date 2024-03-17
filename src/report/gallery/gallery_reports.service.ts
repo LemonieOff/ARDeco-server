@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { CreateGalleryReportDto } from "./dto/create-gallery_report.dto";
 import { UpdateGalleryReportDto } from "./dto/update-gallery_report.dto";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { FindOptionsWhere, Repository } from "typeorm";
 import { GalleryReport } from "./models/gallery_reports.entity";
 import { User } from "../../user/models/user.entity";
 import { Gallery } from "../../gallery/models/gallery.entity";
@@ -32,12 +32,15 @@ export class GalleryReportsService {
         });
     }
 
-    findAllByGallery(gallery_id: number) {
-        return this.galleryReportRepository.find({
-            where: {
-                gallery: { id: gallery_id }
-            }
-        });
+    findAllByGallery(gallery_id: number, where: FindOptionsWhere<GalleryReport> = {}) {
+        const finalWhere = {
+            gallery: {
+                id: gallery_id
+            },
+            ...where
+        };
+
+        return this.galleryReportRepository.find({ where: finalWhere });
     }
 
     findOpenByUserAndGallery(user_id: number, gallery_id: number) {
