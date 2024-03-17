@@ -40,7 +40,7 @@ export class GalleryReportsService {
             ...where
         };
 
-        return this.galleryReportRepository.find({ where: finalWhere });
+        return this.galleryReportRepository.find({ where: finalWhere, loadRelationIds: true });
     }
 
     findOpenByUserAndGallery(user_id: number, gallery_id: number) {

@@ -72,6 +72,27 @@ export class GalleryReportsController {
         };
     }
 
+    @Get("/gallery_report/:gallery_id/reports/list")
+    async getReportsList(
+        @Req() req: Request,
+        @Res({ passthrough: true }) res: Response,
+        @Param("gallery_id") gallery_id: number
+    ) {
+        const userAndGallery = await this.checkAuthorization(req, res, gallery_id, "get");
+        if (!(userAndGallery instanceof Array)) return userAndGallery;
+
+        const [user, gallery] = userAndGallery;
+
+        const reports = await this.galleryReportsService.findAllByGallery(gallery.id, { status: "open" });
+        res.status(200);
+        return {
+            status: "OK",
+            code: 200,
+            description: "List of reports for this gallery",
+            data: reports
+        };
+    }
+
     private async checkAuthorization(
         req: Request,
         res: Response,
