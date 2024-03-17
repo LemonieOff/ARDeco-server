@@ -1,5 +1,6 @@
 /* eslint-disable prettier/prettier */
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { GalleryReport } from "../../report/gallery/models/gallery_reports.entity";
 
 @Entity("gallery")
 export class Gallery {
@@ -23,4 +24,7 @@ export class Gallery {
 
     @Column({ type: "varchar" })
     room_type: string;
+
+    @OneToMany(type => GalleryReport, galleryReport => galleryReport.gallery)
+    galleryReports: GalleryReport[];
 }

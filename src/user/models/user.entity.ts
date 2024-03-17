@@ -2,11 +2,12 @@
 import {
     Column,
     Entity,
-    JoinColumn,
+    JoinColumn, OneToMany,
     OneToOne,
     PrimaryGeneratedColumn
 } from "typeorm";
 import { Cart } from "../../cart/models/cart.entity";
+import { GalleryReport } from "../../report/gallery/models/gallery_reports.entity";
 
 @Entity("users")
 export class User {
@@ -43,4 +44,7 @@ export class User {
     @OneToOne(() => Cart, cart => cart.user, { eager: true })
     @JoinColumn()
     cart: Cart;
+
+    @OneToMany(type => GalleryReport, galleryReport => galleryReport.user)
+    galleryReports: GalleryReport[];
 }
