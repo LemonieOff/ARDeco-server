@@ -1,4 +1,4 @@
-import { IsEnum, IsNumber, IsString } from "@nestjs/class-validator";
+import { IsEnum, IsNumber, IsOptional, IsString } from "@nestjs/class-validator";
 
 export class CreateGalleryReportDto {
     @IsNumber()
@@ -10,6 +10,7 @@ export class CreateGalleryReportDto {
     @IsEnum(["open", "close", "deleted"])
     status: string;
 
+    @IsOptional()
     @IsString()
-    report_text: string;
+    report_text: string | null;
 }
