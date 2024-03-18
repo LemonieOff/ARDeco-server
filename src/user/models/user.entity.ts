@@ -8,6 +8,7 @@ import {
 } from "typeorm";
 import { Cart } from "../../cart/models/cart.entity";
 import { GalleryReport } from "../../report/gallery/models/gallery_reports.entity";
+import { Gallery } from "../../gallery/models/gallery.entity";
 
 @Entity("users")
 export class User {
@@ -47,4 +48,7 @@ export class User {
 
     @OneToMany(type => GalleryReport, galleryReport => galleryReport.user)
     galleryReports: GalleryReport[];
+
+    @OneToMany(type => Gallery, gallery => gallery.user)
+    galleries: Gallery[];
 }

@@ -1,14 +1,16 @@
 /* eslint-disable prettier/prettier */
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { GalleryReport } from "../../report/gallery/models/gallery_reports.entity";
+import { User } from "../../user/models/user.entity";
 
 @Entity("gallery")
 export class Gallery {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: "int", update: false })
-    user_id: number;
+    @ManyToOne(type => User, user => user.galleries, { onDelete: "CASCADE" })
+    @JoinColumn({ name: "user_id" })
+    user: User;
 
     @Column({ type: "boolean" })
     visibility: boolean;
@@ -19,7 +21,7 @@ export class Gallery {
     @Column({ type: "varchar" })
     name: string;
 
-    @Column({ type: "varchar" })
+    @Column({ type: "longtext" })
     description: string;
 
     @Column({ type: "varchar" })
