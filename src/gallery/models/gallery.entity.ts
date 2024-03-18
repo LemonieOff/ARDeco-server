@@ -9,8 +9,11 @@ export class Gallery {
     id: number;
 
     @ManyToOne(type => User, user => user.galleries, { onDelete: "CASCADE" })
-    @JoinColumn({ name: "user_id" })
+    @JoinColumn({ name: "user_id", referencedColumnName: "id" })
     user: User;
+
+    @Column({ type: "int", update: false })
+    user_id: number;
 
     @Column({ type: "boolean" })
     visibility: boolean;

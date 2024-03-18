@@ -161,15 +161,12 @@ export class GalleryController {
         );
         if (!(authorizedUser instanceof User)) return authorizedUser;
 
-        let responseItem = Object(item);
-        responseItem.user_id = user_details !== undefined ? item.user.id : item.user;
-
         res.status(200);
         return {
             status: "OK",
             code: 200,
             description: "Gallery item",
-            data: responseItem
+            data: item
         };
     }
 
@@ -399,7 +396,7 @@ export class GalleryController {
         if (action === "view") {
             if (!item.visibility) {
                 // Check if user is the creator
-                if (item.user.id !== user.id) {
+                if (item.user_id !== user.id) {
                     // If not, check if it's an admin
                     if (user.role !== "admin") {
                         res.status(403);
@@ -415,7 +412,7 @@ export class GalleryController {
             }
         } else if (action === "edit" || action === "delete") {
             // Check if user is the creator
-            if (item.user.id !== user.id) {
+            if (item.user_id !== user.id) {
                 // If not, check if it's an admin
                 if (user.role !== "admin") {
                     res.status(403);
