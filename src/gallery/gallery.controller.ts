@@ -16,6 +16,7 @@ import { Gallery } from "./models/gallery.entity";
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 import { User } from "../user/models/user.entity";
 import { UserService } from "../user/user.service";
+import { FindOptionsRelations } from "typeorm";
 
 @Controller(["gallery", "galery"])
 export class GalleryController {
@@ -141,7 +142,16 @@ export class GalleryController {
         @Param("id") id: number,
         @Res({ passthrough: true }) res: Response
     ) {
-        const item = await this.galleryService.findOne({ id: id });
+        const user_details = req.query["user_details"];
+        const options: [FindOptionsRelations<Gallery>, boolean] = [{}, true];
+        if (user_details !== undefined) {
+            options[0] = {
+                user: true
+            };
+            options[1] = false;
+        }
+
+        const item = await this.galleryService.findOne({ id: id }, options);
 
         const authorizedUser = await this.checkAuthorization(
             req,
@@ -151,12 +161,15 @@ export class GalleryController {
         );
         if (!(authorizedUser instanceof User)) return authorizedUser;
 
+        let responseItem = Object(item);
+        responseItem.user_id = user_details !== undefined ? item.user.id : item.user;
+
         res.status(200);
         return {
             status: "OK",
             code: 200,
             description: "Gallery item",
-            data: item
+            data: responseItem
         };
     }
 
@@ -231,7 +244,7 @@ export class GalleryController {
         }
 
         try {
-            item.user_id = user.id;
+            item.user = user;
             const result = await this.galleryService.create(item);
             res.status(201);
             return {
@@ -386,7 +399,7 @@ export class GalleryController {
         if (action === "view") {
             if (!item.visibility) {
                 // Check if user is the creator
-                if (item.user_id !== user.id) {
+                if (item.user.id !== user.id) {
                     // If not, check if it's an admin
                     if (user.role !== "admin") {
                         res.status(403);
@@ -402,7 +415,7 @@ export class GalleryController {
             }
         } else if (action === "edit" || action === "delete") {
             // Check if user is the creator
-            if (item.user_id !== user.id) {
+            if (item.user.id !== user.id) {
                 // If not, check if it's an admin
                 if (user.role !== "admin") {
                     res.status(403);
