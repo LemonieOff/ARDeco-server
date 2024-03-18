@@ -18,7 +18,7 @@ export class Cart {
     @Column()
     catalogItems: string;
 
-    @OneToOne(() => User, user => user.cart)
+    @OneToOne(() => User, user => user.cart, { onDelete: "CASCADE" })
     @JoinColumn()
     user: User;
 }
