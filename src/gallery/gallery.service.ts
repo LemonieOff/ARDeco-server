@@ -27,31 +27,39 @@ export class GalleryService {
         return await this.galleryRepository.save(data);
     }
 
-    async findOne(where: FindOptionsWhere<Gallery>, options: [FindOptionsRelations<Gallery>, boolean] = [{}, true]): Promise<Gallery> {
+    async findOne(where: FindOptionsWhere<Gallery>, options: [FindOptionsRelations<Gallery>, string[]] = [{}, []]): Promise<Gallery> {
         const [relations, idsLoads] = options;
         return this.galleryRepository.findOne({
             where: where,
             relations: relations,
-            loadRelationIds: idsLoads
+            loadRelationIds: {
+                relations: idsLoads
+            }
         });
     }
 
     async findAll(
         user_id: number | null,
         limit: number | null,
-        begin_pos: number | null
+        begin_pos: number | null,
+        relationOptions: [FindOptionsRelations<Gallery>, string[]] = [{}, []]
     ): Promise<Gallery[]> {
+        const [relations, idsLoads] = relationOptions;
         let where: FindOptionsWhere<Gallery> = { visibility: true }; // Public items only
         if (user_id) {
             where = {
                 ...where,
-                user: {
-                    id: user_id
-                }
+                user_id: user_id
             };
         }
 
-        let options: FindManyOptions<Gallery> = { where: where };
+        let options: FindManyOptions<Gallery> = {
+            where: where,
+            relations: relations,
+            loadRelationIds: {
+                relations: idsLoads
+            }
+        };
         if (limit) {
             options = {
                 ...options,
@@ -68,8 +76,8 @@ export class GalleryService {
     }
 
     async findForUser(user_id: number, visibility: boolean) {
-        let visibilityQuery = visibility === false ? { user: { id: user_id } } : {
-            user: { id: user_id },
+        let visibilityQuery = visibility === false ? { user_id: user_id } : {
+            user_id: user_id,
             visibility: visibility
         };
 

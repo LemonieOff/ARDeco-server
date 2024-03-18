@@ -120,10 +120,20 @@ export class GalleryController {
             begin_pos = null;
         }
 
+        const user_details = req.query["user_details"];
+        const options: [FindOptionsRelations<Gallery>, string[]] = [{}, ["user"]];
+        if (user_details !== undefined) {
+            options[0] = {
+                user: true
+            };
+            options[1] = [];
+        }
+
         const items = await this.galleryService.findAll(
             user_id,
             limit,
-            begin_pos
+            begin_pos,
+            options
         );
 
         res.status(200);
@@ -143,12 +153,12 @@ export class GalleryController {
         @Res({ passthrough: true }) res: Response
     ) {
         const user_details = req.query["user_details"];
-        const options: [FindOptionsRelations<Gallery>, boolean] = [{}, true];
+        const options: [FindOptionsRelations<Gallery>, string[]] = [{}, ["user"]];
         if (user_details !== undefined) {
             options[0] = {
                 user: true
             };
-            options[1] = false;
+            options[1] = [];
         }
 
         const item = await this.galleryService.findOne({ id: id }, options);
