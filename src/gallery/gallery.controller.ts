@@ -16,6 +16,7 @@ import { Gallery } from "./models/gallery.entity";
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 import { User } from "../user/models/user.entity";
 import { UserService } from "../user/user.service";
+import { FindOptionsRelations } from "typeorm";
 
 @Controller(["gallery", "galery"])
 export class GalleryController {
@@ -119,10 +120,20 @@ export class GalleryController {
             begin_pos = null;
         }
 
+        const user_details = req.query["user_details"];
+        const options: [FindOptionsRelations<Gallery>, string[]] = [{}, ["user"]];
+        if (user_details !== undefined) {
+            options[0] = {
+                user: true
+            };
+            options[1] = [];
+        }
+
         const items = await this.galleryService.findAll(
             user_id,
             limit,
-            begin_pos
+            begin_pos,
+            options
         );
 
         res.status(200);
@@ -141,7 +152,16 @@ export class GalleryController {
         @Param("id") id: number,
         @Res({ passthrough: true }) res: Response
     ) {
-        const item = await this.galleryService.findOne({ id: id });
+        const user_details = req.query["user_details"];
+        const options: [FindOptionsRelations<Gallery>, string[]] = [{}, ["user"]];
+        if (user_details !== undefined) {
+            options[0] = {
+                user: true
+            };
+            options[1] = [];
+        }
+
+        const item = await this.galleryService.findOne({ id: id }, options);
 
         const authorizedUser = await this.checkAuthorization(
             req,
@@ -231,7 +251,7 @@ export class GalleryController {
         }
 
         try {
-            item.user_id = user.id;
+            item.user = user;
             const result = await this.galleryService.create(item);
             res.status(201);
             return {

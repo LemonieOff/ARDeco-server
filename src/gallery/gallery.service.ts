@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { FindManyOptions, FindOptionsWhere, Repository } from "typeorm";
+import { FindManyOptions, FindOptionsRelations, FindOptionsWhere, Repository } from "typeorm";
 import { Gallery } from "./models/gallery.entity";
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
@@ -9,7 +9,8 @@ export class GalleryService {
     constructor(
         @InjectRepository(Gallery)
         private readonly galleryRepository: Repository<Gallery>
-    ) {}
+    ) {
+    }
 
     async create(data): Promise<Gallery> {
         try {
@@ -26,15 +27,24 @@ export class GalleryService {
         return await this.galleryRepository.save(data);
     }
 
-    async findOne(where: FindOptionsWhere<Gallery>): Promise<Gallery> {
-        return this.galleryRepository.findOne({ where: where });
+    async findOne(where: FindOptionsWhere<Gallery>, options: [FindOptionsRelations<Gallery>, string[]] = [{}, []]): Promise<Gallery> {
+        const [relations, idsLoads] = options;
+        return this.galleryRepository.findOne({
+            where: where,
+            relations: relations,
+            loadRelationIds: {
+                relations: idsLoads
+            }
+        });
     }
 
     async findAll(
         user_id: number | null,
         limit: number | null,
-        begin_pos: number | null
+        begin_pos: number | null,
+        relationOptions: [FindOptionsRelations<Gallery>, string[]] = [{}, []]
     ): Promise<Gallery[]> {
+        const [relations, idsLoads] = relationOptions;
         let where: FindOptionsWhere<Gallery> = { visibility: true }; // Public items only
         if (user_id) {
             where = {
@@ -43,7 +53,13 @@ export class GalleryService {
             };
         }
 
-        let options: FindManyOptions<Gallery> = { where: where };
+        let options: FindManyOptions<Gallery> = {
+            where: where,
+            relations: relations,
+            loadRelationIds: {
+                relations: idsLoads
+            }
+        };
         if (limit) {
             options = {
                 ...options,
@@ -60,7 +76,10 @@ export class GalleryService {
     }
 
     async findForUser(user_id: number, visibility: boolean) {
-        let visibilityQuery = visibility === false ? { user_id: user_id } : { user_id: user_id, visibility: visibility } ;
+        let visibilityQuery = visibility === false ? { user_id: user_id } : {
+            user_id: user_id,
+            visibility: visibility
+        };
 
         return this.galleryRepository.find({
             where: visibilityQuery
