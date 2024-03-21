@@ -38,7 +38,7 @@ export class FavoriteFurnitureController {
                     price: furniture.price,
                     styles: furniture.styles,
                     colors: furniture.colors,
-                    room: furniture.rooms,
+                    rooms: furniture.rooms,
                     height: furniture.height,
                     width: furniture.width,
                     depth: furniture.depth,
