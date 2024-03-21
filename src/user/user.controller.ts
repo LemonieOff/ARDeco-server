@@ -303,4 +303,61 @@ export class UserController {
             };
         }
     }
+
+    @Put("close/:id")
+    async closeCompany(
+        @Req() req: Request,
+        @Param("id") id: number,
+        @Res({ passthrough: true }) res: Response
+    ) {
+        try {
+            const cookie = req.cookies["jwt"];
+            const data = this.jwtService.verify(cookie);
+            const request_user_id = await this.userService.findOne({
+                id: data["id"]
+            });
+            if (request_user_id["role"] != "admin") {
+                res.status(401);
+                return {
+                    status: "KO",
+                    code: 401,
+                    description: "You are not allowed to close this company account",
+                    data: null
+                };
+            }
+
+            const company = await this.userService.findOne({ id: id });
+            if (company["role"] != "company") {
+                res.status(403);
+                return {
+                    status: "KO",
+                    code: 403,
+                    description:
+                        "This user is not a company",
+                    data: null
+                };
+            }
+
+            company["deleted"] = true;
+            await this.userService.update(company["id"], company);
+
+            res.status(200);
+            return {
+                status: "OK",
+                code: 200,
+                description: "Company account has been closed",
+                data: null
+            };
+        } catch (e) {
+            console.error(e);
+            res.status(500);
+            return {
+                status: "KO",
+                code: 500,
+                description: "Internal error",
+                error: e,
+                data: null
+            };
+        }
+    }
 }
