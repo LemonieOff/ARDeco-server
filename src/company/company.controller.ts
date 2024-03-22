@@ -48,7 +48,6 @@ export class CompanyController {
             const cookie = req.cookies["jwt"];
             const data = cookie ? this.jwtService.verify(cookie) : null;
 
-            // Cookie or JWT not valid
             if (!cookie || !data) {
                 res.status(401);
                 return {
@@ -80,6 +79,67 @@ export class CompanyController {
                 status: "OK",
                 code: 200,
                 description: "API key generated",
+                data: encryptedText,
+                token: encryptedText
+            };
+        } catch (e) {
+            console.error(e);
+            res.status(500);
+            return {
+                status: "KO",
+                code: 500,
+                description: "Internal error",
+                error: e,
+                data: null
+            };
+        }
+    }
+
+    @Get("resetToken")
+    async resetToken(
+        @Req() req: Request,
+        @Body() user: User,
+        @Res({ passthrough: true }) res: Response
+    ) {
+        try {
+            const cookie = req.cookies["jwt"];
+            const data = cookie ? this.jwtService.verify(cookie) : null;
+
+            if (!cookie || !data) {
+                res.status(401);
+                return {
+                    status: "KO",
+                    code: 401,
+                    description: "You are not connected",
+                    data: null
+                };
+            }
+
+            const company = await this.userService.findOne({ id: data["id"] });
+            if (company["role"] != "admin") {
+                res.status(403);
+                return {
+                    status: "KO",
+                    code: 403,
+                    description:
+                        "You are not allowed to access this resource, you are not an admin",
+                    data: null
+                };
+            }
+
+            const company_id = req.query["id"];
+            const company_to_reset = await this.userService.findOne({
+                id: company_id
+            });
+            const encryptedText = await this.generateToken(company_to_reset);
+            company_to_reset["company_api_key"] = encryptedText;
+            await this.userService.update(company_to_reset["id"], company_to_reset);
+
+            res.status(200);
+            return {
+                status: "OK",
+                code: 200,
+                description: "API key reset",
                 data: encryptedText,
                 token: encryptedText
             };
