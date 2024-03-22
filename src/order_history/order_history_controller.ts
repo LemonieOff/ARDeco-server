@@ -6,7 +6,7 @@ import {
     Post,
     Query,
     Req,
-    Res
+    Res, StreamableFile
 } from "@nestjs/common";
 import { OrderHistoryService } from "./order_history_service";
 import { Request, Response } from "express";
@@ -15,6 +15,8 @@ import { OrderHistory } from "./models/order_history.entity";
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 import { User } from "../user/models/user.entity";
 import { UserService } from "../user/user.service";
+import { createReadStream } from 'fs';
+import { join } from "path";
 
 enum GetMode {
     DEFAULT,
@@ -188,6 +190,27 @@ export class OrderHistoryController {
                 data: null
             };
         }
+    }
+
+    @Get("/invoice/:order_id")
+    async getInvoice(
+        @Req() req: Request,
+        @Param("order_id") order_id: number,
+        @Res({ passthrough: true }) res: Response
+    ) {
+        const order = await this.orderHistoryService.findOne({ id: order_id });
+
+        const user = await this.checkAuthorization(req, res, Type.GET_ORDER, order);
+        if (!(user instanceof User)) return user;
+
+        const file = createReadStream(join(process.cwd(), `ardeco_invoices/invoice_${order_id}.pdf`));
+        res.set({
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `attachment; filename="ardeco_invoice_${order_id}.pdf"`,
+        });
+
+        res.status(200);
+        return new StreamableFile(file);
     }
 
     async checkAuthorization(
