@@ -40,9 +40,26 @@ jobs:
           username: ${{ vars.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PASSWORD }}
           uploads: |
-            ./package.json => /opt/ardeco/backend/
-            README.md => /opt/ardeco/backend/
+            ./ => /opt/ardeco/backend/
             ./dist/ => /opt/ardeco/backend/dist/
+          ignore: |
+            .git
+            .github
+            node_modules
+            src
+            test
+            .env
+            .env.*
+            .gitignore
+            .prettierrc
+            .eslintrc.js
+            README.md
+            tsconfig.json
+            tsconfig.build.json
+            Gulfile.js
+            nest-cli.json
+            .github
+            package-lock.json
 
       - name: Log timestamp
         uses: appleboy/ssh-action@master
