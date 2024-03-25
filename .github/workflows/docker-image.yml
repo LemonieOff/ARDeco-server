@@ -41,6 +41,7 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           uploads: |
             ./package.json => /opt/ardeco/backend/
+            README.md => /opt/ardeco/backend/
             ./dist/ => /opt/ardeco/backend/dist/
 
       - name: Log timestamp
