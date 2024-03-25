@@ -41,8 +41,7 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           uploads: |
             dist => /opt/ardeco/backend/dist
-            package.json => /opt/ardeco/backend/
-          #  Gulpfile.js => /opt/ardeco/backend/Gulpfile.js
+            package.json => /opt/ardeco/backend
 
       - name: Log timestamp
         uses: appleboy/ssh-action@master
