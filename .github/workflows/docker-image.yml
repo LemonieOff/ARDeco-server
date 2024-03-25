@@ -41,7 +41,7 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           uploads: |
             dist => /opt/ardeco/backend/dist
-            package.json => /opt/ardeco/backend/package.json
+            package.json => /opt/ardeco/backend/
           #  Gulpfile.js => /opt/ardeco/backend/Gulpfile.js
 
       - name: Log timestamp
