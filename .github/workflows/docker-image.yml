@@ -40,8 +40,8 @@ jobs:
           username: ${{ vars.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PASSWORD }}
           uploads: |
-            dist => /opt/ardeco/backend/dist
             ./package.json => /opt/ardeco/backend/
+            ./dist/ => /opt/ardeco/backend/dist/
 
       - name: Log timestamp
         uses: appleboy/ssh-action@master
