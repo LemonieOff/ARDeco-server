@@ -58,8 +58,17 @@ jobs:
             tsconfig.build.json
             Gulpfile.js
             nest-cli.json
-            .github
             package-lock.json
+
+      - name: Install dependencies on server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ vars.SERVER_HOST }}
+          username: ${{ vars.SERVER_USERNAME }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            cd /opt/ardeco/backend
+            npm install
 
       - name: Log timestamp
         uses: appleboy/ssh-action@master
