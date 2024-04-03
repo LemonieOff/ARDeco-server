@@ -25,7 +25,8 @@ export class CatalogController {
         private catalogService: CatalogService,
         private jwtService: JwtService,
         private userService: UserService
-    ) {}
+    ) {
+    }
 
     @Get()
     async getCatalog(
@@ -81,6 +82,8 @@ export class CatalogController {
         const authorizedCompany = await this.checkAuthorization(req, res, id);
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
+        const company = authorizedCompany.id === id ? authorizedCompany : await this.userService.findOne({ id: id });
+
         if (!(catalog instanceof Array) || catalog.length === 0) {
             res.status(400);
             return {
@@ -95,7 +98,7 @@ export class CatalogController {
 
         // Check errors of each object
         for (let i = 0; i < catalog.length; i++) {
-            const isValid = this.checkObject(authorizedCompany, catalog[i], i);
+            const isValid = this.checkObject(company, catalog[i], i);
             if (isValid.length > 0) {
                 errors.push(isValid);
             }
@@ -150,6 +153,8 @@ export class CatalogController {
         );
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
+        const company = authorizedCompany.id === company_id ? authorizedCompany : await this.userService.findOne({ id: company_id });
+
         const object = await this.catalogService.findOne({
             object_id: object_id,
             company: company_id
@@ -167,7 +172,7 @@ export class CatalogController {
 
         catalog.object_id = object_id;
 
-        const errors = this.checkObject(authorizedCompany, catalog, 0, false);
+        const errors = this.checkObject(company, catalog, 0, false);
         if (errors.length > 0) {
             res.status(400);
             return {
@@ -201,19 +206,16 @@ export class CatalogController {
         };
     }
 
-    @Delete(":id/removeAll")
+    @Delete(":company_id/removeAll")
     async removeAll(
         @Req() req: Request,
-        @Param("id") id: number,
+        @Param("company_id") company_id: number,
         @Res({ passthrough: true }) res: Response
     ) {
-        const authorizedCompany = await this.checkAuthorization(req, res, id);
+        const authorizedCompany = await this.checkAuthorization(req, res, company_id);
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
-        const removedObjects =
-            await this.catalogService.deleteAllObjectsFromCompany(
-                authorizedCompany.id
-            );
+        const removedObjects = await this.catalogService.deleteAllObjectsFromCompany(company_id);
         if (removedObjects === null) {
             res.status(500);
             return {
@@ -233,19 +235,19 @@ export class CatalogController {
         };
     }
 
-    @Delete(":id/remove/:object_id")
+    @Delete(":company_id/remove/:object_id")
     async removeOne(
         @Req() req: Request,
-        @Param("id") id: number,
+        @Param("company_id") company_id: number,
         @Param("object_id") object_id: string,
         @Res({ passthrough: true }) res: Response
     ) {
-        const authorizedCompany = await this.checkAuthorization(req, res, id);
+        const authorizedCompany = await this.checkAuthorization(req, res, company_id);
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
         const object = await this.catalogService.findOne({
             object_id: object_id,
-            company: id
+            company: company_id
         });
 
         if (object === null) {
@@ -278,14 +280,14 @@ export class CatalogController {
         }
     }
 
-    @Delete(":id/remove")
+    @Delete(":company_id/remove")
     async remove(
         @Req() req: Request,
-        @Param("id") id: number,
+        @Param("company_id") company_id: number,
         @Body() objects: string[],
         @Res({ passthrough: true }) res: Response
     ) {
-        const authorizedCompany = await this.checkAuthorization(req, res, id);
+        const authorizedCompany = await this.checkAuthorization(req, res, company_id);
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
         if (objects.length === 0) {
@@ -317,9 +319,9 @@ export class CatalogController {
             const object_id = objects[i];
             const res = await this.catalogService.findOne({
                 object_id: object_id,
-                company: id
+                company: company_id
             });
-            if (res == null) errors.push(i + ' - "object_id" doesn\'t exists');
+            if (res == null) errors.push(i + " - \"object_id\" doesn't exists");
             else ids.push(res.id);
         }
 
@@ -405,27 +407,27 @@ export class CatalogController {
                     .then(res => {
                         if (res !== null)
                             errors.push(
-                                number + ' - "object_id" already exists'
+                                number + " - \"object_id\" already exists"
                             );
                     });
             }
         }
 
-        if (!catalog.name) errors.push(number + ' - "name" field is required');
+        if (!catalog.name) errors.push(number + " - \"name\" field is required");
         if (!catalog.price)
-            errors.push(number + ' - "Price" field is required');
+            errors.push(number + " - \"Price\" field is required");
         if (!catalog.styles)
-            errors.push(number + ' - "Styles" field is required');
+            errors.push(number + " - \"Styles\" field is required");
         if (!catalog.rooms)
-            errors.push(number + ' - "Rooms" field is required');
+            errors.push(number + " - \"Rooms\" field is required");
         if (!catalog.width)
-            errors.push(number + ' - "Width" field is required');
+            errors.push(number + " - \"Width\" field is required");
         if (!catalog.height)
-            errors.push(number + ' - "Height" field is required');
+            errors.push(number + " - \"Height\" field is required");
         if (!catalog.depth)
-            errors.push(number + ' - "Depth" field is required');
+            errors.push(number + " - \"Depth\" field is required");
         if (!catalog.colors)
-            errors.push(number + ' - "Colors" field is required');
+            errors.push(number + " - \"Colors\" field is required");
 
         if (errors.length > 0) return errors;
 
@@ -463,18 +465,8 @@ export class CatalogController {
             };
         }
 
-        // Targeted company id is not the same as the one in the JWT
-        if (id.toString() !== data["id"].toString()) {
-            res.status(403);
-            return {
-                status: "KO",
-                code: 403,
-                description: "You are not allowed to access this resource",
-                data: null
-            };
-        }
-
         const company = await this.userService.findOne({ id: data["id"] });
+
         if (!company) {
             res.status(403);
             return {
@@ -486,27 +478,43 @@ export class CatalogController {
             };
         }
 
-        if (!company["company_api_key"]) {
-            res.status(403);
-            return {
-                status: "KO",
-                code: 401,
-                description:
-                    "You don't have any API key, please generate one before using this endpoint",
-                data: null
-            };
-        }
+        if (company.role === "admin") {
+            // Admin can access all resources
+            return company;
+        } else {
+            if (company.role !== "company" || company.id !== id) {
+                res.status(403);
+                return {
+                    status: "KO",
+                    code: 403,
+                    description:
+                        "You are not authorized to access this resource",
+                    data: null
+                };
+            }
 
-        // Wrong company API key
-        if (company.company_api_key !== req.query["company_api_key"]) {
-            res.status(403);
-            return {
-                status: "KO",
-                code: 401,
-                description:
-                    'API key is not valid in "company_api_key" query parameter',
-                data: null
-            };
+            if (!company.company_api_key) {
+                res.status(403);
+                return {
+                    status: "KO",
+                    code: 401,
+                    description:
+                        "You don't have any API key, please generate one before using this endpoint",
+                    data: null
+                };
+            }
+
+            // Wrong company API key
+            if (company.company_api_key !== req.query["company_api_key"]) {
+                res.status(403);
+                return {
+                    status: "KO",
+                    code: 401,
+                    description:
+                        "API key is not valid in \"company_api_key\" query parameter",
+                    data: null
+                };
+            }
         }
 
         return company;
