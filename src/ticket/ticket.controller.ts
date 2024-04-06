@@ -214,16 +214,6 @@ export class TicketController {
         }
     }
 
-
-
-
-    @Get()
-    all() {
-        return ['tickets'];
-    }
-
-
-
     @Get(':id')
     async getOne(@Param('id') id: number,
                  @Req() req: Request): Promise<any> {
@@ -264,14 +254,6 @@ export class TicketController {
                 messages: requestedTicket.messages,
             },
         };
-    }
-
-    //@UseGuards(AuthGuard)
-    @Get('whoami')
-    async whoami(@Req() request: Request): Promise<any> {
-        const cookie = request.cookies['jwt'];
-        const data = await this.jwtService.verifyAsync(cookie);
-        return this.ticketService.findOne({ id: data['id'] });
     }
 
     //@UseGuards(AuthGuard)
