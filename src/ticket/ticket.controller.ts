@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import {TicketService} from './ticket.service';
 import {UserService} from 'src/user/user.service';
-import {Request, Response} from 'express';
+import { Request, Response } from "express";
 import {AuthGuard} from '../auth/auth.guard';
 import {JwtService} from '@nestjs/jwt';
 import {Ticket} from './models/ticket.entity';
@@ -101,17 +101,38 @@ export class TicketController {
 
    // @UseGuards(AuthGuard)
     @Get('stats')
-    async getStats(@Req() req: Request): Promise<any> {
-        console.log(req.cookies);
-        console.log("jwt in cookie is " + req.cookies['jwt']);
-        const data = await this.jwtService.verifyAsync(req.cookies['jwt'])
-        console.log(data);
-        const usr = await this.userService.findOne({id: data['id']})
-        console.log("User", usr);
-        if (usr.role != "admin") {
+    async getStats(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<any> {
+        // Check login
+        const cookie = req.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+        if (!data) {
+            res.status(HttpStatus.UNAUTHORIZED);
             return {
                 status: 'KO',
-                code: HttpStatus.BAD_REQUEST,
+                code: HttpStatus.UNAUTHORIZED,
+                description: 'You are not logged in',
+                data: null,
+            };
+        }
+
+        // Check user exists
+        const usr = await this.userService.findOne({id: data['id']})
+        if (!usr) {
+            res.status(HttpStatus.UNAUTHORIZED);
+            return {
+                status: 'KO',
+                code: HttpStatus.UNAUTHORIZED,
+                description: 'User not found',
+                data: null,
+            };
+        }
+
+        // Check user is admin
+        if (usr.role !== "admin") {
+            res.status(HttpStatus.FORBIDDEN);
+            return {
+                status: 'KO',
+                code: HttpStatus.FORBIDDEN,
                 description: 'You are not an admin',
                 data: null,
             };
@@ -214,16 +235,6 @@ export class TicketController {
         }
     }
 
-
-
-
-    @Get()
-    all() {
-        return ['tickets'];
-    }
-
-
-
     @Get(':id')
     async getOne(@Param('id') id: number,
                  @Req() req: Request): Promise<any> {
@@ -266,12 +277,64 @@ export class TicketController {
         };
     }
 
-    //@UseGuards(AuthGuard)
-    @Get('whoami')
-    async whoami(@Req() request: Request): Promise<any> {
-        const cookie = request.cookies['jwt'];
-        const data = await this.jwtService.verifyAsync(cookie);
-        return this.ticketService.findOne({ id: data['id'] });
+    @Get("/user/:user_id")
+    async getViaUser(
+        @Param("user_id") user_id: number,
+        @Req() req: Request,
+        @Res({ passthrough: true }) res: Response) : Promise<any> {
+        user_id = Number(user_id);
+        if (isNaN(user_id)) {
+            res.status(HttpStatus.BAD_REQUEST);
+            return {
+                status: 'KO',
+                code: HttpStatus.BAD_REQUEST,
+                description: 'User ID is not a number',
+                data: null,
+            };
+        }
+
+        const cookie = req.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+        if (!data) {
+            return {
+                status: 'KO',
+                code: HttpStatus.UNAUTHORIZED,
+                description: 'You are not logged in',
+                data: null,
+            };
+        }
+
+        const user = await this.userService.findOne({id: data['id']});
+
+        if (!user) {
+            res.status(HttpStatus.UNAUTHORIZED);
+            return {
+                status: 'KO',
+                code: HttpStatus.UNAUTHORIZED,
+                description: 'User not found',
+                data: null,
+            };
+        }
+
+        if (user.id !== user_id && user.role !== "admin") {
+            res.status(HttpStatus.FORBIDDEN);
+            return {
+                status: 'KO',
+                code: HttpStatus.FORBIDDEN,
+                description: 'You are not an admin nor the owner of the targeted account',
+                data: null,
+            };
+        }
+
+        const tickets = await this.ticketService.allForUser(user_id);
+        const tickets_ids = tickets.map((ticket) => ticket.id);
+
+        return {
+            status: 'OK',
+            code: HttpStatus.OK,
+            description: 'All tickets for user',
+            data: tickets_ids,
+        };
     }
 
     //@UseGuards(AuthGuard)
@@ -315,22 +378,85 @@ export class TicketController {
     async closeTicket(
         @Req() req: Request,
         @Param('id') id: number,
-        @Body() ticket: QueryPartialEntity<Ticket>,
         @Res({ passthrough: true }) res: Response,
     ) {
-        //check admin
-        const data = await this.jwtService.verifyAsync(req.cookies['jwt'])
-        const usr = await this.userService.findOne({id: data['id']})
-        if (usr.role != "admin") {
+        // Check login
+        const cookie = req.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+        if (!data) {
+            res.status(HttpStatus.UNAUTHORIZED);
             return {
-                status: 'KO',
-                code: HttpStatus.BAD_REQUEST,
-                description: 'You are not an admin',
-                data: null,
+                status: "KO",
+                code: HttpStatus.UNAUTHORIZED,
+                description: "You are not logged in",
+                data: null
             };
         }
+
+        // Check user exists
+        const usr = await this.userService.findOne({id: data['id']});
+        if (!usr) {
+            res.status(HttpStatus.UNAUTHORIZED);
+            return {
+                status: "KO",
+                code: HttpStatus.UNAUTHORIZED,
+                description: "User not found",
+                data: null
+            };
+        }
+
+        // Check ticket exists
+        const ticket = await this.ticketService.findOne({ id });
+        if (!ticket) {
+            res.status(HttpStatus.NOT_FOUND);
+            return {
+                status: "KO",
+                code: HttpStatus.NOT_FOUND,
+                description: "Ticket not found",
+                data: null
+            };
+        }
+
+        if (ticket.status === "deleted") {
+            res.status(HttpStatus.NOT_FOUND);
+            return {
+                status: "KO",
+                code: HttpStatus.NOT_FOUND,
+                description: "Ticket is deleted",
+                data: null
+            };
+        }
+
+        if (usr.id !== ticket.user_init_id && usr.role != "admin") {
+            res.status(HttpStatus.UNAUTHORIZED);
+            return {
+                status: "KO",
+                code: HttpStatus.UNAUTHORIZED,
+                description: "You are not an admin nor the owner of this ticket",
+                data: null
+            };
+        }
+
+        if (ticket.status === "closed") {
+            res.status(HttpStatus.BAD_REQUEST);
+            return {
+                status: "KO",
+                code: HttpStatus.BAD_REQUEST,
+                description: "Ticket is already closed",
+                data: null
+            };
+        }
+
         ticket.status = "closed";
-        return await this.editTicket(req, id, ticket, res);
+        const result = await this.editTicket(req, id, ticket, res);
+
+        res.status(HttpStatus.OK);
+        return {
+            status: 'OK',
+            code: HttpStatus.OK,
+            description: 'Ticket was closed',
+            data: null,
+        };
     }
 
     //@UseGuards(AuthGuard)
@@ -339,19 +465,69 @@ export class TicketController {
                  @Req() req: Request,
                  @Res({ passthrough: true }) res: Response
     ): Promise<any> {
-        const data = await this.jwtService.verifyAsync(req.cookies['jwt'])
-        const usr = await this.userService.findOne({id: data['id']})
-        if (usr.role != "admin") {
+        const cookie = req.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+        if (!data) {
+            res.status(HttpStatus.UNAUTHORIZED);
+            return {
+                status: "KO",
+                code: HttpStatus.UNAUTHORIZED,
+                description: "You are not logged in",
+                data: null
+            };
+        }
+
+        const usr = await this.userService.findOne({id: data['id']});
+        if (!usr) {
+            res.status(HttpStatus.UNAUTHORIZED);
+            return {
+                status: "KO",
+                code: HttpStatus.UNAUTHORIZED,
+                description: "User not found",
+                data: null
+            };
+        }
+        if (usr.role !== "admin") {
+            res.status(HttpStatus.FORBIDDEN);
             return {
                 status: 'KO',
-                code: HttpStatus.BAD_REQUEST,
+                code: HttpStatus.FORBIDDEN,
                 description: 'You are not an admin',
                 data: null,
             };
         }
-        const ticket = await this.ticketService.findOne({ id })
+
+        const ticket = await this.ticketService.findOne({ id });
+        if (!ticket) {
+            res.status(HttpStatus.NOT_FOUND);
+            return {
+                status: "KO",
+                code: HttpStatus.NOT_FOUND,
+                description: "Ticket not found",
+                data: null
+            };
+        }
+
+        if (ticket.status === "deleted") {
+            res.status(HttpStatus.NOT_FOUND);
+            return {
+                status: "KO",
+                code: HttpStatus.NOT_FOUND,
+                description: "Ticket is already deleted",
+                data: null
+            };
+        }
+
         ticket.status = "deleted";
-        return await this.editTicket(req, id, ticket, res);
+        const result = await this.editTicket(req, id, ticket, res);
+
+        res.status(HttpStatus.OK);
+        return {
+            status: 'OK',
+            code: HttpStatus.OK,
+            description: 'Ticket was deleted',
+            data: null,
+        };
     }
 
     //@UseGuards(AuthGuard)
@@ -361,8 +537,30 @@ export class TicketController {
         @Body() ticket: TicketDto,
         @Res({ passthrough: true }) res: Response,
     ) {
-        const data = await this.jwtService.verifyAsync(req.cookies['jwt'])
+        // Check login
+        const cookie = req.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+        if (!data) {
+            res.status(HttpStatus.UNAUTHORIZED);
+            return {
+                status: 'KO',
+                code: HttpStatus.UNAUTHORIZED,
+                description: 'You are not logged in',
+                data: null,
+            };
+        }
+
         const usr = await this.userService.findOne({id: data['id']})
+        if (!usr) {
+            res.status(HttpStatus.UNAUTHORIZED);
+            return {
+                status: 'KO',
+                code: HttpStatus.UNAUTHORIZED,
+                description: 'User not found',
+                data: null,
+            };
+        }
+
         const body = {
             "title": ticket.title,
             "description": ticket.description,

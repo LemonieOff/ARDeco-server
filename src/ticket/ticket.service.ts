@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Not, Repository } from "typeorm";
 import { Ticket } from "./models/ticket.entity";
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
@@ -13,6 +13,10 @@ export class TicketService {
 
     async all(): Promise<Ticket[]> {
         return this.TicketRepository.find();
+    }
+
+    async allForUser(userId: number): Promise<Ticket[]> {
+        return this.TicketRepository.find({ where: { user_init_id: userId, status: Not("deleted") }, select: ["id"] });
     }
 
     async create(data): Promise<Ticket> {
