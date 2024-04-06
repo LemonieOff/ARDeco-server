@@ -318,22 +318,85 @@ export class TicketController {
     async closeTicket(
         @Req() req: Request,
         @Param('id') id: number,
-        @Body() ticket: QueryPartialEntity<Ticket>,
         @Res({ passthrough: true }) res: Response,
     ) {
-        //check admin
-        const data = await this.jwtService.verifyAsync(req.cookies['jwt'])
-        const usr = await this.userService.findOne({id: data['id']})
-        if (usr.role != "admin") {
+        // Check login
+        const cookie = req.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+        if (!data) {
+            res.status(HttpStatus.UNAUTHORIZED);
             return {
-                status: 'KO',
-                code: HttpStatus.BAD_REQUEST,
-                description: 'You are not an admin',
-                data: null,
+                status: "KO",
+                code: HttpStatus.UNAUTHORIZED,
+                description: "You are not logged in",
+                data: null
             };
         }
+
+        // Check user exists
+        const usr = await this.userService.findOne({id: data['id']});
+        if (!usr) {
+            res.status(HttpStatus.UNAUTHORIZED);
+            return {
+                status: "KO",
+                code: HttpStatus.UNAUTHORIZED,
+                description: "User not found",
+                data: null
+            };
+        }
+
+        // Check ticket exists
+        const ticket = await this.ticketService.findOne({ id });
+        if (!ticket) {
+            res.status(HttpStatus.NOT_FOUND);
+            return {
+                status: "KO",
+                code: HttpStatus.NOT_FOUND,
+                description: "Ticket not found",
+                data: null
+            };
+        }
+
+        if (ticket.status === "deleted") {
+            res.status(HttpStatus.NOT_FOUND);
+            return {
+                status: "KO",
+                code: HttpStatus.NOT_FOUND,
+                description: "Ticket is deleted",
+                data: null
+            };
+        }
+
+        if (usr.id !== ticket.user_init_id && usr.role != "admin") {
+            res.status(HttpStatus.UNAUTHORIZED);
+            return {
+                status: "KO",
+                code: HttpStatus.UNAUTHORIZED,
+                description: "You are not an admin nor the owner of this ticket",
+                data: null
+            };
+        }
+
+        if (ticket.status === "closed") {
+            res.status(HttpStatus.BAD_REQUEST);
+            return {
+                status: "KO",
+                code: HttpStatus.BAD_REQUEST,
+                description: "Ticket is already closed",
+                data: null
+            };
+        }
+
         ticket.status = "closed";
-        return await this.editTicket(req, id, ticket, res);
+        const result = await this.editTicket(req, id, ticket, res);
+
+        res.status(HttpStatus.OK);
+        return {
+            status: 'OK',
+            code: HttpStatus.OK,
+            description: 'Ticket was closed',
+            data: null,
+        };
     }
 
     //@UseGuards(AuthGuard)
