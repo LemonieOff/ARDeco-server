@@ -343,8 +343,30 @@ export class TicketController {
         @Body() ticket: TicketDto,
         @Res({ passthrough: true }) res: Response,
     ) {
-        const data = await this.jwtService.verifyAsync(req.cookies['jwt'])
+        // Check login
+        const cookie = req.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+        if (!data) {
+            res.status(HttpStatus.UNAUTHORIZED);
+            return {
+                status: 'KO',
+                code: HttpStatus.UNAUTHORIZED,
+                description: 'You are not logged in',
+                data: null,
+            };
+        }
+
         const usr = await this.userService.findOne({id: data['id']})
+        if (!usr) {
+            res.status(HttpStatus.UNAUTHORIZED);
+            return {
+                status: 'KO',
+                code: HttpStatus.UNAUTHORIZED,
+                description: 'User not found',
+                data: null,
+            };
+        }
+
         const body = {
             "title": ticket.title,
             "description": ticket.description,
