@@ -277,6 +277,66 @@ export class TicketController {
         };
     }
 
+    @Get("/user/:user_id")
+    async getViaUser(
+        @Param("user_id") user_id: number,
+        @Req() req: Request,
+        @Res({ passthrough: true }) res: Response) : Promise<any> {
+        user_id = Number(user_id);
+        if (isNaN(user_id)) {
+            res.status(HttpStatus.BAD_REQUEST);
+            return {
+                status: 'KO',
+                code: HttpStatus.BAD_REQUEST,
+                description: 'User ID is not a number',
+                data: null,
+            };
+        }
+
+        const cookie = req.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+        if (!data) {
+            return {
+                status: 'KO',
+                code: HttpStatus.UNAUTHORIZED,
+                description: 'You are not logged in',
+                data: null,
+            };
+        }
+
+        const user = await this.userService.findOne({id: data['id']});
+
+        if (!user) {
+            res.status(HttpStatus.UNAUTHORIZED);
+            return {
+                status: 'KO',
+                code: HttpStatus.UNAUTHORIZED,
+                description: 'User not found',
+                data: null,
+            };
+        }
+
+        if (user.id !== user_id && user.role !== "admin") {
+            res.status(HttpStatus.FORBIDDEN);
+            return {
+                status: 'KO',
+                code: HttpStatus.FORBIDDEN,
+                description: 'You are not an admin nor the owner of the targeted account',
+                data: null,
+            };
+        }
+
+        const tickets = await this.ticketService.allForUser(user_id);
+        const tickets_ids = tickets.map((ticket) => ticket.id);
+
+        return {
+            status: 'OK',
+            code: HttpStatus.OK,
+            description: 'All tickets for user',
+            data: tickets_ids,
+        };
+    }
+
     //@UseGuards(AuthGuard)
     @Put(':id')
     async editViaParam(
