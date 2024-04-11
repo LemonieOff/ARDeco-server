@@ -2,7 +2,7 @@ import { Body, Controller, Get, HttpStatus, Post, Res } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { PaymentRequestBody } from './models/PaymentsRequestBody';
 import { Response, Request } from 'express';
-import { MailService } from 'src/mail/mail.service';
+// import { MailService } from 'src/mail/mail.service';
 import { sendMailDTO } from 'src/mail/models/sendMail.dto';
 import { commandDto } from './models/command.dto';
 import { Command } from './models/command.entity';
@@ -11,7 +11,8 @@ import { Command } from './models/command.entity';
 export class PaymentsController {
   constructor(
     private paymentService: PaymentsService,
-    private mailService: MailService) { }
+    // private mailService: MailService
+  ) { }
 
     @Get()
     async createPayments(

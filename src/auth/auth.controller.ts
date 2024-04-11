@@ -14,63 +14,59 @@ import { RegisterDto } from "./models/register.dto";
 import { JwtService } from "@nestjs/jwt";
 import { Response, Request } from "express";
 // import { AuthGuard } from "@nestjs/passport";
-//import { MailService } from "../mail/mail.service";
-//import { sendMailDTO } from "src/mail/models/sendMail.dto";
 import { LoginDto } from "src/auth/models/login.dto";
-import { CatalogService } from "src/catalog/catalog.service";
 import { CartService } from "src/cart/cart.service";
 import { randomBytes } from "crypto";
-import { AuthService } from './auth.service';
+import { AuthService } from "./auth.service";
 // import { use } from 'passport';
-import { sendMailPasswordDTO } from "src/mail/models/sendMailPassword";
-import { emit } from "process";
 import { UserSettingsService } from "../user_settings/user_settings_service";
-
-// idclient 720605484975-ohe2u21jk3k6e2cdekgifiliipd4e6oh.apps.googleusercontent.com
-// secret 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
+import { MailService } from "../mail/mail.service";
 
 @Controller()
 export class AuthController {
     constructor(
         private userService: UserService,
         private jwtService: JwtService,
-        //private mailService: MailService,
+        private mailService: MailService,
         private cartService: CartService,
         private authService: AuthService,
         private userSettingsService: UserSettingsService
-    ) { }
+    ) {
+    }
 
-    @Post('reset')
-    async resetPassword(@Body('email') email: string) {
-        console.log("email", email)
-        const user = await this.userService.findOne({email: email});
+    @Post("reset")
+    async resetPassword(@Body("email") email: string) {
+        console.log("email", email);
+        const user = await this.userService.findOne({ email: email });
 
         if (!user) {
             throw new Error("User not found");
         }
-        const resetToken = randomBytes(32).toString('hex');
+        const resetToken = randomBytes(32).toString("hex");
         const expirationDate = new Date();
         expirationDate.setHours(expirationDate.getHours() + 1); // Lien valable pendant 1 heure
-        await this.authService.createReset({email: email, link : resetToken})
-        console.log("rt:", resetToken)
+        await this.authService.createReset({
+            email: email,
+            link: resetToken
+        });
+        console.log("rt:", resetToken);
 
-        let content: sendMailPasswordDTO = {email: email, token: resetToken, user: user.first_name};
-        // this.mailService.sendMailPassword(content)
+        // this.mailService.sendMailPassword(email, resetToken)
         return resetToken;
-      }
+    }
 
-      @Post('resetConfirm')
-      async confirmReset(@Body('password') password: string, @Body('token') token: string) {
-          console.log("passord, token", password, ", ", token)
-          const reset = await this.authService.findOneReset({link: token});
-          if (!reset) {
-            throw new Error('reset not found');
-          }
-          console.log(token)
-          const user = await this.userService.findOne({email: reset.email})
-          user.password  = await bcrypt.hash(password, 12)
-          console.log(await this.userService.update(user.id, user))
-          return "Password changed";
+    @Post("resetConfirm")
+    async confirmReset(@Body("password") password: string, @Body("token") token: string) {
+        console.log("passord, token", password, ", ", token);
+        const reset = await this.authService.findOneReset({ link: token });
+        if (!reset) {
+            throw new Error("reset not found");
+        }
+        console.log(token);
+        const user = await this.userService.findOne({ email: reset.email });
+        user.password = await bcrypt.hash(password, 12);
+        console.log(await this.userService.update(user.id, user));
+        return "Password changed";
     }
 
     @Post("register")
@@ -94,10 +90,10 @@ export class AuthController {
             if (existingUser) {
                 response.status(400);
                 return {
-                    status: 'KO',
-                    description: 'E-mail already in use',
+                    status: "KO",
+                    description: "E-mail already in use",
                     code: 400,
-                    data: null,
+                    data: null
                 };
             }
 
@@ -107,20 +103,29 @@ export class AuthController {
             const settings = await this.userSettingsService.create({ user_id: res.id });
             console.log("Settings created for user ", settings.user_id);
 
-            // Email sent to the user
-            /*let content : sendMailDTO = new sendMailDTO();
-            content.email = body.email;
-            content.user = body.first_name;
-            this.mailService.sendMail(content);
-            console.log("ID", res.id);*/
+            // Send email
+            const emailResult = this.mailService.sendWelcomeAndVerification(res.email, "");
+            let emailStatus = "";
+            if (emailResult instanceof Error) {
+                emailStatus = "email was not sent due to an error";
+            } else {
+                emailStatus = "email was sent";
+            }
 
             // Send JWT token
-            const jwt = await this.jwtService.signAsync({ id: res.id, email: res.email });
-            response.cookie("jwt", jwt, { httpOnly: true, sameSite: "none", secure: true });
+            const jwt = await this.jwtService.signAsync({
+                id: res.id,
+                email: res.email
+            });
+            response.cookie("jwt", jwt, {
+                httpOnly: true,
+                sameSite: "none",
+                secure: true
+            });
             response.status(200);
             return {
                 status: "OK",
-                description: "User was created",
+                description: "User was created, " + emailStatus,
                 code: 200,
                 data: res
             };
@@ -179,7 +184,11 @@ export class AuthController {
                 id: requestedUserByEmail.id,
                 email: requestedUserByEmail.email
             });
-            response.cookie("jwt", jwt, { httpOnly: true, sameSite: "none", secure: true });
+            response.cookie("jwt", jwt, {
+                httpOnly: true,
+                sameSite: "none",
+                secure: true
+            });
             response.status(200);
             return {
                 status: "OK",
@@ -211,17 +220,17 @@ export class AuthController {
             return {
                 status: "KO",
                 code: 422,
-                description: "ID is not a number",
+                description: "ID is not a number"
             };
         }
 
-        const cookie = request.cookies['jwt'];
+        const cookie = request.cookies["jwt"];
         if (!cookie) {
             response.status(401);
             return {
                 status: "KO",
                 code: 401,
-                description: "JWT must be provided",
+                description: "JWT must be provided"
             };
         }
 
@@ -231,16 +240,16 @@ export class AuthController {
             return {
                 status: "KO",
                 code: 401,
-                description: "JWT is not valid",
+                description: "JWT is not valid"
             };
         }
 
-        if (data['id'] !== userID) {
+        if (data["id"] !== userID) {
             response.status(401);
             return {
                 status: "KO",
                 code: 401,
-                description: "JWT is not valid for this user, ID is not the same",
+                description: "JWT is not valid for this user, ID is not the same"
             };
         }
 
@@ -250,23 +259,23 @@ export class AuthController {
             return {
                 status: "KO",
                 code: 404,
-                description: "User not found",
+                description: "User not found"
             };
         }
 
-        if (usr && usr.email === data['email']) {
+        if (usr && usr.email === data["email"]) {
             response.status(200);
             return {
                 status: "OK",
                 code: 200,
-                description: "JWT is valid for this user",
+                description: "JWT is valid for this user"
             };
         } else {
             response.status(401);
             return {
                 status: "KO",
                 code: 401,
-                description: "JWT is not valid for this user, email is not the same",
+                description: "JWT is not valid for this user, email is not the same"
             };
         }
     }
@@ -343,15 +352,15 @@ export class AuthController {
         @Res({ passthrough: true }) response: Response,
         @Req() request: Request
     ) {
-        const cookie = request.cookies['jwt']
-        const data = await this.jwtService.verifyAsync(cookie)
-		    console.log("id : ", data['id'])
-        const usr = await this.userService.findOne({ id: data['id'] })
+        const cookie = request.cookies["jwt"];
+        const data = await this.jwtService.verifyAsync(cookie);
+        console.log("id : ", data["id"]);
+        const usr = await this.userService.findOne({ id: data["id"] });
 //        const cart = await this.cartService.findOne({id: usr.cart.id})
-        this.userService.update(usr.id, {deleted: true})
-        response.clearCookie('jwt')
-        
-        console.log("Removed jwt token cookie !")
+        this.userService.update(usr.id, { deleted: true });
+        response.clearCookie("jwt");
+
+        console.log("Removed jwt token cookie !");
         return {
             status: "OK",
             code: 200,

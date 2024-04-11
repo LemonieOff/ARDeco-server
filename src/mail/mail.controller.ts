@@ -1,3 +1,4 @@
+/*
 import { Body, Controller, Get } from "@nestjs/common";
 import { MailService } from "./mail.service";
 import { sendMailDTO } from "./models/sendMail.dto";
@@ -26,3 +27,4 @@ export class MailController {
         return 'send'
     }
 }
+*/

@@ -13,15 +13,12 @@ import { MailModule } from "./mail/mail.module";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { UserSettingsModule } from "./user_settings/user_settings_module";
 import { GalleryModule } from "./gallery/gallery.module";
-import { PaymentsController } from "./payments/payments.controller";
-import { PaymentsService } from "./payments/payments.service";
-import { PaymentsModule } from "./payments/payments.module";
 import { OrderHistoryModule } from "./order_history/order_history_module";
 import { TicketModule } from "./ticket/ticket.module";
 import { ArchiveModule } from "./archive/archive.module";
-import { FavoriteFurnitureModule } from './favorite_furniture/favorite_furniture.module';
-import { FavoriteGalleryModule } from './favorite_gallery/favorite_gallery.module';
-import { BlockedUsersModule } from './blocked_users/blocked_users.module';
+import { FavoriteFurnitureModule } from "./favorite_furniture/favorite_furniture.module";
+import { FavoriteGalleryModule } from "./favorite_gallery/favorite_gallery.module";
+import { BlockedUsersModule } from "./blocked_users/blocked_users.module";
 import { GalleryReportsModule } from "./report/gallery/gallery_reports.module";
 
 @Module({
@@ -52,7 +49,7 @@ import { GalleryReportsModule } from "./report/gallery/gallery_reports.module";
         UserSettingsModule,
         GalleryModule,
         OrderHistoryModule,
-        //MailModule,
+        MailModule,
         //PaymentsModule,
         TicketModule,
         ArchiveModule,
@@ -61,7 +58,8 @@ import { GalleryReportsModule } from "./report/gallery/gallery_reports.module";
         BlockedUsersModule,
         GalleryReportsModule
     ],
-    controllers: [AppController, /*PaymentsController*/],
+    controllers: [AppController],
     providers: [AppService, ConfigService]
 })
-export class AppModule {}
+export class AppModule {
+}
