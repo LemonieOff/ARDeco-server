@@ -51,4 +51,20 @@ export class User {
 
     @OneToMany(type => Gallery, gallery => gallery.user)
     galleries: Gallery[];
+
+    @Column({ nullable: true })
+    checkEmailToken: string;
+
+    @Column({
+        nullable: true,
+        type: "timestamp",
+        default: null
+    })
+    checkEmailSent: Date;
+
+    @Column({
+        type: "boolean",
+        default: false // 0 = false, 1 = true
+    })
+    hasCheckedEmail: boolean;
 }

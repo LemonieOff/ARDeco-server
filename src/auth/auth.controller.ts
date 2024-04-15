@@ -21,6 +21,8 @@ import { AuthService } from "./auth.service";
 // import { use } from 'passport';
 import { UserSettingsService } from "../user_settings/user_settings_service";
 import { MailService } from "../mail/mail.service";
+import { User } from "../user/models/user.entity";
+import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
 @Controller()
 export class AuthController {
@@ -34,6 +36,10 @@ export class AuthController {
     ) {
     }
 
+    private generateToken(size: number = 64, encoding: BufferEncoding = "hex") {
+        return randomBytes(size).toString(encoding);
+    }
+
     @Post("reset")
     async resetPassword(@Body("email") email: string) {
         console.log("email", email);
@@ -42,7 +48,7 @@ export class AuthController {
         if (!user) {
             throw new Error("User not found");
         }
-        const resetToken = randomBytes(32).toString("hex");
+        const resetToken = this.generateToken();
         const expirationDate = new Date();
         expirationDate.setHours(expirationDate.getHours() + 1); // Lien valable pendant 1 heure
         await this.authService.createReset({
@@ -74,18 +80,17 @@ export class AuthController {
         @Body() body: RegisterDto,
         @Res({ passthrough: true }) response: Response
     ) {
-        if (body.password != body.password_confirm) {
-            response.status(400);
-            return {
-                status: "KO",
-                description: "Password do not match",
-                code: 400,
-                data: body
-            };
-        }
-        const hashed = await bcrypt.hash(body.password, 12);
-        body.password = hashed;
         try {
+            if (body.password !== body.password_confirm) {
+                response.status(400);
+                return {
+                    status: "KO",
+                    description: "Password does not match",
+                    code: 400,
+                    data: null
+                };
+            }
+
             const existingUser = await this.userService.findOne({ email: body.email });
             if (existingUser) {
                 response.status(400);
@@ -97,19 +102,33 @@ export class AuthController {
                 };
             }
 
-            const res = await this.userService.create(body);
+            const hashed = await bcrypt.hash(body.password, 12);
+
+            const user: QueryPartialEntity<User> = {
+                email: body.email,
+                first_name: body.first_name,
+                last_name: body.last_name,
+                phone: body.phone,
+                city: body.city,
+                password: hashed,
+                role: "client",
+                checkEmailToken: this.generateToken()
+            };
+
+            const res = await this.userService.create(user);
 
             // Create settings for the user
             const settings = await this.userSettingsService.create({ user_id: res.id });
             console.log("Settings created for user ", settings.user_id);
 
             // Send email
-            const emailResult = this.mailService.sendWelcomeAndVerification(res.email, "");
+            const emailResult = this.mailService.sendWelcomeAndVerification(res.email, res.checkEmailToken);
             let emailStatus = "";
             if (emailResult instanceof Error) {
                 emailStatus = "email was not sent due to an error";
             } else {
                 emailStatus = "email was sent";
+                await this.userService.update(res.id, { checkEmailSent: new Date() });
             }
 
             // Send JWT token
@@ -127,7 +146,11 @@ export class AuthController {
                 status: "OK",
                 description: "User was created, " + emailStatus,
                 code: 200,
-                data: res
+                data: {
+                    id: res.id,
+                    email: res.email,
+                    role: res.role,
+                }
             };
         } catch (e) {
             console.error(e);
