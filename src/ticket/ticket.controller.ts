@@ -327,13 +327,13 @@ export class TicketController {
         }
 
         const tickets = await this.ticketService.allForUser(user_id);
-        const tickets_ids = tickets.map((ticket) => ticket.id);
+        //const tickets_ids = tickets.map((ticket) => ticket.id);
 
         return {
             status: 'OK',
             code: HttpStatus.OK,
-            description: 'All tickets for user',
-            data: tickets_ids,
+            description: 'All tickets for user ' + user_id,
+            data: tickets,
         };
     }
 
