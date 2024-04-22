@@ -1,7 +1,7 @@
 import {
     Body,
-    Controller,
-    Get,
+    Controller, Delete,
+    Get, Param, ParseIntPipe,
     Post,
     Req,
     Res,
@@ -21,6 +21,7 @@ import { AuthService } from "./auth.service";
 // import { use } from 'passport';
 import { UserSettingsService } from "../user_settings/user_settings_service";
 import { MailService } from "../mail/mail.service";
+import { DeleteAccountDto } from "./models/deleteAccount.dto";
 
 @Controller()
 export class AuthController {
@@ -292,7 +293,7 @@ export class AuthController {
         };
     }
 
-    @Get("close")
+    @Delete("close")
     async deleteAccount(
         @Res({ passthrough: true }) response: Response,
         @Req() request: Request,
@@ -319,7 +320,8 @@ export class AuthController {
             return {
                 status: "KO",
                 code: 404,
-                description: "User not found"
+                description: "User not found",
+                data: null
             };
         }
 
@@ -328,7 +330,8 @@ export class AuthController {
             return {
                 status: "KO",
                 code: 404,
-                description: "Account already closed"
+                description: "Account already closed",
+                data: null
             };
         }
 
@@ -337,7 +340,8 @@ export class AuthController {
             return {
                 status: "KO",
                 code: 400,
-                description: "Email does not match"
+                description: "Email does not match",
+                data: null
             };
         }
 
@@ -346,7 +350,8 @@ export class AuthController {
             return {
                 status: "KO",
                 code: 400,
-                description: "Passwords do not match"
+                description: "Passwords do not match",
+                data: null
             };
         }
 
@@ -355,7 +360,8 @@ export class AuthController {
             return {
                 status: "KO",
                 code: 400,
-                description: "Password does not match"
+                description: "Password does not match",
+                data: null
             };
         }
 
@@ -363,6 +369,78 @@ export class AuthController {
         const res = await this.userService.update(usr.id, { deleted: true });
         response.clearCookie("jwt");
         console.log("Removed jwt token cookie !");
+        return {
+            status: "OK",
+            code: 200,
+            description: "Account closed",
+            data: null
+        };
+    }
+
+    @Delete("close/:id")
+    async deleteAccountById(
+        @Res({ passthrough: true }) response: Response,
+        @Req() request: Request,
+        @Param("id", ParseIntPipe) id: number
+    ) {
+        const cookie = request.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+
+        // Cookie or JWT not valid
+        if (!cookie || !data) {
+            response.status(401);
+            return {
+                status: "KO",
+                code: 401,
+                description: "You are not connected",
+                data: null
+            };
+        }
+
+        const admin = await this.userService.findOne({ id: data["id"] });
+        if (!admin) {
+            response.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description: "User not found",
+                data: null
+            };
+        }
+
+        if (admin.role !== "admin") {
+            response.status(403);
+            return {
+                status: "KO",
+                code: 403,
+                description: "You can't delete account while you are not an admin",
+                data: null
+            };
+        }
+
+        const usr = await this.userService.findOne({ id: Number(request.params.id) });
+        if (!usr) {
+            response.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description: "User not found",
+                data: null
+            };
+        }
+
+        if (usr.deleted) {
+            response.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description: "Account already closed",
+                data: null
+            };
+        }
+
+        // Close account
+        const res = await this.userService.update(usr.id, { deleted: true });
         return {
             status: "OK",
             code: 200,
