@@ -58,8 +58,7 @@
     "pdfkit": "^0.14.0",
     "reflect-metadata": "^0.2.1",
     "rxjs": "^7.8.1",
-    "stripe": "^14.17.0",
-    "typeorm": "^0.3.20"
+    "stripe": "^14.17.0"
   },
   "devDependencies": {
     "@nestjs/mapped-types": "*",
