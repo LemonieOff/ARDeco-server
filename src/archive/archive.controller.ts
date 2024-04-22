@@ -11,7 +11,8 @@ export class ArchiveController {
         private archiveService: ArchiveService,
         private jwtService: JwtService,
         private userService: UserService
-    ) {}
+    ) {
+    }
 
     @Get(":id")
     async get(
@@ -41,6 +42,42 @@ export class ArchiveController {
             code: 200,
             description: "Objects list",
             data: objects
+        };
+    }
+
+    @Delete(":company_id/:item_id")
+    async remove(
+        @Req() req: Request,
+        @Param("company_id") company_id: number,
+        @Param("item_id") item_id: string,
+        @Res({ passthrough: true }) res: Response
+    ) {
+        const authorizedCompany = await this.checkAuthorization(
+            req,
+            res,
+            company_id,
+            item_id
+        );
+        if (!(authorizedCompany instanceof User)) return authorizedCompany;
+
+        const removedObject = await this.archiveService.deleteObjectFromCompany(company_id, item_id);
+
+        if (removedObject === null) {
+            res.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description: "Object not removed",
+                data: null
+            };
+        }
+
+        res.status(200);
+        return {
+            status: "OK",
+            code: 200,
+            description: "Object removed",
+            data: removedObject
         };
     }
 
@@ -87,7 +124,7 @@ export class ArchiveController {
             req,
             res,
             company_id,
-          item_id
+            item_id
         );
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
@@ -150,7 +187,7 @@ export class ArchiveController {
                 return {
                     status: "KO",
                     code: 404,
-                    description: "Object not found, can't be restored",
+                    description: "Object not found, can't be restored nor removed",
                     data: null
                 };
             }
@@ -196,7 +233,7 @@ export class ArchiveController {
                 status: "KO",
                 code: 401,
                 description:
-                    'API key is not valid in "company_api_key" query parameter',
+                    "API key is not valid in \"company_api_key\" query parameter",
                 data: null
             };
         }
