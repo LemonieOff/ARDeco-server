@@ -280,66 +280,6 @@ export class AuthController {
         }
     }
 
-    /*
-    @Get("register/google")
-    @UseGuards(AuthGuard("google"))
-    async googleAuth(@Req() req) {
-        return;
-    }
-
-    @Get("callback")
-    @UseGuards(AuthGuard("google"))
-    async googleAuthRedirect(
-        @Req() req,
-        @Res({ passthrough: true }) response: Response
-    ) {
-        if (!req.user) {
-            return "No user from google";
-        }
-        console.log("req :", req)
-        const user = await this.userService.findOne({email: req.user.email});
-        if (user) {
-            const jwt = await this.jwtService.signAsync({ id: user.id, email: user.email });
-            response.cookie("jwt", jwt, { httpOnly: true, sameSite: "none", secure: true });
-            response.status(200);
-            return {
-                "status": "OK",
-                "description": "User is successfully logged in",
-                "code": 200,
-                "data": {
-                    "jwt": jwt,
-                    "userID": user.id,
-                }
-            }
-
-            // Double return ???
-            /*return {
-                status: "KO",
-                description: "User already created",
-                code: 424
-            };*\/
-        }
-        const body = {
-            email: req.user.email,
-            password: "12345",
-            password_confirm: "12345",
-            first_name: req.user.firstName,
-            last_name: req.user.lastName,
-            phone: "0000000000",
-            city: "Nantes",
-            deleted: false
-        };
-        const res = await this.userService.create(body);
-        console.log("ID", res.id);
-        const jwt = await this.jwtService.signAsync({ id: res.id, email: res.email });
-        response.cookie("jwt", jwt, { httpOnly: true, sameSite: "none", secure: true });
-        return {
-            message: "User information from google",
-            user: req.user
-        };
-    }
-     */
-
     @Get("logout")
     async logout(@Res({ passthrough: true }) response: Response) {
         response.clearCookie("jwt");
