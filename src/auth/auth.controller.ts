@@ -1,7 +1,7 @@
 import {
     Body,
-    Controller,
-    Get,
+    Controller, Delete,
+    Get, Param, ParseIntPipe,
     Post,
     Req,
     Res,
@@ -21,6 +21,7 @@ import { AuthService } from "./auth.service";
 // import { use } from 'passport';
 import { UserSettingsService } from "../user_settings/user_settings_service";
 import { MailService } from "../mail/mail.service";
+import { DeleteAccountDto } from "./models/deleteAccount.dto";
 
 @Controller()
 export class AuthController {
@@ -280,87 +281,166 @@ export class AuthController {
         }
     }
 
-    /*
-    @Get("register/google")
-    @UseGuards(AuthGuard("google"))
-    async googleAuth(@Req() req) {
-        return;
-    }
-
-    @Get("callback")
-    @UseGuards(AuthGuard("google"))
-    async googleAuthRedirect(
-        @Req() req,
-        @Res({ passthrough: true }) response: Response
-    ) {
-        if (!req.user) {
-            return "No user from google";
-        }
-        console.log("req :", req)
-        const user = await this.userService.findOne({email: req.user.email});
-        if (user) {
-            const jwt = await this.jwtService.signAsync({ id: user.id, email: user.email });
-            response.cookie("jwt", jwt, { httpOnly: true, sameSite: "none", secure: true });
-            response.status(200);
-            return {
-                "status": "OK",
-                "description": "User is successfully logged in",
-                "code": 200,
-                "data": {
-                    "jwt": jwt,
-                    "userID": user.id,
-                }
-            }
-
-            // Double return ???
-            /*return {
-                status: "KO",
-                description: "User already created",
-                code: 424
-            };*\/
-        }
-        const body = {
-            email: req.user.email,
-            password: "12345",
-            password_confirm: "12345",
-            first_name: req.user.firstName,
-            last_name: req.user.lastName,
-            phone: "0000000000",
-            city: "Nantes",
-            deleted: false
-        };
-        const res = await this.userService.create(body);
-        console.log("ID", res.id);
-        const jwt = await this.jwtService.signAsync({ id: res.id, email: res.email });
-        response.cookie("jwt", jwt, { httpOnly: true, sameSite: "none", secure: true });
-        return {
-            message: "User information from google",
-            user: req.user
-        };
-    }
-     */
-
     @Get("logout")
     async logout(@Res({ passthrough: true }) response: Response) {
         response.clearCookie("jwt");
         console.log("Removed jwt token cookie !");
-        return "Logout successful";
+        return {
+            status: "OK",
+            code: 200,
+            description: "Logout successful",
+            data: null
+        };
     }
 
-    @Get("close")
+    @Delete("close")
     async deleteAccount(
         @Res({ passthrough: true }) response: Response,
-        @Req() request: Request
+        @Req() request: Request,
+        @Body() body: DeleteAccountDto
     ) {
         const cookie = request.cookies["jwt"];
-        const data = await this.jwtService.verifyAsync(cookie);
-        console.log("id : ", data["id"]);
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+
+        // Cookie or JWT not valid
+        if (!cookie || !data) {
+            response.status(401);
+            return {
+                status: "KO",
+                code: 401,
+                description: "You are not connected",
+                data: null
+            };
+        }
+
         const usr = await this.userService.findOne({ id: data["id"] });
 //        const cart = await this.cartService.findOne({id: usr.cart.id})
-        this.userService.update(usr.id, { deleted: true });
-        response.clearCookie("jwt");
+        if (!usr) {
+            response.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description: "User not found",
+                data: null
+            };
+        }
 
+        if (usr.deleted) {
+            response.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description: "Account already closed",
+                data: null
+            };
+        }
+
+        if (usr.email !== body.email) {
+            response.status(400);
+            return {
+                status: "KO",
+                code: 400,
+                description: "Email does not match",
+                data: null
+            };
+        }
+
+        if (body.password !== body.password_confirm) {
+            response.status(400);
+            return {
+                status: "KO",
+                code: 400,
+                description: "Passwords do not match",
+                data: null
+            };
+        }
+
+        if (!await bcrypt.compare(body.password, usr.password)) {
+            response.status(400);
+            return {
+                status: "KO",
+                code: 400,
+                description: "Password does not match",
+                data: null
+            };
+        }
+
+        // Close account
+        const res = await this.userService.update(usr.id, { deleted: true });
+        response.clearCookie("jwt");
         console.log("Removed jwt token cookie !");
+        return {
+            status: "OK",
+            code: 200,
+            description: "Account closed",
+            data: null
+        };
+    }
+
+    @Delete("close/:id")
+    async deleteAccountById(
+        @Res({ passthrough: true }) response: Response,
+        @Req() request: Request,
+        @Param("id", ParseIntPipe) id: number
+    ) {
+        const cookie = request.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+
+        // Cookie or JWT not valid
+        if (!cookie || !data) {
+            response.status(401);
+            return {
+                status: "KO",
+                code: 401,
+                description: "You are not connected",
+                data: null
+            };
+        }
+
+        const admin = await this.userService.findOne({ id: data["id"] });
+        if (!admin) {
+            response.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description: "User not found",
+                data: null
+            };
+        }
+
+        if (admin.role !== "admin") {
+            response.status(403);
+            return {
+                status: "KO",
+                code: 403,
+                description: "You can't delete account while you are not an admin",
+                data: null
+            };
+        }
+
+        const usr = await this.userService.findOne({ id: Number(request.params.id) });
+        if (!usr) {
+            response.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description: "User not found",
+                data: null
+            };
+        }
+
+        if (usr.deleted) {
+            response.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description: "Account already closed",
+                data: null
+            };
+        }
+
+        // Close account
+        const res = await this.userService.update(usr.id, { deleted: true });
         return {
             status: "OK",
             code: 200,
