@@ -284,7 +284,12 @@ export class AuthController {
     async logout(@Res({ passthrough: true }) response: Response) {
         response.clearCookie("jwt");
         console.log("Removed jwt token cookie !");
-        return "Logout successful";
+        return {
+            status: "OK",
+            code: 200,
+            description: "Logout successful",
+            data: null
+        };
     }
 
     @Get("close")
