@@ -12,7 +12,8 @@ export class ArchiveService {
         private readonly archiveRepository: Repository<Archive>,
         @Inject(forwardRef(() => CatalogService))
         private readonly catalogService: CatalogService
-    ) {}
+    ) {
+    }
 
     async create(data): Promise<Archive> {
         return await this.archiveRepository.save(data);
@@ -33,6 +34,15 @@ export class ArchiveService {
     async deleteAllObjectsFromCompany(id: number): Promise<any> {
         const backup = await this.findAllObjectsFromCompany(id);
         await this.archiveRepository.delete({ company: id });
+        return backup;
+    }
+
+    async deleteObjectFromCompany(company_id: number, object_id: string): Promise<any> {
+        const backup = await this.findByObjectId(object_id);
+        await this.archiveRepository.delete({
+            company: company_id,
+            object_id: object_id
+        });
         return backup;
     }
 
