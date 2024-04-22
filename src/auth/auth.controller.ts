@@ -309,7 +309,7 @@ export class AuthController {
                 status: "KO",
                 code: 401,
                 description: "You are not connected",
-                data: null
+                data: "user_notConnected"
             };
         }
 
@@ -321,7 +321,7 @@ export class AuthController {
                 status: "KO",
                 code: 404,
                 description: "User not found",
-                data: null
+                data: "user_notFound"
             };
         }
 
@@ -331,7 +331,7 @@ export class AuthController {
                 status: "KO",
                 code: 404,
                 description: "Account already closed",
-                data: null
+                data: "user_alreadyClosed"
             };
         }
 
@@ -341,7 +341,7 @@ export class AuthController {
                 status: "KO",
                 code: 400,
                 description: "Email does not match",
-                data: null
+                data: "user_emailDoesNotMatch"
             };
         }
 
@@ -351,7 +351,7 @@ export class AuthController {
                 status: "KO",
                 code: 400,
                 description: "Passwords do not match",
-                data: null
+                data: "user_passwordsDoNotMatch"
             };
         }
 
@@ -360,8 +360,8 @@ export class AuthController {
             return {
                 status: "KO",
                 code: 400,
-                description: "Password does not match",
-                data: null
+                description: "Wrong password",
+                data: "user_wrongPassword"
             };
         }
 
@@ -393,7 +393,7 @@ export class AuthController {
                 status: "KO",
                 code: 401,
                 description: "You are not connected",
-                data: null
+                data: "user_notConnected"
             };
         }
 
@@ -404,7 +404,7 @@ export class AuthController {
                 status: "KO",
                 code: 404,
                 description: "User not found",
-                data: null
+                data: "user_notFound"
             };
         }
 
@@ -414,7 +414,7 @@ export class AuthController {
                 status: "KO",
                 code: 403,
                 description: "You can't delete account while you are not an admin",
-                data: null
+                data: "user_notAdmin"
             };
         }
 
@@ -425,7 +425,7 @@ export class AuthController {
                 status: "KO",
                 code: 404,
                 description: "User not found",
-                data: null
+                data: "user_notFound"
             };
         }
 
@@ -435,7 +435,7 @@ export class AuthController {
                 status: "KO",
                 code: 404,
                 description: "Account already closed",
-                data: null
+                data: "user_alreadyClosed"
             };
         }
 
