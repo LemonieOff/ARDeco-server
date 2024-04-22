@@ -295,16 +295,73 @@ export class AuthController {
     @Get("close")
     async deleteAccount(
         @Res({ passthrough: true }) response: Response,
-        @Req() request: Request
+        @Req() request: Request,
+        @Body() body: DeleteAccountDto
     ) {
         const cookie = request.cookies["jwt"];
-        const data = await this.jwtService.verifyAsync(cookie);
-        console.log("id : ", data["id"]);
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+
+        // Cookie or JWT not valid
+        if (!cookie || !data) {
+            response.status(401);
+            return {
+                status: "KO",
+                code: 401,
+                description: "You are not connected",
+                data: null
+            };
+        }
+
         const usr = await this.userService.findOne({ id: data["id"] });
 //        const cart = await this.cartService.findOne({id: usr.cart.id})
-        this.userService.update(usr.id, { deleted: true });
-        response.clearCookie("jwt");
+        if (!usr) {
+            response.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description: "User not found"
+            };
+        }
 
+        if (usr.deleted) {
+            response.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description: "Account already closed"
+            };
+        }
+
+        if (usr.email !== body.email) {
+            response.status(400);
+            return {
+                status: "KO",
+                code: 400,
+                description: "Email does not match"
+            };
+        }
+
+        if (body.password !== body.password_confirm) {
+            response.status(400);
+            return {
+                status: "KO",
+                code: 400,
+                description: "Passwords do not match"
+            };
+        }
+
+        if (!await bcrypt.compare(body.password, usr.password)) {
+            response.status(400);
+            return {
+                status: "KO",
+                code: 400,
+                description: "Password does not match"
+            };
+        }
+
+        // Close account
+        const res = await this.userService.update(usr.id, { deleted: true });
+        response.clearCookie("jwt");
         console.log("Removed jwt token cookie !");
         return {
             status: "OK",
