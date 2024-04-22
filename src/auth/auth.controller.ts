@@ -283,7 +283,12 @@ export class AuthController {
 
     @Get("logout")
     async logout(@Res({ passthrough: true }) response: Response) {
-        response.clearCookie("jwt");
+        response.cookie('jwt', "", {
+            expires: new Date(0),
+            httpOnly: true,
+            sameSite: "none",
+            secure: true
+        });
         console.log("Removed jwt token cookie !");
         return {
             status: "OK",
@@ -367,7 +372,12 @@ export class AuthController {
 
         // Close account
         const res = await this.userService.update(usr.id, { deleted: true });
-        response.clearCookie("jwt");
+        response.cookie("jwt", "", {
+            expires: new Date(0),
+            httpOnly: true,
+            sameSite: "none",
+            secure: true
+        });
         console.log("Removed jwt token cookie !");
         return {
             status: "OK",
