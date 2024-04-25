@@ -56,4 +56,7 @@ export class User {
 
     @OneToMany(type => Gallery, gallery => gallery.user)
     galleries: Gallery[];
+
+    @Column({ default: 0 })
+    profile_picture_id: number;
 }
