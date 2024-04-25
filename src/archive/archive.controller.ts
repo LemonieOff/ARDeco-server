@@ -20,6 +20,38 @@ export class ArchiveController {
         @Param("id") id: number,
         @Res({ passthrough: true }) res: Response
     ) {
+        const cookie = req.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+        const user = await this.userService.findOne({ id: data["id"] });
+        console.log("role", user.role);
+        console.log("data", data);
+        if (!cookie || !data) {
+            res.status(401);
+            return {
+                status: "KO",
+                code: 401,
+                description: "You are not connected",
+                data: null
+            };
+        } else if (user.role == "admin") {
+            const objects = await this.archiveService.findAllObjectsFromCompany(id)
+            if (objects === null) {
+                res.status(400);
+                return {
+                    status: "KO",
+                    code: 400,
+                    description: "Objects not found",
+                    data: null
+                };
+            }
+            res.status(200);
+            return {
+                status: "OK",
+                code: 200,
+                description: "Objects list",
+                data: objects
+            };
+        }
         const authorizedCompany = await this.checkAuthorization(req, res, id);
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
