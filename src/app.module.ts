@@ -20,6 +20,7 @@ import { FavoriteFurnitureModule } from "./favorite_furniture/favorite_furniture
 import { FavoriteGalleryModule } from "./favorite_gallery/favorite_gallery.module";
 import { BlockedUsersModule } from "./blocked_users/blocked_users.module";
 import { GalleryReportsModule } from "./report/gallery/gallery_reports.module";
+import { ProfilePictureModule } from "./profile_picture/profile_picture.module";
 
 @Module({
     imports: [
@@ -56,7 +57,8 @@ import { GalleryReportsModule } from "./report/gallery/gallery_reports.module";
         FavoriteFurnitureModule,
         FavoriteGalleryModule,
         BlockedUsersModule,
-        GalleryReportsModule
+        GalleryReportsModule,
+        ProfilePictureModule
     ],
     controllers: [AppController],
     providers: [AppService, ConfigService]
