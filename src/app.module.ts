@@ -21,6 +21,7 @@ import { FavoriteGalleryModule } from "./favorite_gallery/favorite_gallery.modul
 import { BlockedUsersModule } from "./blocked_users/blocked_users.module";
 import { GalleryReportsModule } from "./report/gallery/gallery_reports.module";
 import { ProfilePictureModule } from "./profile_picture/profile_picture.module";
+import { CreateCompanyModule } from "./create-company/create-company.module";
 
 @Module({
     imports: [
@@ -58,7 +59,8 @@ import { ProfilePictureModule } from "./profile_picture/profile_picture.module";
         FavoriteGalleryModule,
         BlockedUsersModule,
         GalleryReportsModule,
-        ProfilePictureModule
+        ProfilePictureModule,
+        CreateCompanyModule
     ],
     controllers: [AppController],
     providers: [AppService, ConfigService]
