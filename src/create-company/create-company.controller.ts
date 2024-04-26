@@ -1,23 +1,21 @@
 import {
-    Body,
     Controller,
     Param,
     Put,
     Req,
-    Res,
-    UseGuards
+    Res
 } from "@nestjs/common";
-import { JwtService } from '@nestjs/jwt';
+import { JwtService } from "@nestjs/jwt";
 import { Request, Response } from "express";
-import { UserService } from 'src/user/user.service';
+import { UserService } from "src/user/user.service";
 
-
-@Controller('create-company')
+@Controller("create-company")
 export class CreateCompanyController {
     constructor(
         private userService: UserService,
-        private jwtService: JwtService,
-    ) {}
+        private jwtService: JwtService
+    ) {
+    }
 
     @Put("/:id")
     async toCompany(
@@ -35,7 +33,7 @@ export class CreateCompanyController {
     ) {
         try {
             const cookie = req.cookies["jwt"];
-            const data = this.jwtService.verify(cookie);
+            const data = cookie ? this.jwtService.verify(cookie) : null;
             if (!cookie || !data) {
                 res.status(401);
                 return {
@@ -45,45 +43,41 @@ export class CreateCompanyController {
                     data: null
                 };
             }
-            const user = await this.userService.findOne({id: id});
-            const request_user_id = await this.userService.findOne({
-                id: data["id"]
-            });
+            const request_user = await this.userService.findOne({ id: data["id"] });
+
+            if (!request_user || request_user.role !== "admin") {
+                res.status(403);
+                return {
+                    status: "KO",
+                    code: 403,
+                    description: "You are not allowed to promote this user to a company",
+                    data: null
+                };
+            }
+
+            const user = await this.userService.findOne({ id: id });
 
             if (!user) {
                 res.status(404);
                 return {
                     status: "KO",
                     code: 404,
-                    description:
-                        "The User you want to change does not exist",
-                    data: null
-                }; 
-            }
-            
-            if (data["id"] && request_user_id["role"] != "admin") {
-                res.status(403);
-                return {
-                    status: "KO",
-                    code: 403,
-                    description: "You are not allowed to edit this user",
-                    data: null
-                };
-            }
-            if (
-                user["role"] != "client"
-            ) {
-                res.status(400);
-                return {
-                    status: "KO",
-                    code: 400,
-                    description:
-                        "this user is not a client and then cannot be changed to a company",
+                    description: `The specified user (${id}) was not found`,
                     data: null
                 };
             }
 
-            const result = await this.userService.update(user.id, {role: "company"})
+            if (user["role"] !== "client") {
+                res.status(400);
+                return {
+                    status: "KO",
+                    code: 400,
+                    description: "This user is not a client and then cannot be changed to a company",
+                    data: null
+                };
+            }
+
+            const result = await this.userService.update(user.id, { role: "company" });
             res.status(200);
             return {
                 status: "OK",
@@ -95,12 +89,11 @@ export class CreateCompanyController {
             res.status(501);
             return {
                 status: "KO",
-                code: 400,
+                code: 501,
                 description: "User was not updated because of an error",
                 error: e,
                 data: null
             };
         }
     }
-
 }

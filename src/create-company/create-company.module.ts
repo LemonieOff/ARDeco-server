@@ -1,15 +1,17 @@
-import { Module } from '@nestjs/common';
-import { CreateCompanyService } from './create-company.service';
-import { UserModule } from 'src/user/user.module';
-import { CreateCompanyController } from './create-company.controller';
-import { JwtModule } from '@nestjs/jwt';
+import { Module } from "@nestjs/common";
+import { UserModule } from "src/user/user.module";
+import { CreateCompanyController } from "./create-company.controller";
+import { JwtModule } from "@nestjs/jwt";
 
 @Module({
-  controllers: [CreateCompanyController],
-  imports: [
-    UserModule,
-    JwtModule.register({ secret: 'secret', signOptions: { expiresIn: "1d" } })
-  ]
-  
+    controllers: [CreateCompanyController],
+    imports: [
+        UserModule,
+        JwtModule.register({
+            secret: "secret",
+            signOptions: { expiresIn: "1d" }
+        })
+    ]
 })
-export class CreateCompanyModule {}
+export class CreateCompanyModule {
+}
