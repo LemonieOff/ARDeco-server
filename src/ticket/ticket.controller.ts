@@ -272,6 +272,9 @@ export class TicketController {
             description: 'Ticket has been found',
             data: {
                 id: requestedTicket.id,
+                title: requestedTicket.title,
+                description: requestedTicket.description,
+                status: requestedTicket.status,
                 messages: requestedTicket.messages,
             },
         };
