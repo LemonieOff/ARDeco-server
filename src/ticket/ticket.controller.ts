@@ -275,7 +275,7 @@ export class TicketController {
                 title: requestedTicket.title,
                 description: requestedTicket.description,
                 status: requestedTicket.status,
-                messages: requestedTicket.messages,
+                messages: JSON.parse(requestedTicket.messages),
             },
         };
     }
