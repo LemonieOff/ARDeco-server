@@ -14,6 +14,7 @@ async function bootstrap() {
     app.enableCors({
         origin: [
             "http://localhost:3000",
+            "http://localhost:3001",
             "https://ardeco.app",
             "https://api.ardeco.app",
             "https://support.ardeco.app",
