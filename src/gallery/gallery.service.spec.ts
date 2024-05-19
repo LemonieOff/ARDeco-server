@@ -3,8 +3,6 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { FindOptionsRelations, FindOptionsWhere, Repository, UpdateResult } from "typeorm";
 import { GalleryService } from "./gallery.service";
 import { Gallery } from "./models/gallery.entity";
-import * as test from "node:test";
-import { User } from "../user/models/user.entity";
 
 describe('GalleryService', () => {
     let galleryService: GalleryService;
