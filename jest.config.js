@@ -15,6 +15,15 @@ module.exports = {
   collectCoverageFrom: [
     "**/*.(t|j)s"
   ],
+  coveragePathIgnorePatterns: [
+    "node_modules",
+    "test-config",
+    "interfaces",
+    "jestGlobalMocks.ts",
+    ".module.ts",
+    "<rootDir>/main.ts",
+    ".mock.ts"
+  ],
   coverageDirectory: "../coverage",
   moduleNameMapper: {
     '^src/(.*)$': '<rootDir>/$1',
