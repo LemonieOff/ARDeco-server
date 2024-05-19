@@ -22,7 +22,9 @@ module.exports = {
     "jestGlobalMocks.ts",
     ".module.ts",
     "<rootDir>/main.ts",
-    ".mock.ts"
+    ".mock.ts",
+    ".entity.ts",
+    ".dto.ts"
   ],
   coverageDirectory: "../coverage",
   moduleNameMapper: {

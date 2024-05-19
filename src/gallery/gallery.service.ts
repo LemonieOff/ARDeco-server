@@ -75,7 +75,7 @@ export class GalleryService {
         return this.galleryRepository.find(options);
     }
 
-    async findForUser(user_id: number, visibility: boolean) {
+    async findForUser(user_id: number, visibility: boolean): Promise<Gallery[]> {
         let visibilityQuery = visibility === false ? { user_id: user_id } : {
             user_id: user_id,
             visibility: visibility
