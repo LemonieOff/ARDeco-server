@@ -46,7 +46,7 @@ export class TicketService {
 
     async delete(id: number): Promise<any> {
         console.log("Deleting Ticket item", id);
-        return this.TicketRepository.createQueryBuilder("gallery")
+        return this.TicketRepository.createQueryBuilder("ticket")
             .delete()
             .from(Ticket)
             .where("id = id", { id: id })

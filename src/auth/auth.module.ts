@@ -11,7 +11,7 @@ import { UserSettingsModule } from "../user_settings/user_settings_module";
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Reset]),
+        // TypeOrmModule.forFeature([Reset]),
         UserModule,
         MailModule,
         CartModule,

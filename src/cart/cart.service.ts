@@ -33,12 +33,12 @@ export class CartService {
 
     async delete(id: number): Promise<any> {
         console.log("Deleting cart : ", id);
-        this.cartRepository
+/*        this.cartRepository
             .createQueryBuilder("cart")
             .delete()
             .from(Cart)
             .where("id = id", { id: id })
-            .execute();
+            .execute();*/
         return this.cartRepository.delete(id);
     }
 }
