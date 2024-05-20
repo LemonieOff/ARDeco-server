@@ -1,7 +1,7 @@
 import { IsEmail, IsNotEmpty } from "@nestjs/class-validator";
 import { PrimaryGeneratedColumn } from "typeorm";
 
-export class LoginDto {
+export class PasswordResetDto {
     @PrimaryGeneratedColumn()
     id: number;
 
