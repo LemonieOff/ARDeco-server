@@ -1,10 +1,4 @@
-import {
-    Controller,
-    Param,
-    Put,
-    Req,
-    Res
-} from "@nestjs/common";
+import { Controller, Param, Put, Req, Res } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { Request, Response } from "express";
 import { UserService } from "src/user/user.service";
@@ -26,7 +20,7 @@ export class CreateCompanyController {
         return await this.editUserToCompany(req, id, res);
     }
 
-    async editUserToCompany(
+    private async editUserToCompany(
         req: Request,
         id: number,
         res: Response

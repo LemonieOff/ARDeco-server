@@ -187,9 +187,8 @@ export class GalleryController {
         @Param("user_id") user_id: number,
         @Res({ passthrough: true }) res: Response
     ) {
-        try {
-            user_id = Number(user_id);
-        } catch (e) {
+        user_id = Number(user_id);
+        if (isNaN(user_id)) {
             res.status(400);
             return {
                 status: "KO",
@@ -300,7 +299,7 @@ export class GalleryController {
         } catch (e) {
             res.status(500);
             return {
-                status: "OK",
+                status: "KO",
                 code: 500,
                 description: "Server error",
                 data: item
