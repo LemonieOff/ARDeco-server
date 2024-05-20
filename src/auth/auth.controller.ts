@@ -1,23 +1,15 @@
-import {
-    Body,
-    Controller, Delete,
-    Get, Param, ParseIntPipe,
-    Post,
-    Req,
-    Res,
-    UseGuards
-} from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Req, Res } from "@nestjs/common";
 
 import { UserService } from "src/user/user.service";
 import * as bcrypt from "bcryptjs";
 import { RegisterDto } from "./models/register.dto";
 import { JwtService } from "@nestjs/jwt";
-import { Response, Request } from "express";
+import { Request, Response } from "express";
 // import { AuthGuard } from "@nestjs/passport";
 import { LoginDto } from "src/auth/models/login.dto";
-import { CartService } from "src/cart/cart.service";
-import { randomBytes } from "crypto";
-import { AuthService } from "./auth.service";
+// import { CartService } from "src/cart/cart.service";
+// import { randomBytes } from "crypto";
+// import { AuthService } from "./auth.service";
 // import { use } from 'passport';
 import { UserSettingsService } from "../user_settings/user_settings_service";
 import { MailService } from "../mail/mail.service";
@@ -29,13 +21,13 @@ export class AuthController {
         private userService: UserService,
         private jwtService: JwtService,
         private mailService: MailService,
-        private cartService: CartService,
-        private authService: AuthService,
+        // private cartService: CartService,
+        // private authService: AuthService,
         private userSettingsService: UserSettingsService
     ) {
     }
 
-    @Post("reset")
+    /*@Post("reset")
     async resetPassword(@Body("email") email: string) {
         console.log("email", email);
         const user = await this.userService.findOne({ email: email });
@@ -68,7 +60,7 @@ export class AuthController {
         user.password = await bcrypt.hash(password, 12);
         console.log(await this.userService.update(user.id, user));
         return "Password changed";
-    }
+    }*/
 
     @Post("register")
     async register(
@@ -283,7 +275,7 @@ export class AuthController {
 
     @Get("logout")
     async logout(@Res({ passthrough: true }) response: Response) {
-        response.cookie('jwt', "", {
+        response.cookie("jwt", "", {
             expires: new Date(0),
             httpOnly: true,
             sameSite: "none",

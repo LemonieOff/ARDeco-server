@@ -4,7 +4,7 @@ import { UserModule } from '../user/user.module';
 import { AuthController } from './auth.controller';
 import { MailModule } from '../mail/mail.module';
 import { CartModule } from 'src/cart/cart.module';
-import { AuthService } from './auth.service';
+// import { AuthService } from './auth.service';
 import { Reset } from './models/password_reset.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserSettingsModule } from "../user_settings/user_settings_module";
@@ -25,7 +25,7 @@ import { UserSettingsModule } from "../user_settings/user_settings_module";
         AuthController
     ],
     providers: [
-        AuthService
+        // AuthService
     ]
 })
 export class AuthModule {}
