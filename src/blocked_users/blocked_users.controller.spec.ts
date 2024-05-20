@@ -596,10 +596,4 @@ describe("BlockedUsersController", () => {
             }));
         });
     });
-
-    describe("checkAuthGet", () => {
-    });
-
-    describe("checkAuthorization", () => {
-    });
 });
