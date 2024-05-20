@@ -11,7 +11,6 @@ describe("GalleryController", () => {
     let galleryController: GalleryController;
     let galleryService: GalleryService;
     let userService: UserService;
-    let jwtService: JwtService;
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -71,7 +70,6 @@ describe("GalleryController", () => {
         galleryController = module.get<GalleryController>(GalleryController);
         galleryService = module.get<GalleryService>(GalleryService);
         userService = module.get<UserService>(UserService);
-        jwtService = module.get<JwtService>(JwtService);
     });
 
     it("should be defined", () => {

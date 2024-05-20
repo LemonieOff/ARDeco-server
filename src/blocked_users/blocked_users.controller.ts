@@ -1,8 +1,8 @@
-import { Controller, Body, Put, Req, Res, Param, Get } from "@nestjs/common";
+import { Controller, Get, Param, Put, Req, Res } from "@nestjs/common";
 import { BlockedUsersService } from "./blocked_users.service";
 import { CreateBlockedUserDto } from "./dto/create-blocked_user.dto";
 import { User } from "../user/models/user.entity";
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import { JwtService } from "@nestjs/jwt";
 import { UserService } from "../user/user.service";
 
@@ -176,9 +176,7 @@ export class BlockedUsersController {
             const new_user_id = Number(user_id);
 
             if (isNaN(new_user_id)) {
-                console.log("test0");
                 res.status(400);
-                console.log("ll");
                 return {
                     status: "KO",
                     code: 400,
@@ -190,6 +188,7 @@ export class BlockedUsersController {
             // Check if the user to retrieve is himself or an admin
             if (user.id !== new_user_id) {
                 if (user.role !== "admin") {
+                    res.status(403);
                     return {
                         status: "KO",
                         code: 403,
@@ -201,6 +200,7 @@ export class BlockedUsersController {
                 const userToGet = await this.userService.findOne({ id: new_user_id });
 
                 if (!userToGet) {
+                    res.status(404);
                     return {
                         status: "KO",
                         code: 404,
