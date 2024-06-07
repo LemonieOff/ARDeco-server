@@ -17,7 +17,7 @@ async function bootstrap() {
             "http://localhost:3001",
             "https://ardeco.app",
             "https://api.ardeco.app",
-            "https://support.ardeco.app",
+            "https://dashboard.ardeco.app",
         ],
         credentials: true,
         methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
