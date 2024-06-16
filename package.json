@@ -38,7 +38,7 @@
     "cookie-parser": "^1.4.6",
     "deasync": "^0.1.29",
     "express": "^4.19.2",
-    "mysql2": "^3.9.4",
+    "mysql2": "^3.9.8",
     "nodemailer": "^6.9.13",
     "pdfkit": "^0.14.0",
     "reflect-metadata": "^0.2.1",
