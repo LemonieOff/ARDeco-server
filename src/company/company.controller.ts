@@ -127,7 +127,7 @@ export class CompanyController {
                 };
             }
 
-            const company_id = req.query["id"];
+            const company_id = Number(req.query["id"]);
             const company_to_reset = await this.userService.findOne({
                 id: company_id
             });

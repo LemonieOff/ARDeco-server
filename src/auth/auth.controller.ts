@@ -1,18 +1,10 @@
-import {
-    Body,
-    Controller,
-    Get,
-    Post,
-    Req,
-    Res,
-    UseGuards
-} from "@nestjs/common";
+import { Body, Controller, Get, Post, Req, Res } from "@nestjs/common";
 
 import { UserService } from "src/user/user.service";
 import * as bcrypt from "bcryptjs";
 import { RegisterDto } from "./models/register.dto";
 import { JwtService } from "@nestjs/jwt";
-import { Response, Request } from "express";
+import { Request, Response } from "express";
 // import { AuthGuard } from "@nestjs/passport";
 import { LoginDto } from "src/auth/models/login.dto";
 import { CartService } from "src/cart/cart.service";
@@ -63,7 +55,6 @@ export class AuthController {
 
     @Post("resetConfirm")
     async confirmReset(@Body("password") password: string, @Body("token") token: string) {
-        console.log("passord, token", password, ", ", token);
         const reset = await this.authService.findOneReset({ link: token });
         if (!reset) {
             throw new Error("reset not found");
@@ -73,6 +64,63 @@ export class AuthController {
         user.password = await bcrypt.hash(password, 12);
         console.log(await this.userService.update(user.id, user));
         return "Password changed";
+    }
+
+    @Post(["checkEmail", "check-email"])
+    async checkEmail(
+        @Body("email") email: string,
+        @Body("password") password: string,
+        @Body("token") token: string,
+        @Res({ passthrough: true }) response: Response) {
+        console.log("token : " + token);
+        if (!email || !password || !token) {
+            response.status(400);
+            return {
+                status: "KO",
+                code: 400,
+                description: "Email, password and token must be provided"
+            };
+        }
+        const user = await this.userService.findOne({ email: email });
+        if (!user) {
+            response.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description: "User not found"
+            };
+        }
+        if (!await bcrypt.compare(password, user.password)) {
+            response.status(401);
+            return {
+                status: "KO",
+                code: 401,
+                description: "Password is not valid"
+            };
+        }
+        if (user.checkEmailToken !== token) {
+            response.status(401);
+            return {
+                status: "KO",
+                code: 400,
+                description: "Token is not valid"
+            };
+        }
+        if (user.hasCheckedEmail) {
+            response.status(400);
+            return {
+                status: "KO",
+                code: 400,
+                description: "Email already checked"
+            };
+        }
+        await this.userService.update(user.id, { hasCheckedEmail: true });
+        response.status(200);
+        return {
+            status: "OK",
+            code: 200,
+            description: "Email address checked successfully"
+        };
     }
 
     @Post("register")
@@ -149,7 +197,7 @@ export class AuthController {
                 data: {
                     id: res.id,
                     email: res.email,
-                    role: res.role,
+                    role: res.role
                 }
             };
         } catch (e) {
