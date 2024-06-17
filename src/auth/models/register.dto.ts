@@ -14,12 +14,9 @@ export class RegisterDto {
     @IsNotEmpty()
     first_name: string;
 
-    @IsNotEmpty()
     city: string;
 
-    @IsNotEmpty()
     last_name: string;
 
-    @IsNotEmpty()
     phone: string;
 }

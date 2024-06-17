@@ -11,10 +11,4 @@ export class StatusService {
             last_update: new Date().getTime()
         };
     }
-
-    notAllowed(method: string): Object {
-        return {
-            message: `Not allowed method ${method.toUpperCase()}, use GET instead.`
-        };
-    }
 }

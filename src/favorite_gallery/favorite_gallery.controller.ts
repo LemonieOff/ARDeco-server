@@ -38,12 +38,9 @@ export class FavoriteGalleryController {
             let galleryItems: any[] = [];
 
             for (const item of items) {
-                const item_user: User = await this.userService.findOne({
-                    id: item.user_id
-                });
                 const gallery: Gallery = await this.galleryService.findOne({
                     id: item.gallery_id
-                });
+                }, [{user: true}, []]);
                 galleryItems.push({
                     gallery: {
                         id: gallery.id,
@@ -53,9 +50,9 @@ export class FavoriteGalleryController {
                         furniture: [...gallery.furniture]
                     },
                     user: {
-                        id: item_user.id,
-                        first_name: item_user.first_name,
-                        last_name: item_user.last_name
+                        id: gallery.user.id,
+                        first_name: gallery.user.first_name,
+                        last_name: gallery.user.last_name
                     }
                 });
             }

@@ -314,7 +314,10 @@ export class TicketController {
             description: 'Ticket has been found',
             data: {
                 id: requestedTicket.id,
-                messages: requestedTicket.messages,
+                title: requestedTicket.title,
+                description: requestedTicket.description,
+                status: requestedTicket.status,
+                messages: JSON.parse(requestedTicket.messages),
             },
         };
     }
@@ -369,13 +372,13 @@ export class TicketController {
         }
 
         const tickets = await this.ticketService.allForUser(user_id);
-        const tickets_ids = tickets.map((ticket) => ticket.id);
+        //const tickets_ids = tickets.map((ticket) => ticket.id);
 
         return {
             status: 'OK',
             code: HttpStatus.OK,
-            description: 'All tickets for user',
-            data: tickets_ids,
+            description: 'All tickets for user ' + user_id,
+            data: tickets,
         };
     }
 

@@ -9,14 +9,21 @@ export class TicketService {
     constructor(
         @InjectRepository(Ticket)
         private readonly TicketRepository: Repository<Ticket>
-    ) {}
+    ) {
+    }
 
     async all(): Promise<Ticket[]> {
         return this.TicketRepository.find();
     }
 
     async allForUser(userId: number): Promise<Ticket[]> {
-        return this.TicketRepository.find({ where: { user_init_id: userId, status: Not("deleted") }, select: ["id"] });
+        return this.TicketRepository.find({
+            where: {
+                user_init_id: userId,
+                status: Not("deleted")
+            },
+            select: ["id", "title", "status"]
+        });
     }
 
     async create(data): Promise<Ticket> {
@@ -39,7 +46,7 @@ export class TicketService {
 
     async delete(id: number): Promise<any> {
         console.log("Deleting Ticket item", id);
-        return this.TicketRepository.createQueryBuilder("gallery")
+        return this.TicketRepository.createQueryBuilder("ticket")
             .delete()
             .from(Ticket)
             .where("id = id", { id: id })

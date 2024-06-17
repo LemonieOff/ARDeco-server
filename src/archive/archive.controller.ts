@@ -11,7 +11,8 @@ export class ArchiveController {
         private archiveService: ArchiveService,
         private jwtService: JwtService,
         private userService: UserService
-    ) {}
+    ) {
+    }
 
     @Get(":id")
     async get(
@@ -19,6 +20,38 @@ export class ArchiveController {
         @Param("id") id: number,
         @Res({ passthrough: true }) res: Response
     ) {
+        const cookie = req.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+        const user = await this.userService.findOne({ id: data["id"] });
+        console.log("role", user.role);
+        console.log("data", data);
+        if (!cookie || !data) {
+            res.status(401);
+            return {
+                status: "KO",
+                code: 401,
+                description: "You are not connected",
+                data: null
+            };
+        } else if (user.role == "admin") {
+            const objects = await this.archiveService.findAllObjectsFromCompany(id)
+            if (objects === null) {
+                res.status(400);
+                return {
+                    status: "KO",
+                    code: 400,
+                    description: "Objects not found",
+                    data: null
+                };
+            }
+            res.status(200);
+            return {
+                status: "OK",
+                code: 200,
+                description: "Objects list",
+                data: objects
+            };
+        }
         const authorizedCompany = await this.checkAuthorization(req, res, id);
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
@@ -41,6 +74,42 @@ export class ArchiveController {
             code: 200,
             description: "Objects list",
             data: objects
+        };
+    }
+
+    @Delete(":company_id/:item_id")
+    async remove(
+        @Req() req: Request,
+        @Param("company_id") company_id: number,
+        @Param("item_id") item_id: string,
+        @Res({ passthrough: true }) res: Response
+    ) {
+        const authorizedCompany = await this.checkAuthorization(
+            req,
+            res,
+            company_id,
+            item_id
+        );
+        if (!(authorizedCompany instanceof User)) return authorizedCompany;
+
+        const removedObject = await this.archiveService.deleteObjectFromCompany(company_id, item_id);
+
+        if (removedObject === null) {
+            res.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description: "Object not removed",
+                data: null
+            };
+        }
+
+        res.status(200);
+        return {
+            status: "OK",
+            code: 200,
+            description: "Object removed",
+            data: removedObject
         };
     }
 
@@ -87,7 +156,7 @@ export class ArchiveController {
             req,
             res,
             company_id,
-          item_id
+            item_id
         );
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
@@ -150,7 +219,7 @@ export class ArchiveController {
                 return {
                     status: "KO",
                     code: 404,
-                    description: "Object not found, can't be restored",
+                    description: "Object not found, can't be restored nor removed",
                     data: null
                 };
             }
@@ -196,7 +265,7 @@ export class ArchiveController {
                 status: "KO",
                 code: 401,
                 description:
-                    'API key is not valid in "company_api_key" query parameter',
+                    "API key is not valid in \"company_api_key\" query parameter",
                 data: null
             };
         }

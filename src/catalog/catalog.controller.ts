@@ -482,7 +482,7 @@ export class CatalogController {
             // Admin can access all resources
             return company;
         } else {
-            if (company.role !== "company" || company.id !== id) {
+            if (company.role !== "company" || company.id !== Number(id)) {
                 res.status(403);
                 return {
                     status: "KO",

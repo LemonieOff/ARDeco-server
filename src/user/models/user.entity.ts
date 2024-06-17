@@ -18,16 +18,21 @@ export class User {
     @Column({ unique: true })
     email: string;
 
+    /* TODO : Implement pseudo
+        @Column({ unique: true })
+        pseudo: string;
+    */
+
     @Column()
     first_name: string; // First name for users, company name for companies
 
-    @Column()
+    @Column({ default: "" })
     last_name: string; // Last name for users, sub-company name (or company name if not) for companies
 
-    @Column()
+    @Column({ nullable: true })
     phone: string;
 
-    @Column()
+    @Column({ nullable: true })
     city: string;
 
     @Column()
@@ -51,6 +56,9 @@ export class User {
 
     @OneToMany(type => Gallery, gallery => gallery.user)
     galleries: Gallery[];
+
+    @Column({ default: 0 })
+    profile_picture_id: number;
 
     @Column({ nullable: true })
     checkEmailToken: string;
