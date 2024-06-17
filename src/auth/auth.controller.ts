@@ -73,7 +73,6 @@ export class AuthController {
         @Body("password") password: string,
         @Body("token") token: string,
         @Res({ passthrough: true }) response: Response) {
-        console.log("token : " + token);
         if (!email || !password || !token) {
             response.status(400);
             return {
