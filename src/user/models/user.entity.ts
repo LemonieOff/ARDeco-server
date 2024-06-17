@@ -59,4 +59,20 @@ export class User {
 
     @Column({ default: 0 })
     profile_picture_id: number;
+
+    @Column({ nullable: true })
+    checkEmailToken: string;
+
+    @Column({
+        nullable: true,
+        type: "timestamp",
+        default: null
+    })
+    checkEmailSent: Date;
+
+    @Column({
+        type: "boolean",
+        default: false // 0 = false, 1 = true
+    })
+    hasCheckedEmail: boolean;
 }

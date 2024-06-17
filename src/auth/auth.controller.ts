@@ -8,11 +8,13 @@ import { Request, Response } from "express";
 // import { AuthGuard } from "@nestjs/passport";
 import { LoginDto } from "src/auth/models/login.dto";
 // import { CartService } from "src/cart/cart.service";
-// import { randomBytes } from "crypto";
+import { randomBytes } from "crypto";
 // import { AuthService } from "./auth.service";
 // import { use } from 'passport';
 import { UserSettingsService } from "../user_settings/user_settings_service";
 import { MailService } from "../mail/mail.service";
+import { User } from "../user/models/user.entity";
+import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 import { DeleteAccountDto } from "./models/deleteAccount.dto";
 
 @Controller()
@@ -27,6 +29,10 @@ export class AuthController {
     ) {
     }
 
+    private generateToken(size: number = 64, encoding: BufferEncoding = "hex") {
+        return randomBytes(size).toString(encoding);
+    }
+
     /*@Post("reset")
     async resetPassword(@Body("email") email: string) {
         console.log("email", email);
@@ -35,7 +41,7 @@ export class AuthController {
         if (!user) {
             throw new Error("User not found");
         }
-        const resetToken = randomBytes(32).toString("hex");
+        const resetToken = this.generateToken();
         const expirationDate = new Date();
         expirationDate.setHours(expirationDate.getHours() + 1); // Lien valable pendant 1 heure
         await this.authService.createReset({
@@ -50,7 +56,6 @@ export class AuthController {
 
     @Post("resetConfirm")
     async confirmReset(@Body("password") password: string, @Body("token") token: string) {
-        console.log("passord, token", password, ", ", token);
         const reset = await this.authService.findOneReset({ link: token });
         if (!reset) {
             throw new Error("reset not found");
@@ -62,23 +67,78 @@ export class AuthController {
         return "Password changed";
     }*/
 
+    @Post(["checkEmail", "check-email"])
+    async checkEmail(
+        @Body("email") email: string,
+        @Body("password") password: string,
+        @Body("token") token: string,
+        @Res({ passthrough: true }) response: Response) {
+        if (!email || !password || !token) {
+            response.status(400);
+            return {
+                status: "KO",
+                code: 400,
+                description: "Email, password and token must be provided"
+            };
+        }
+        const user = await this.userService.findOne({ email: email });
+        if (!user) {
+            response.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description: "User not found"
+            };
+        }
+        if (!await bcrypt.compare(password, user.password)) {
+            response.status(401);
+            return {
+                status: "KO",
+                code: 401,
+                description: "Password is not valid"
+            };
+        }
+        if (user.checkEmailToken !== token) {
+            response.status(401);
+            return {
+                status: "KO",
+                code: 400,
+                description: "Token is not valid"
+            };
+        }
+        if (user.hasCheckedEmail) {
+            response.status(400);
+            return {
+                status: "KO",
+                code: 400,
+                description: "Email already checked"
+            };
+        }
+        await this.userService.update(user.id, { hasCheckedEmail: true });
+        response.status(200);
+        return {
+            status: "OK",
+            code: 200,
+            description: "Email address checked successfully"
+        };
+    }
+
     @Post("register")
     async register(
         @Body() body: RegisterDto,
         @Res({ passthrough: true }) response: Response
     ) {
-        if (body.password != body.password_confirm) {
-            response.status(400);
-            return {
-                status: "KO",
-                description: "Password do not match",
-                code: 400,
-                data: body
-            };
-        }
-        const hashed = await bcrypt.hash(body.password, 12);
-        body.password = hashed;
         try {
+            if (body.password !== body.password_confirm) {
+                response.status(400);
+                return {
+                    status: "KO",
+                    description: "Password does not match",
+                    code: 400,
+                    data: null
+                };
+            }
+
             const existingUser = await this.userService.findOne({ email: body.email });
             if (existingUser) {
                 response.status(400);
@@ -90,19 +150,33 @@ export class AuthController {
                 };
             }
 
-            const res = await this.userService.create(body);
+            const hashed = await bcrypt.hash(body.password, 12);
+
+            const user: QueryPartialEntity<User> = {
+                email: body.email,
+                first_name: body.first_name,
+                last_name: body.last_name,
+                phone: body.phone,
+                city: body.city,
+                password: hashed,
+                role: "client",
+                checkEmailToken: this.generateToken()
+            };
+
+            const res = await this.userService.create(user);
 
             // Create settings for the user
             const settings = await this.userSettingsService.create({ user_id: res.id });
             console.log("Settings created for user ", settings.user_id);
 
             // Send email
-            const emailResult = this.mailService.sendWelcomeAndVerification(res.email, "");
+            const emailResult = this.mailService.sendWelcomeAndVerification(res.email, res.checkEmailToken);
             let emailStatus = "";
             if (emailResult instanceof Error) {
                 emailStatus = "email was not sent due to an error";
             } else {
                 emailStatus = "email was sent";
+                await this.userService.update(res.id, { checkEmailSent: new Date() });
             }
 
             // Send JWT token
@@ -120,7 +194,11 @@ export class AuthController {
                 status: "OK",
                 description: "User was created, " + emailStatus,
                 code: 200,
-                data: res
+                data: {
+                    id: res.id,
+                    email: res.email,
+                    role: res.role
+                }
             };
         } catch (e) {
             console.error(e);

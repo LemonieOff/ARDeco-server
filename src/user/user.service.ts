@@ -16,9 +16,9 @@ export class UserService {
     }
 
     async create(data): Promise<User> {
-        const u = this.userRepository.save(data);
-        console.log("Create user :", await u);
-        return u;
+        const user = await this.userRepository.save(data);
+        console.log("Create user :", user);
+        return user;
     }
 
     async findOne(condit: FindOptionsWhere<User>): Promise<User> {

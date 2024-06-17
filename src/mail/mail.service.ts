@@ -62,18 +62,12 @@ export class MailService {
 
     public sendWelcomeAndVerification(email: string, token: string) {
         const subject = "Bienvenue sur ARDeco !";
-        // TODO : Implement token link to the message
-/*        const checkLink = "https://ardeco.app/LIEN?token=" + token;
-        const body = `
-<body>
-    <h1>Bienvenue sur ARDeco !</h1>
-    <p>Nous vous souhaitons la bienvenue sur ARDeco !<br /><br />
-    Nous vous invitons à vérifier votre adresse email en cliquant sur le lien suivant : <a href="${checkLink}">${checkLink}</a><br />
-    Si le lien ne fonctionne pas, veuillez le copier-coller dans votre navigateur.</p>
-</body>`;*/
+        const checkLink = "https://ardeco.app/checkEmail?token=" + token;
         const body = `<body><h1>Bienvenue sur ARDeco !</h1>
 <p>Nous vous souhaitons la bienvenue sur ARDeco !<br /><br />
-Pour vous connecter depuis le site ou l'application mobile, il vous suffit de renseigner cette adresse email accompagnée du mot de passe que vous avez défini.</p></body>`;
+Pour vous connecter depuis le site ou l'application mobile, il vous suffit de renseigner cette adresse email accompagnée du mot de passe que vous avez défini.<br />
+Nous vous invitons également à vérifier votre adresse email en cliquant sur le lien suivant : <a href="${checkLink}">${checkLink}</a><br />
+Si le lien ne fonctionne pas, veuillez le copier-coller dans votre navigateur.</p></body>`;
         return this.sendEmail(email, subject, body);
     }
 

@@ -30,11 +30,20 @@ export class TicketController {
 
   //  @UseGuards(AuthGuard)
     @Get('pending')
-    async getPending(@Req() req: Request): Promise<any> {
-        console.log(req.cookies);
-        console.log("jwt in cookie is " + req.cookies['jwt']);
-        const data = await this.jwtService.verifyAsync(req.cookies['jwt'])
-        console.log(data);
+    async getPending(@Req() req: Request, @Res() httpRes: Response): Promise<any> {
+        // Check login
+        const cookie = req.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+        if (!data) {
+            httpRes.status(HttpStatus.UNAUTHORIZED);
+            return {
+                status: 'KO',
+                code: HttpStatus.UNAUTHORIZED,
+                description: 'You are not logged in',
+                data: null,
+            };
+        }
+
         const usr = await this.userService.findOne({id: data['id']})
         console.log("User", usr);
         if (usr.role != "admin") {
@@ -63,9 +72,20 @@ export class TicketController {
 
    // @UseGuards(AuthGuard)
     @Get('random')
-    async getRandom(@Req() req: Request): Promise<any> {
-        const data = await this.jwtService.verifyAsync(req.cookies['jwt'])
-        const usr = await this.userService.findOne({id: data['id']})
+    async getRandom(@Req() req: Request, @Res() httpRes: Response): Promise<any> {
+        // Check login
+        const cookie = req.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+        if (!data) {
+            httpRes.status(HttpStatus.UNAUTHORIZED);
+            return {
+                status: 'KO',
+                code: HttpStatus.UNAUTHORIZED,
+                description: 'You are not logged in',
+                data: null,
+            };
+        }
+        const usr = await this.userService.findOne({id: data['id']});
         console.log("User", usr);
         if (usr.role != "admin") {
             return {
@@ -167,11 +187,20 @@ export class TicketController {
 
     //@UseGuards(AuthGuard)
     @Get('stats/last7days')
-    async getStatsLast7Days(@Req() req: Request): Promise<any> {
-        console.log(req.cookies);
-        console.log("jwt in cookie is " + req.cookies['jwt']);
-        const data = await this.jwtService.verifyAsync(req.cookies['jwt'])
-        console.log(data);
+    async getStatsLast7Days(@Req() req: Request, @Res() res: Response): Promise<any> {
+        // Check login
+        const cookie = req.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+        if (!data) {
+            res.status(HttpStatus.UNAUTHORIZED);
+            return {
+                status: 'KO',
+                code: HttpStatus.UNAUTHORIZED,
+                description: 'You are not logged in',
+                data: null,
+            };
+        }
+
         const usr = await this.userService.findOne({id: data['id']})
         console.log("User", usr);
         console.log("Role", usr.role);
@@ -237,11 +266,24 @@ export class TicketController {
 
     @Get(':id')
     async getOne(@Param('id') id: number,
-                 @Req() req: Request): Promise<any> {
-        const requestedTicket = await this.ticketService.findOne({ id });
-        const data = await this.jwtService.verifyAsync(req.cookies['jwt'])
-        const usr = await this.userService.findOne({id: data['id']})
+                 @Req() req: Request, @Res() res: Response): Promise<any> {
+        // Check login
+        const cookie = req.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+        if (!data) {
+            res.status(HttpStatus.UNAUTHORIZED);
+            return {
+                status: 'KO',
+                code: HttpStatus.UNAUTHORIZED,
+                description: 'You are not logged in',
+                data: null,
+            };
+        }
 
+        const usr = await this.userService.findOne({id: data['id']});
+        //TODO : verify user existence
+
+        const requestedTicket = await this.ticketService.findOne({ id });
         if (!requestedTicket) {
             return {
                 status: 'KO',
@@ -592,10 +634,23 @@ export class TicketController {
         @Body('message') message: string,
         @Res({ passthrough: true }) res: Response,
     ) {
-        const data = await this.jwtService.verifyAsync(req.cookies['jwt'])
-        const usr = await this.userService.findOne({id: data['id']})
-        const ticket = await this.ticketService.findOne({id: id})
+        // Check login
+        const cookie = req.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+        if (!data) {
+            res.status(HttpStatus.UNAUTHORIZED);
+            return {
+                status: 'KO',
+                code: HttpStatus.UNAUTHORIZED,
+                description: 'You are not logged in',
+                data: null,
+            };
+        }
 
+        const usr = await this.userService.findOne({id: data['id']});
+        //TODO : Check user existence
+
+        const ticket = await this.ticketService.findOne({id: id});
         try {
             if (!ticket) {
                 return {
@@ -666,9 +721,22 @@ export class TicketController {
 
     //@UseGuards(AuthGuard)
     @Get('all')
-    async getAll(@Req() req: Request): Promise<any> {
-        const data = await this.jwtService.verifyAsync(req.cookies['jwt'])
-        const usr = await this.userService.findOne({id: data['id']})
+    async getAll(@Req() req: Request, @Res() res: Response): Promise<any> {
+        // Check login
+        const cookie = req.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+        if (!data) {
+            res.status(HttpStatus.UNAUTHORIZED);
+            return {
+                status: 'KO',
+                code: HttpStatus.UNAUTHORIZED,
+                description: 'You are not logged in',
+                data: null,
+            };
+        }
+
+        const usr = await this.userService.findOne({id: data['id']});
+        //TODO : Check user existence
 
         if (usr.role != "admin") {
             return {
