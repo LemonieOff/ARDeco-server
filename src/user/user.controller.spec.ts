@@ -4,13 +4,10 @@ import { getRepositoryToken } from "@nestjs/typeorm";
 import { User } from "./models/user.entity";
 import { UserController } from "./user.controller";
 import { JwtService } from "@nestjs/jwt";
-import { Req } from "@nestjs/common";
-import { query } from "express";
 
 describe("UserController", () => {
     let userController: UserController;
     let userService: UserService;
-    let jwtService: JwtService;
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -49,7 +46,6 @@ describe("UserController", () => {
 
         userController = module.get<UserController>(UserController);
         userService = module.get<UserService>(UserService);
-        jwtService = module.get<JwtService>(JwtService);
     });
 
     it("should be defined", () => {
@@ -78,7 +74,10 @@ describe("UserController", () => {
                 cart: null,
                 galleries: [],
                 galleryReports: [],
-                profile_picture_id: 0
+                profile_picture_id: 0,
+                checkEmailToken: "",
+                checkEmailSent: undefined,
+                hasCheckedEmail: false
             };
             jest.spyOn(userService, "findOne").mockResolvedValue(user);
             const req = { cookies: { jwt: "token" } } as any;
@@ -102,7 +101,10 @@ describe("UserController", () => {
                 cart: null,
                 galleries: [],
                 galleryReports: [],
-                profile_picture_id: 0
+                profile_picture_id: 0,
+                checkEmailToken: "",
+                checkEmailSent: undefined,
+                hasCheckedEmail: false
             };
             jest.spyOn(userService, "findOne").mockResolvedValue(user);
             const result = await userController.getOne(1);
@@ -141,7 +143,10 @@ describe("UserController", () => {
                 cart: null,
                 galleries: [],
                 galleryReports: [],
-                profile_picture_id: 0
+                profile_picture_id: 0,
+                checkEmailToken: "",
+                checkEmailSent: undefined,
+                hasCheckedEmail: false
             };
             jest.spyOn(userService, "findOne").mockResolvedValue(oldUser);
             jest.spyOn(userService, "update").mockResolvedValue({ affected: 1 } as any);
@@ -192,7 +197,10 @@ describe("UserController", () => {
                 cart: null,
                 galleries: [],
                 galleryReports: [],
-                profile_picture_id: 0
+                profile_picture_id: 0,
+                checkEmailToken: "",
+                checkEmailSent: undefined,
+                hasCheckedEmail: false
             };
             jest.spyOn(userService, "findOne").mockResolvedValue(oldUser);
             jest.spyOn(userService, "update").mockResolvedValue({ affected: 1 } as any);
@@ -225,7 +233,10 @@ describe("UserController", () => {
                 cart: null,
                 galleries: [],
                 galleryReports: [],
-                profile_picture_id: 0
+                profile_picture_id: 0,
+                checkEmailToken: "",
+                checkEmailSent: undefined,
+                hasCheckedEmail: false
             };
             jest.spyOn(userService, "findOne").mockResolvedValue(oldUser);
             const req = { cookies: { jwt: "token" } } as any;
@@ -253,7 +264,10 @@ describe("UserController", () => {
                 cart: null,
                 galleries: [],
                 galleryReports: [],
-                profile_picture_id: 0
+                profile_picture_id: 0,
+                checkEmailToken: "",
+                checkEmailSent: undefined,
+                hasCheckedEmail: false
             };
             jest.spyOn(userService, "findOne").mockResolvedValue(oldUser);
             const req = { cookies: { jwt: "token" } } as any;
@@ -281,7 +295,10 @@ describe("UserController", () => {
                 cart: null,
                 galleries: [],
                 galleryReports: [],
-                profile_picture_id: 0
+                profile_picture_id: 0,
+                checkEmailToken: "",
+                checkEmailSent: undefined,
+                hasCheckedEmail: false
             };
             jest.spyOn(userService, "findOne").mockResolvedValue(oldUser);
             jest.spyOn(userService, "update").mockResolvedValue({ affected: 1 } as any);
