@@ -1,14 +1,8 @@
-/* eslint-disable prettier/prettier */
-import {
-    Column,
-    Entity,
-    JoinColumn, OneToMany,
-    OneToOne,
-    PrimaryGeneratedColumn
-} from "typeorm";
+import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Cart } from "../../cart/models/cart.entity";
 import { GalleryReport } from "../../report/gallery/models/gallery_reports.entity";
 import { Gallery } from "../../gallery/models/gallery.entity";
+import { Comment } from "../../comment/models/comment.entity";
 
 @Entity("users")
 export class User {
@@ -75,4 +69,7 @@ export class User {
         default: false // 0 = false, 1 = true
     })
     hasCheckedEmail: boolean;
+
+    @OneToMany(_ => Comment, galleryComment => galleryComment.user)
+    galleryComments: Comment[];
 }
