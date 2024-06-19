@@ -368,8 +368,24 @@ export class AuthController {
         };
     }
 
-    @Post("close")
     @Delete("close")
+    async deleteAccountDelete(
+        @Res({ passthrough: true }) response: Response,
+        @Req() request: Request,
+        @Body() body: DeleteAccountDto
+    ) {
+        await this.deleteAccount(response, request, body);
+    }
+
+    @Post("close")
+    async deleteAccountPost(
+        @Res({ passthrough: true }) response: Response,
+        @Req() request: Request,
+        @Body() body: DeleteAccountDto
+    ) {
+        await this.deleteAccount(response, request, body);
+    }
+
     async deleteAccount(
         @Res({ passthrough: true }) response: Response,
         @Req() request: Request,
@@ -450,6 +466,7 @@ export class AuthController {
             secure: true
         });
         console.log("Removed jwt token cookie !");
+        response.status(200);
         return {
             status: "OK",
             code: 200,
