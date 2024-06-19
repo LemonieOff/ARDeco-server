@@ -59,7 +59,10 @@ describe("UserService", () => {
                     galleryReports: [],
                     profile_picture_id: 0,
                     phone: "",
-                    city: ""
+                    city: "",
+                    checkEmailToken: "",
+                    checkEmailSent: undefined,
+                    hasCheckedEmail: false
                 }
             ];
             jest.spyOn(userRepository, "find").mockResolvedValue(users);
@@ -83,7 +86,10 @@ describe("UserService", () => {
                 cart: null,
                 galleries: [],
                 galleryReports: [],
-                profile_picture_id: 0
+                profile_picture_id: 0,
+                checkEmailToken: "",
+                checkEmailSent: undefined,
+                hasCheckedEmail: false
             };
             jest.spyOn(userRepository, "save").mockResolvedValue(user);
             expect(await userService.create(user)).toEqual(user);
@@ -106,7 +112,10 @@ describe("UserService", () => {
                 cart: null,
                 galleries: [],
                 galleryReports: [],
-                profile_picture_id: 0
+                profile_picture_id: 0,
+                checkEmailToken: "",
+                checkEmailSent: undefined,
+                hasCheckedEmail: false
             };
             jest.spyOn(userRepository, "findOne").mockResolvedValue(user);
             expect(await userService.findOne({ email: "test@example.com" })).toEqual(user);
@@ -129,7 +138,10 @@ describe("UserService", () => {
                 cart: null,
                 galleries: [],
                 galleryReports: [],
-                profile_picture_id: 0
+                profile_picture_id: 0,
+                checkEmailToken: "",
+                checkEmailSent: undefined,
+                hasCheckedEmail: false
             };
             jest.spyOn(userRepository, "findOne").mockResolvedValue(user);
             expect(await userService.findById(1)).toEqual(user);
@@ -152,7 +164,10 @@ describe("UserService", () => {
                 cart: null,
                 galleries: [],
                 galleryReports: [],
-                profile_picture_id: 0
+                profile_picture_id: 0,
+                checkEmailToken: "",
+                checkEmailSent: undefined,
+                hasCheckedEmail: false
             };
             jest.spyOn(userRepository, "update").mockResolvedValue({affected: 1} as UpdateResult);
             const result = await userService.update(1, user);

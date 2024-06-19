@@ -368,6 +368,7 @@ export class AuthController {
         };
     }
 
+    @Post("close")
     @Delete("close")
     async deleteAccount(
         @Res({ passthrough: true }) response: Response,
