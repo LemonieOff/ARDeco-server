@@ -25,8 +25,8 @@ export class Comment {
     comment: string;
 
     @Column({
-        type: "datetime",
-        default: () => "CURRENT_DATETIME"
+        type: "timestamp",
+        default: () => "CURRENT_TIMESTAMP"
     })
     creation_date: Date;
 }
