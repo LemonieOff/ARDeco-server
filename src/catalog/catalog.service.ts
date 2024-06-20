@@ -1,6 +1,6 @@
 import { forwardRef, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { In, Repository } from "typeorm";
+import { FindOptionsWhere, In, Repository } from "typeorm";
 import { Catalog } from "./models/catalog.entity";
 import { ArchiveService } from "../archive/archive.service";
 import { CatalogFilterDto } from "./models/catalog-filter.dto";
@@ -12,7 +12,8 @@ export class CatalogService {
         private readonly catalogRepository: Repository<Catalog>,
         @Inject(forwardRef(() => ArchiveService))
         private readonly archiveService: ArchiveService
-    ) {}
+    ) {
+    }
 
     async all(): Promise<Catalog[]> {
         return this.catalogRepository.find();
@@ -22,8 +23,12 @@ export class CatalogService {
         return await this.catalogRepository.save(data);
     }
 
-    async findOne(condit): Promise<Catalog> {
-        return await this.catalogRepository.findOne({ where: condit });
+    async findOne(where: FindOptionsWhere<Catalog>): Promise<Catalog> {
+        return await this.catalogRepository.findOne({ where: where });
+    }
+
+    async findByCompany(company_id: number): Promise<Catalog[]> {
+        return await this.catalogRepository.find({ where: { company: company_id } });
     }
 
     async update(id: number, data): Promise<any> {
