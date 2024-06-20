@@ -14,12 +14,24 @@ export class Comment {
     })
     gallery: Gallery;
 
+    @Column({
+        type: "int",
+        update: false,
+    })
+    gallery_id: number;
+
     @ManyToOne(_ => User, user => user.galleryComments, { onDelete: "CASCADE" })
     @JoinColumn({
         name: "user_id",
         referencedColumnName: "id"
     })
     user: User;
+
+    @Column({
+        type: "int",
+        update: false
+    })
+    user_id: number;
 
     @Column()
     comment: string;

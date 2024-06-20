@@ -1,14 +1,18 @@
 import { Module } from "@nestjs/common";
-// import { JwtModule } from "@nestjs/jwt";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Comment } from "./models/comment.entity";
 import { CommentController } from "./comment.controller";
 import { CommentService } from "./comment.service";
+import { JwtModule } from "@nestjs/jwt";
+import { UserModule } from "../user/user.module";
+import { GalleryModule } from "../gallery/gallery.module";
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([Comment]),
-        // JwtModule
+        JwtModule.register({ secret: "secret" }),
+        UserModule,
+        GalleryModule
     ],
     controllers: [CommentController],
     providers: [CommentService],

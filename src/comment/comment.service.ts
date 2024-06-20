@@ -1,37 +1,52 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { FindOptionsWhere, Repository, UpdateResult } from "typeorm";
+import { Repository } from "typeorm";
 import { Comment } from "./models/comment.entity";
-import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
 @Injectable()
 export class CommentService {
     constructor(
         @InjectRepository(Comment)
         private readonly commentRepository: Repository<Comment>
-    ) {}
+    ) {
+    }
 
     async all(): Promise<Comment[]> {
         return this.commentRepository.find();
     }
 
+    async findOne(id: number): Promise<Comment> {
+        return this.commentRepository.findOne({ where: { id } });
+    }
+
     async allForGallery(gallery_id: number): Promise<Comment[]> {
-        return this.commentRepository.find({
+        const all = await this.commentRepository.find({
             where: {
                 gallery: {
                     id: gallery_id
                 }
             }
         });
+        all.forEach(comment => {
+            delete comment.gallery;
+            delete comment.user;
+        });
+        return all;
     }
 
-    async create(data: Partial<Comment>): Promise<Comment> {
+    async create(data: Partial<Comment>): Promise<Partial<Comment>> {
         const comment = await this.commentRepository.save(data);
         console.log("Create comment :", comment);
-        return comment;
+        return {
+            id: comment.id,
+            comment: comment.comment,
+            gallery_id: comment.gallery_id,
+            user_id: comment.user_id,
+            creation_date: comment.creation_date
+        };
     }
 
-    async delete(id: number): Promise<any> {
+    async delete(id: number) {
         console.log("Deleting comment ", id);
         return this.commentRepository.delete(id);
     }
