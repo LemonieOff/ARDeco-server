@@ -51,10 +51,11 @@ describe('GalleryService', () => {
                 id: 1,
                 user_id: 1,
                 visibility: true,
-                furniture: '{"": "", "": "", "": ""}',
+                furniture: "{\"\": \"\", \"\": \"\", \"\": \"\"}",
                 name: "Living Room",
                 description: "This is a beautiful living room",
-                room_type: "Living Room"
+                room_type: "Living Room",
+                comments: []
             };
             jest.spyOn(galleryRepository, 'save').mockResolvedValueOnce(expectedGallery);
             const result = await galleryService.create(data);
@@ -78,10 +79,11 @@ describe('GalleryService', () => {
                 id: 1,
                 user_id: 1,
                 visibility: true,
-                furniture: '{"": "", "": "", "": ""}',
+                furniture: "{\"\": \"\", \"\": \"\", \"\": \"\"}",
                 name: "Living Room",
                 description: "This is a beautiful living room",
-                room_type: "Living Room"
+                room_type: "Living Room",
+                comments: []
             };
             jest.spyOn(galleryRepository, 'findOne').mockResolvedValueOnce(expectedGallery);
             const result = await galleryService.findOne(where, relations);
@@ -96,10 +98,11 @@ describe('GalleryService', () => {
                 id: 1,
                 user_id: 1,
                 visibility: true,
-                furniture: '{"": "", "": "", "": ""}',
+                furniture: "{\"\": \"\", \"\": \"\", \"\": \"\"}",
                 name: "Living Room",
                 description: "This is a beautiful living room",
-                room_type: "Living Room"
+                room_type: "Living Room",
+                comments: []
             };
             jest.spyOn(galleryRepository, 'findOne').mockResolvedValueOnce(expectedGallery);
             const result = await galleryService.findOne(where);
@@ -120,10 +123,11 @@ describe('GalleryService', () => {
                     id: 1,
                     user_id: 1,
                     visibility: true,
-                    furniture: '{"": "", "": "", "": ""}',
+                    furniture: "{\"\": \"\", \"\": \"\", \"\": \"\"}",
                     name: "Living Room",
                     description: "This is a beautiful living room",
-                    room_type: "Living Room"
+                    room_type: "Living Room",
+                    comments: []
                 },
                 {
                     galleryReports: [],
@@ -131,10 +135,11 @@ describe('GalleryService', () => {
                     id: 2,
                     user_id: 1,
                     visibility: true,
-                    furniture: '{"": "", "": "", "": ""}',
+                    furniture: "{\"\": \"\", \"\": \"\", \"\": \"\"}",
                     name: "Bedroom",
                     description: "This is a cozy bedroom",
-                    room_type: "Bedroom"
+                    room_type: "Bedroom",
+                    comments: []
                 }
             ];
             jest.spyOn(galleryRepository, 'find').mockResolvedValueOnce(expectedGalleries);
@@ -150,10 +155,11 @@ describe('GalleryService', () => {
                     id: 1,
                     user_id: 1,
                     visibility: true,
-                    furniture: '{"": "", "": "", "": ""}',
+                    furniture: "{\"\": \"\", \"\": \"\", \"\": \"\"}",
                     name: "Living Room",
                     description: "This is a beautiful living room",
-                    room_type: "Living Room"
+                    room_type: "Living Room",
+                    comments: []
                 },
                 {
                     galleryReports: [],
@@ -161,10 +167,11 @@ describe('GalleryService', () => {
                     id: 2,
                     user_id: 1,
                     visibility: true,
-                    furniture: '{"": "", "": "", "": ""}',
+                    furniture: "{\"\": \"\", \"\": \"\", \"\": \"\"}",
                     name: "Bedroom",
                     description: "This is a cozy bedroom",
-                    room_type: "Bedroom"
+                    room_type: "Bedroom",
+                    comments: []
                 }
             ];
             jest.spyOn(galleryRepository, 'find').mockResolvedValueOnce(expectedGalleries);
@@ -182,10 +189,11 @@ describe('GalleryService', () => {
                     id: 1,
                     user_id: 1,
                     visibility: true,
-                    furniture: '{"": "", "": "", "": ""}',
+                    furniture: "{\"\": \"\", \"\": \"\", \"\": \"\"}",
                     name: "Living Room",
                     description: "This is a beautiful living room",
-                    room_type: "Living Room"
+                    room_type: "Living Room",
+                    comments: []
                 },
                 {
                     galleryReports: [],
@@ -193,10 +201,11 @@ describe('GalleryService', () => {
                     id: 2,
                     user_id: 1,
                     visibility: true,
-                    furniture: '{"": "", "": "", "": ""}',
+                    furniture: "{\"\": \"\", \"\": \"\", \"\": \"\"}",
                     name: "Bedroom",
                     description: "This is a cozy bedroom",
-                    room_type: "Bedroom"
+                    room_type: "Bedroom",
+                    comments: []
                 }
             ];
             jest.spyOn(galleryRepository, 'find').mockResolvedValueOnce(expectedGalleries);
@@ -212,10 +221,11 @@ describe('GalleryService', () => {
                     id: 1,
                     user_id: 1,
                     visibility: false,
-                    furniture: '{"": "", "": "", "": ""}',
+                    furniture: "{\"\": \"\", \"\": \"\", \"\": \"\"}",
                     name: "Living Room",
                     description: "This is a beautiful living room",
-                    room_type: "Living Room"
+                    room_type: "Living Room",
+                    comments: []
                 },
                 {
                     galleryReports: [],
@@ -223,10 +233,11 @@ describe('GalleryService', () => {
                     id: 2,
                     user_id: 1,
                     visibility: false,
-                    furniture: '{"": "", "": "", "": ""}',
+                    furniture: "{\"\": \"\", \"\": \"\", \"\": \"\"}",
                     name: "Bedroom",
                     description: "This is a cozy bedroom",
-                    room_type: "Bedroom"
+                    room_type: "Bedroom",
+                    comments: []
                 }
             ];
             jest.spyOn(galleryRepository, 'find').mockResolvedValueOnce(expectedGalleries);
@@ -246,7 +257,8 @@ describe('GalleryService', () => {
                 room_type: "",
                 user: undefined,
                 user_id: 1,
-                visibility: false
+                visibility: false,
+                comments: []
             }
             jest.spyOn(galleryRepository, "update").mockResolvedValue({affected: 1} as UpdateResult);
             jest.spyOn(galleryRepository, "findOne").mockResolvedValue(gallery);

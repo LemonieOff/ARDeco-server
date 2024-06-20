@@ -1,7 +1,7 @@
-/* eslint-disable prettier/prettier */
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { GalleryReport } from "../../report/gallery/models/gallery_reports.entity";
 import { User } from "../../user/models/user.entity";
+import { Comment } from "../../comment/models/comment.entity";
 
 @Entity("gallery")
 export class Gallery {
@@ -9,10 +9,16 @@ export class Gallery {
     id: number;
 
     @ManyToOne(type => User, user => user.galleries, { onDelete: "CASCADE" })
-    @JoinColumn({ name: "user_id", referencedColumnName: "id" })
+    @JoinColumn({
+        name: "user_id",
+        referencedColumnName: "id"
+    })
     user: User;
 
-    @Column({ type: "int", update: false })
+    @Column({
+        type: "int",
+        update: false
+    })
     user_id: number;
 
     @Column({ type: "boolean" })
@@ -32,4 +38,7 @@ export class Gallery {
 
     @OneToMany(type => GalleryReport, galleryReport => galleryReport.gallery)
     galleryReports: GalleryReport[];
+
+    @OneToMany(type => Comment, comment => comment.gallery)
+    comments: Comment[];
 }

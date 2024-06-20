@@ -360,7 +360,12 @@ export class GalleryController {
         item: Gallery,
         action: string,
         user_id: number | null = null
-    ) {
+    ): Promise<{
+        code: number;
+        data: null;
+        description: string;
+        status: string
+    } | User> {
         // Check if item exists only for "view", "edit" and "delete" actions
         if (action === "view" || action === "edit" || action === "delete") {
             if (!item) {

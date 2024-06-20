@@ -22,6 +22,7 @@ import { BlockedUsersModule } from "./blocked_users/blocked_users.module";
 import { GalleryReportsModule } from "./report/gallery/gallery_reports.module";
 import { ProfilePictureModule } from "./profile_picture/profile_picture.module";
 import { CreateCompanyModule } from "./create-company/create-company.module";
+import { CommentModule } from "./comment/comment.module";
 
 @Module({
     imports: [
@@ -39,8 +40,7 @@ import { CreateCompanyModule } from "./create-company/create-company.module";
             password: process.env.DB_PASSWORD,
             database: process.env.DB_NAME,
             autoLoadEntities: true,
-            entities: [],
-            synchronize: true
+            synchronize: true,
         }),
         UserModule,
         AuthModule,
@@ -60,7 +60,8 @@ import { CreateCompanyModule } from "./create-company/create-company.module";
         BlockedUsersModule,
         GalleryReportsModule,
         ProfilePictureModule,
-        CreateCompanyModule
+        CreateCompanyModule,
+        CommentModule
     ],
     controllers: [AppController],
     providers: [AppService, ConfigService]

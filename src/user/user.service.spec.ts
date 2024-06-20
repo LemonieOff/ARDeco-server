@@ -62,7 +62,8 @@ describe("UserService", () => {
                     city: "",
                     checkEmailToken: "",
                     checkEmailSent: undefined,
-                    hasCheckedEmail: false
+                    hasCheckedEmail: false,
+                    galleryComments: []
                 }
             ];
             jest.spyOn(userRepository, "find").mockResolvedValue(users);
@@ -89,7 +90,8 @@ describe("UserService", () => {
                 profile_picture_id: 0,
                 checkEmailToken: "",
                 checkEmailSent: undefined,
-                hasCheckedEmail: false
+                hasCheckedEmail: false,
+                galleryComments: []
             };
             jest.spyOn(userRepository, "save").mockResolvedValue(user);
             expect(await userService.create(user)).toEqual(user);
@@ -115,7 +117,8 @@ describe("UserService", () => {
                 profile_picture_id: 0,
                 checkEmailToken: "",
                 checkEmailSent: undefined,
-                hasCheckedEmail: false
+                hasCheckedEmail: false,
+                galleryComments: []
             };
             jest.spyOn(userRepository, "findOne").mockResolvedValue(user);
             expect(await userService.findOne({ email: "test@example.com" })).toEqual(user);
@@ -141,7 +144,8 @@ describe("UserService", () => {
                 profile_picture_id: 0,
                 checkEmailToken: "",
                 checkEmailSent: undefined,
-                hasCheckedEmail: false
+                hasCheckedEmail: false,
+                galleryComments: []
             };
             jest.spyOn(userRepository, "findOne").mockResolvedValue(user);
             expect(await userService.findById(1)).toEqual(user);
@@ -167,7 +171,8 @@ describe("UserService", () => {
                 profile_picture_id: 0,
                 checkEmailToken: "",
                 checkEmailSent: undefined,
-                hasCheckedEmail: false
+                hasCheckedEmail: false,
+                galleryComments: []
             };
             jest.spyOn(userRepository, "update").mockResolvedValue({affected: 1} as UpdateResult);
             const result = await userService.update(1, user);

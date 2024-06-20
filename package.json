@@ -20,7 +20,15 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "typeorm:cache": "typeorm-ts-node-commonjs -d ./dataSource.ts cache:clear",
+    "schema:sync": "typeorm-ts-node-commonjs -d ./dataSource.ts schema:sync",
+    "schema:drop": "typeorm-ts-node-commonjs -d ./dataSource.ts schema:drop",
+    "migration:create": "typeorm-ts-node-commonjs migration:create ./migrations/SchemaUpdate",
+    "migration:generate": "typeorm-ts-node-commonjs migration:generate ./migrations/SchemaUpdate -d ./dataSource.ts",
+    "migration:show": "typeorm-ts-node-commonjs migration:show -d ./dataSource.ts",
+    "migration:run": "typeorm-ts-node-commonjs migration:run -d  ./dataSource.ts",
+    "migration:revert": "typeorm-ts-node-commonjs migration:revert -d ./dataSource.ts"
   },
   "dependencies": {
     "@nestjs/class-validator": "^0.13.4",
@@ -43,7 +51,8 @@
     "pdfkit": "^0.14.0",
     "reflect-metadata": "^0.2.1",
     "rxjs": "^7.8.1",
-    "stripe": "^14.17.0"
+    "stripe": "^14.17.0",
+    "ts-node": "^10.9.2"
   },
   "devDependencies": {
     "@nestjs/mapped-types": "*",
