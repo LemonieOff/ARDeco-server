@@ -7,6 +7,7 @@ import { JwtService } from "@nestjs/jwt";
 import { UserService } from "../user/user.service";
 import { GalleryService } from "../gallery/gallery.service";
 import { Gallery } from "../gallery/models/gallery.entity";
+import { BlockedUsersService } from "../blocked_users/blocked_users.service";
 
 @Controller("")
 export class CommentController {
@@ -14,7 +15,8 @@ export class CommentController {
         private commentService: CommentService,
         private jwtService: JwtService,
         private userService: UserService,
-        private galleryService: GalleryService
+        private galleryService: GalleryService,
+        private blockedUsersService: BlockedUsersService
     ) {
     }
 
@@ -46,11 +48,27 @@ export class CommentController {
                 res.status(auth.code);
                 return auth;
             }
-            const [_, gallery] = auth;
+            const [user, gallery] = auth;
+
+            // Users blocked by the current user
+            const blockedUsers = await this.blockedUsersService.findByBlocker(user.id);
+            const blockedUsersIds = blockedUsers.map(blockedUser => blockedUser.blocked_user_id);
+
+            // Users blocking the current user
+            const blockerUsers = await this.blockedUsersService.findByBlocked(user.id);
+            const blockerUsersIds = blockerUsers.map(blockerUser => blockerUser.user_id);
+
+            // Filter comments to remove unwanted comments (from blocked users and blocking users)
+            const comments = await this.commentService.allForGallery(gallery.id);
+            const filteredComments = comments.filter(comment => {
+                return !blockedUsersIds.includes(comment.user_id) && !blockerUsersIds.includes(comment.user_id);
+            });
+
+            // Return filtered comments
             res.status(200);
             return {
                 code: 200,
-                data: await this.commentService.allForGallery(gallery.id),
+                data: filteredComments,
                 description: `All comments for gallery ${gallery.id}`,
                 status: "OK"
             };

@@ -35,6 +35,22 @@ export class BlockedUsersService {
         });
     }
 
+    findByBlocker(user_id: number): Promise<BlockedUser[]> {
+        return this.blockedUsersRepository.find({
+            where: {
+                user_id: user_id
+            }
+        });
+    }
+
+    findByBlocked(blocked_user_id: number): Promise<BlockedUser[]> {
+        return this.blockedUsersRepository.find({
+            where: {
+                blocked_user_id: blocked_user_id
+            }
+        });
+    }
+
     remove(user_id: number, blocked_user_id: number) {
         return this.blockedUsersRepository.delete({
             user_id: user_id,

@@ -6,13 +6,15 @@ import { CommentService } from "./comment.service";
 import { JwtModule } from "@nestjs/jwt";
 import { UserModule } from "../user/user.module";
 import { GalleryModule } from "../gallery/gallery.module";
+import { BlockedUsersModule } from "../blocked_users/blocked_users.module";
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([Comment]),
         JwtModule.register({ secret: "secret" }),
         UserModule,
-        GalleryModule
+        GalleryModule,
+        BlockedUsersModule
     ],
     controllers: [CommentController],
     providers: [CommentService],
