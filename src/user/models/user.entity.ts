@@ -42,13 +42,23 @@ export class User {
     company_api_key: string; // API key for company users, null for all other account types
 
     @OneToOne(() => Cart, cart => cart.user, { eager: true })
-    @JoinColumn()
+    @JoinColumn({
+        name: "cart_id",
+        referencedColumnName: "id"
+    })
     cart: Cart;
 
-    @OneToMany(type => GalleryReport, galleryReport => galleryReport.user)
+    @Column({
+        type: "int",
+        nullable: true,
+        default: null
+    })
+    cart_id: number;
+
+    @OneToMany(_ => GalleryReport, galleryReport => galleryReport.user)
     galleryReports: GalleryReport[];
 
-    @OneToMany(type => Gallery, gallery => gallery.user)
+    @OneToMany(_ => Gallery, gallery => gallery.user)
     galleries: Gallery[];
 
     @Column({ default: 0 })
