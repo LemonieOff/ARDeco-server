@@ -27,7 +27,7 @@
     "migration:create": "typeorm-ts-node-commonjs migration:create ./migrations/SchemaUpdate",
     "migration:generate": "typeorm-ts-node-commonjs migration:generate ./migrations/SchemaUpdate -d ./dataSource.ts",
     "migration:show": "typeorm-ts-node-commonjs migration:show -d ./dataSource.ts",
-    "migration:run": "typeorm-ts-node-commonjs migration:run -d  ./dataSource.ts",
+    "migration:run": "typeorm-ts-node-commonjs migration:run -d ./dataSource.ts",
     "migration:revert": "typeorm-ts-node-commonjs migration:revert -d ./dataSource.ts"
   },
   "dependencies": {
