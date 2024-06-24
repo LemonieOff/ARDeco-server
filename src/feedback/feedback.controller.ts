@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, Res } from "@nestjs/common";
+import { Body, Controller, Get, Post, Put, Req, Res } from "@nestjs/common";
 import { FeedbackService } from "./feedback.service";
 import { Request, Response } from "express";
 import { Feedback } from "./models/feedback.entity";
@@ -25,7 +25,7 @@ export class FeedbackController {
         status: string
         code: number;
         description: string;
-        data: null | Partial<Feedback>;
+        data: null | Feedback;
     }> {
         try {
             // Check feedback presence
@@ -217,6 +217,146 @@ export class FeedbackController {
         }
     }
 
+    @Put("process/:id")
+    async process(
+        @Req() request: Request,
+        @Res({ passthrough: true }) response: Response
+    ): Promise<{
+        status: string;
+        code: number;
+        description: string;
+        data: null | Feedback;
+    }> {
+        try {
+            // Check authorization of access (user and feedback)
+            const auth = await this.checkAuthorization(request, "process", parseInt(request.params.id));
+            if (!Array.isArray(auth)) {
+                response.status(auth.code);
+                return auth;
+            }
+            const [_, feedback] = auth;
+
+            // Check feedback presence
+            if (!feedback) {
+                response.status(404);
+                return {
+                    code: 404,
+                    data: null,
+                    description: "Feedback not found",
+                    status: "KO"
+                };
+            }
+
+            if (feedback.processed) {
+                response.status(409);
+                return {
+                    code: 409,
+                    data: feedback,
+                    description: "Feedback already processed",
+                    status: "KO"
+                };
+            }
+
+            // Process the feedback
+            const feedbackProcessed = await this.feedbackService.process(feedback.id);
+            if (!feedbackProcessed) {
+                response.status(501);
+                return {
+                    code: 501,
+                    data: null,
+                    description: "Error processing feedback",
+                    status: "KO"
+                };
+            }
+
+            response.status(200);
+            return {
+                code: 200,
+                data: feedbackProcessed,
+                description: `Feedback processed successfully`,
+                status: "OK"
+            };
+        } catch (e) {
+            response.status(501);
+            return {
+                code: 501,
+                data: e,
+                description: "Error processing feedback",
+                status: "KO"
+            };
+        }
+    }
+
+    @Put("unprocess/:id")
+    async unprocess(
+        @Req() request: Request,
+        @Res({ passthrough: true }) response: Response
+    ): Promise<{
+        status: string;
+        code: number;
+        description: string;
+        data: null | Feedback;
+    }> {
+        try {
+            // Check authorization of access (user and feedback)
+            const auth = await this.checkAuthorization(request, "unprocess", parseInt(request.params.id));
+            if (!Array.isArray(auth)) {
+                response.status(auth.code);
+                return auth;
+            }
+            const [_, feedback] = auth;
+
+            // Check feedback presence
+            if (!feedback) {
+                response.status(404);
+                return {
+                    code: 404,
+                    data: null,
+                    description: "Feedback not found",
+                    status: "KO"
+                };
+            }
+
+            if (!feedback.processed) {
+                response.status(409);
+                return {
+                    code: 409,
+                    data: feedback,
+                    description: "Feedback already unprocessed",
+                    status: "KO"
+                };
+            }
+
+            // Unprocess the feedback
+            const feedbackUnprocessed = await this.feedbackService.unprocess(feedback.id);
+            if (!feedbackUnprocessed) {
+                response.status(501);
+                return {
+                    code: 501,
+                    data: null,
+                    description: "Error unprocessing feedback",
+                    status: "KO"
+                };
+            }
+
+            response.status(200);
+            return {
+                code: 200,
+                data: feedbackUnprocessed,
+                description: `Feedback unprocessed successfully`,
+                status: "OK"
+            };
+        } catch (e) {
+            response.status(501);
+            return {
+                code: 501,
+                data: e,
+                description: "Error unprocessing feedback",
+                status: "KO"
+            };
+        }
+    }
+
     async checkAuthorization(
         req: Request,
         mode: string = "create",
@@ -271,7 +411,16 @@ export class FeedbackController {
         }
 
         // When feedback_id is provided, the feedback must be retrieved
-        if (feedback_id) {
+        if (feedback_id !== null) {
+            if (isNaN(feedback_id)) {
+                return {
+                    status: "KO",
+                    code: 400,
+                    description: "Invalid feedback ID",
+                    data: null
+                };
+            }
+
             // Feedback retrieving
             const feedback = await this.feedbackService.findOne(feedback_id);
 

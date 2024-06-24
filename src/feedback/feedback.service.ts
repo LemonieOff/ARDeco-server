@@ -39,52 +39,31 @@ export class FeedbackService {
         return this.feedbackRepository.findOne({ where: { id: id } });
     }
 
-    async create(data: Partial<Feedback>): Promise<Partial<Feedback>> {
+    async create(data: Partial<Feedback>): Promise<Feedback> {
         const feedback = await this.feedbackRepository.save(data);
+        delete feedback.user;
         console.log("Created feedback :", feedback);
-        return {
-            id: feedback.id,
-            type: feedback.type,
-            feedback: feedback.feedback,
-            user_id: feedback.user_id,
-            date: feedback.date,
-            processed: feedback.processed,
-            processed_date: feedback.processed_date
-        };
+        return feedback;
     }
 
-    async process(id: number): Promise<Partial<Feedback>> {
+    async process(id: number): Promise<Feedback> {
         const feedback = await this.feedbackRepository.findOne({ where: { id: id } });
         feedback.processed = true;
         feedback.processed_date = new Date();
         await this.feedbackRepository.save(feedback);
+        delete feedback.user;
         console.log("Processed feedback :", feedback);
-        return {
-            id: feedback.id,
-            type: feedback.type,
-            feedback: feedback.feedback,
-            user_id: feedback.user_id,
-            date: feedback.date,
-            processed: feedback.processed,
-            processed_date: feedback.processed_date
-        };
+        return feedback;
     }
 
-    async unprocess(id: number): Promise<Partial<Feedback>> {
+    async unprocess(id: number): Promise<Feedback> {
         const feedback = await this.feedbackRepository.findOne({ where: { id: id } });
         feedback.processed = false;
         feedback.processed_date = null;
         await this.feedbackRepository.save(feedback);
+        delete feedback.user;
         console.log("Unprocessed feedback :", feedback);
-        return {
-            id: feedback.id,
-            type: feedback.type,
-            feedback: feedback.feedback,
-            user_id: feedback.user_id,
-            date: feedback.date,
-            processed: feedback.processed,
-            processed_date: feedback.processed_date
-        };
+        return feedback;
     }
 
     async delete(id: number) {
