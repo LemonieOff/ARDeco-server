@@ -101,7 +101,7 @@ export class FeedbackController {
     }
 
     @Get()
-    async findAll(
+    async getAll(
         @Req() request: Request,
         @Res({ passthrough: true }) response: Response
     ): Promise<{
@@ -111,7 +111,7 @@ export class FeedbackController {
         data: null | Feedback[];
     }> {
         try {
-            // Check authorization of access (user and gallery)
+            // Check authorization of access (user and feedback)
             const auth = await this.checkAuthorization(request, "getAll");
             if (!Array.isArray(auth)) {
                 response.status(auth.code);
@@ -120,6 +120,84 @@ export class FeedbackController {
 
             // Retrieve all feedbacks
             const feedbacks = await this.feedbackService.all();
+
+            response.status(200);
+            return {
+                code: 200,
+                data: feedbacks,
+                description: `Feedbacks retrieved successfully`,
+                status: "OK"
+            };
+        } catch (e) {
+            response.status(501);
+            return {
+                code: 501,
+                data: e,
+                description: "Error retrieving feedbacks",
+                status: "KO"
+            };
+        }
+    }
+
+    @Get("processed")
+    async getProcessed(
+        @Req() request: Request,
+        @Res({ passthrough: true }) response: Response
+    ): Promise<{
+        status: string;
+        code: number;
+        description: string;
+        data: null | Feedback[];
+    }> {
+        try {
+            // Check authorization of access (user and feedback)
+            const auth = await this.checkAuthorization(request, "getProcessed");
+            if (!Array.isArray(auth)) {
+                response.status(auth.code);
+                return auth;
+            }
+
+            // Retrieve all feedbacks
+            const feedbacks = await this.feedbackService.allProcessed();
+
+            response.status(200);
+            return {
+                code: 200,
+                data: feedbacks,
+                description: `Feedbacks retrieved successfully`,
+                status: "OK"
+            };
+        } catch (e) {
+            response.status(501);
+            return {
+                code: 501,
+                data: e,
+                description: "Error retrieving feedbacks",
+                status: "KO"
+            };
+        }
+    }
+
+    @Get("unprocessed")
+    async getUnprocessed(
+        @Req() request: Request,
+        @Res({ passthrough: true }) response: Response
+    ): Promise<{
+        status: string;
+        code: number;
+        description: string;
+        data: null | Feedback[];
+    }> {
+        try {
+            // Check authorization of access (user and feedback)
+            const auth = await this.checkAuthorization(request, "getUnprocessed");
+            if (!Array.isArray(auth)) {
+                response.status(auth.code);
+                return auth;
+            }
+
+            // Retrieve all feedbacks
+            const feedbacks = await this.feedbackService.allUnprocessed();
 
             response.status(200);
             return {
