@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, Res } from "@nestjs/common";
+import { Body, Controller, Get, Post, Req, Res } from "@nestjs/common";
 import { FeedbackService } from "./feedback.service";
 import { Request, Response } from "express";
 import { Feedback } from "./models/feedback.entity";
@@ -95,6 +95,45 @@ export class FeedbackController {
                 code: 501,
                 data: e,
                 description: "Error creating feedback",
+                status: "KO"
+            };
+        }
+    }
+
+    @Get()
+    async findAll(
+        @Req() request: Request,
+        @Res({ passthrough: true }) response: Response
+    ): Promise<{
+        status: string;
+        code: number;
+        description: string;
+        data: null | Feedback[];
+    }> {
+        try {
+            // Check authorization of access (user and gallery)
+            const auth = await this.checkAuthorization(request, "getAll");
+            if (!Array.isArray(auth)) {
+                response.status(auth.code);
+                return auth;
+            }
+
+            // Retrieve all feedbacks
+            const feedbacks = await this.feedbackService.all();
+
+            response.status(200);
+            return {
+                code: 200,
+                data: feedbacks,
+                description: `Feedbacks retrieved successfully`,
+                status: "OK"
+            };
+        } catch (e) {
+            response.status(501);
+            return {
+                code: 501,
+                data: e,
+                description: "Error retrieving feedbacks",
                 status: "KO"
             };
         }
