@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Put, Req, Res } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Post, Put, Req, Res } from "@nestjs/common";
 import { FeedbackService } from "./feedback.service";
 import { Request, Response } from "express";
 import { Feedback } from "./models/feedback.entity";
@@ -352,6 +352,68 @@ export class FeedbackController {
                 code: 501,
                 data: e,
                 description: "Error unprocessing feedback",
+                status: "KO"
+            };
+        }
+    }
+
+    @Delete(":id")
+    async delete(
+        @Req() request: Request,
+        @Res({ passthrough: true }) response: Response
+    ): Promise<{
+        status: string;
+        code: number;
+        description: string;
+        data: null | Feedback;
+    }> {
+        try {
+            // Check authorization of access (user and feedback)
+            const auth = await this.checkAuthorization(request, "delete", parseInt(request.params.id));
+            if (!Array.isArray(auth)) {
+                response.status(auth.code);
+                return auth;
+            }
+            const [_, feedback] = auth;
+
+            // Check feedback presence
+            if (!feedback) {
+                response.status(404);
+                return {
+                    code: 404,
+                    data: null,
+                    description: "Feedback not found",
+                    status: "KO"
+                };
+            }
+            delete feedback.user;
+
+            // Delete the feedback
+            const result = await this.feedbackService.delete(feedback.id);
+
+            // Error occurring while deleting feedback
+            if (result.affected !== 1) {
+                return {
+                    code: 501,
+                    data: feedback,
+                    description: "Error deleting feedback",
+                    status: "KO"
+                }
+            }
+
+            response.status(200);
+            return {
+                code: 200,
+                data: feedback,
+                description: `Feedback deleted successfully`,
+                status: "OK"
+            };
+        } catch (e) {
+            response.status(501);
+            return {
+                code: 501,
+                data: e,
+                description: "Error deleting feedback",
                 status: "KO"
             };
         }

@@ -67,7 +67,7 @@ export class FeedbackService {
     }
 
     async delete(id: number) {
-        console.log("Deleted feedback ", id);
+        console.log("Deleted feedback :", id);
         return this.feedbackRepository.delete(id);
     }
 }
