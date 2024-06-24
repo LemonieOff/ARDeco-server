@@ -215,6 +215,7 @@ export class AuthController {
     @Post("login")
     async login(
         @Body() body: LoginDto,
+        @Body("remember") remember: boolean,
         @Res({ passthrough: true }) response: Response
     ) {
         const requestedUserByEmail = await this.userService.findOne({
@@ -255,11 +256,21 @@ export class AuthController {
                 id: requestedUserByEmail.id,
                 email: requestedUserByEmail.email
             });
-            response.cookie("jwt", jwt, {
+
+            // Create cookie options for JWT token based on remember me value
+            let cookieOptions = {
                 httpOnly: true,
                 sameSite: "none",
                 secure: true
-            });
+            }
+            if (remember) {
+                console.log(requestedUserByEmail.email + " : Remember me !");
+                cookieOptions["expires"] = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7 * 4); // 1 month
+            } else {
+                console.log(requestedUserByEmail.email + " : No remember me !");
+            }
+
+            response.cookie("jwt", jwt, cookieOptions as any);
             response.status(200);
             return {
                 status: "OK",
