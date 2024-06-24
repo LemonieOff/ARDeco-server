@@ -3,6 +3,7 @@ import { Cart } from "../../cart/models/cart.entity";
 import { GalleryReport } from "../../report/gallery/models/gallery_reports.entity";
 import { Gallery } from "../../gallery/models/gallery.entity";
 import { Comment } from "../../comment/models/comment.entity";
+import { Feedback } from "../../feedback/models/feedback.entity";
 
 @Entity("users")
 export class User {
@@ -82,4 +83,7 @@ export class User {
 
     @OneToMany(_ => Comment, galleryComment => galleryComment.user)
     galleryComments: Comment[];
+
+    @OneToMany(_ => Feedback, feedback => feedback.user)
+    feedbacks: Feedback[];
 }

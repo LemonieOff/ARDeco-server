@@ -23,6 +23,7 @@ import { GalleryReportsModule } from "./report/gallery/gallery_reports.module";
 import { ProfilePictureModule } from "./profile_picture/profile_picture.module";
 import { CreateCompanyModule } from "./create-company/create-company.module";
 import { CommentModule } from "./comment/comment.module";
+import { FeedbackModule } from "./feedback/feedback.module";
 
 @Module({
     imports: [
@@ -61,7 +62,8 @@ import { CommentModule } from "./comment/comment.module";
         GalleryReportsModule,
         ProfilePictureModule,
         CreateCompanyModule,
-        CommentModule
+        CommentModule,
+        FeedbackModule
     ],
     controllers: [AppController],
     providers: [AppService, ConfigService]
