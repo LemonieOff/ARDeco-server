@@ -3,7 +3,7 @@ import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Req, Res } fr
 import { UserService } from "src/user/user.service";
 import * as bcrypt from "bcryptjs";
 import { RegisterDto } from "./models/register.dto";
-import { JwtService } from "@nestjs/jwt";
+import { JwtService, JwtSignOptions } from "@nestjs/jwt";
 import { Request, Response } from "express";
 // import { AuthGuard } from "@nestjs/passport";
 import { LoginDto } from "src/auth/models/login.dto";
@@ -180,24 +180,27 @@ export class AuthController {
                 await this.userService.update(res.id, { checkEmailSent: new Date() });
             }
 
-            // Send JWT token
-            const jwt = await this.jwtService.signAsync({
-                id: res.id,
-                email: res.email
-            });
-
             // Create cookie options for JWT token based on remember me value
             let cookieOptions = {
                 httpOnly: true,
                 sameSite: "none",
                 secure: true
             }
+            let jwtOptions: JwtSignOptions = {}
             if (remember) {
                 console.log(user.email + " : Remember me !");
                 cookieOptions["expires"] = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7 * 4); // 1 month
+                jwtOptions = { expiresIn: "28d" };
             } else {
                 console.log(user.email + " : No remember me !");
+                jwtOptions = { expiresIn: "1d" };
             }
+
+            // Send JWT token
+            const jwt = await this.jwtService.signAsync({
+                id: res.id,
+                email: res.email
+            }, jwtOptions);
 
             response.cookie("jwt", jwt, cookieOptions as any);
             response.status(201);
@@ -265,23 +268,27 @@ export class AuthController {
             };
         }
         try {
-            const jwt = await this.jwtService.signAsync({
-                id: requestedUserByEmail.id,
-                email: requestedUserByEmail.email
-            });
-
             // Create cookie options for JWT token based on remember me value
             let cookieOptions = {
                 httpOnly: true,
                 sameSite: "none",
                 secure: true
             }
+            let jwtOptions: JwtSignOptions = {}
             if (remember) {
                 console.log(requestedUserByEmail.email + " : Remember me !");
                 cookieOptions["expires"] = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7 * 4); // 1 month
+                jwtOptions = { expiresIn: "28d" };
             } else {
                 console.log(requestedUserByEmail.email + " : No remember me !");
+                jwtOptions = { expiresIn: "1d" };
             }
+
+            // Send JWT token
+            const jwt = await this.jwtService.signAsync({
+                id: requestedUserByEmail.id,
+                email: requestedUserByEmail.email
+            }, jwtOptions);
 
             response.cookie("jwt", jwt, cookieOptions as any);
             response.status(200);

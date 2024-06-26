@@ -11,8 +11,7 @@ import { ArchiveModule } from "../archive/archive.module";
     imports: [
         TypeOrmModule.forFeature([Catalog]),
         JwtModule.register({
-            secret: "secret",
-            signOptions: { expiresIn: "1d" }
+            secret: "secret"
         }),
         UserModule,
         forwardRef(() => ArchiveModule)
