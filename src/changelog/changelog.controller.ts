@@ -8,8 +8,7 @@ import {
     Post,
     Put,
     Req,
-    Res,
-    UseGuards
+    Res
 } from '@nestjs/common';
 import {ChangelogService} from './changelog.service';
 import {UserService} from 'src/user/user.service';
@@ -27,13 +26,21 @@ export class ChangelogController {
         private userService: UserService,
     ) {}
 
+        //get latest changelog
+    @Get('latest')
+        async getLatestChangelog(@Res() res: Response) {
+        const changelogs = await this.changelogService.all();
+        const latestChangelog = changelogs[changelogs.length - 1];
+        return res.status(HttpStatus.OK).json(latestChangelog);
+    }    
+
     @Get('')
     async all(@Res() res: Response) {
         const changelogs = await this.changelogService.all();
         return res.status(HttpStatus.OK).json(changelogs);
     }
 
-    @Post('')// wit req cookie check if user is admin
+    @Post('')   
     async create(@Body() data: ChangelogDto, @Req() req: Request, @Res() res: Response) {
         const cookie = req.cookies["jwt"];
         const token = cookie ? this.jwtService.verify(cookie) : null;
@@ -46,7 +53,7 @@ export class ChangelogController {
         return {
             status: 'OK',
             code: HttpStatus.OK,
-            description: 'Ticket was created',
+            description: 'Changelog was created',
             data: changelog,
         };
     }
@@ -81,17 +88,6 @@ export class ChangelogController {
         }
         return res.status(HttpStatus.OK).json(changelog);
     }
-
-    //get latest changelog
-    @Get('latest')
-    async getLatestChangelog(@Res() res: Response) {
-        const changelog = await this.changelogService.findOne({ order: { id: "DESC" } });
-        if (!changelog) {
-            throw new NotFoundException("Changelog does not exist!");
-        }
-        return res.status(HttpStatus.OK).json(changelog);
-    }
-
 }
 
 
