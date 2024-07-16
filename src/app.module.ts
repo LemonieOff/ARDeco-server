@@ -24,6 +24,7 @@ import { ProfilePictureModule } from "./profile_picture/profile_picture.module";
 import { CreateCompanyModule } from "./create-company/create-company.module";
 import { CommentModule } from "./comment/comment.module";
 import { FeedbackModule } from "./feedback/feedback.module";
+import { ChangelogModule} from "./changelog/changelog.module";
 
 @Module({
     imports: [
@@ -63,7 +64,8 @@ import { FeedbackModule } from "./feedback/feedback.module";
         ProfilePictureModule,
         CreateCompanyModule,
         CommentModule,
-        FeedbackModule
+        FeedbackModule,
+        ChangelogModule
     ],
     controllers: [AppController],
     providers: [AppService, ConfigService]
