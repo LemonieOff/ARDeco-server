@@ -119,7 +119,7 @@ export class PaymentsService {
         const pdfDoc = new PDFDocument();
         pdfDoc.pipe(fs.createWriteStream(invoicePath));
 
-        this.generateHeader(pdfDoc, command)
+        await this.generateHeader(pdfDoc, command)
 
         const values = command.furniture.split(",");
         let itemsInCart = []
@@ -145,9 +145,9 @@ export class PaymentsService {
                 }
             }
         }
-        this.addCommandPrice(pdfDoc, command.total_taxes, y * 30 + 280, "Prix HT")
-        this.addCommandPrice(pdfDoc, command.total_amount, y * 30 + 310, "Prix TTC")
-        this.generateFooter(pdfDoc, command)
+        await this.addCommandPrice(pdfDoc, command.total_taxes, y * 30 + 280, "Prix HT")
+        await this.addCommandPrice(pdfDoc, command.total_amount, y * 30 + 310, "Prix TTC")
+        await this.generateFooter(pdfDoc, command)
 
         pdfDoc.end();
     }
@@ -233,7 +233,7 @@ export class PaymentsService {
     async delete(id: number): Promise<any> {
         //return this.commandRepository.delete(id);
         console.log("Deleting command ", id);
-        this.commandRepository
+        await this.commandRepository
             .createQueryBuilder("command")
             .delete()
             .from(Command)

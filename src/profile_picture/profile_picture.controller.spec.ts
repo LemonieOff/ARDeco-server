@@ -156,7 +156,7 @@ describe('ProfilePictureController', () => {
             const result = await controller['checkAuthorizationForUser'](req, res, 'set', 2);
             expect(result).toBe(user);
         });
-    })*/;
+    });*/
 
     // Tests pour getCurrentUserProfilePicture
     describe('getCurrentUserProfilePicture', () => {

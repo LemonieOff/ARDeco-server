@@ -172,7 +172,7 @@ export class AuthController {
 
             // Send email
             const emailResult = this.mailService.sendWelcomeAndVerification(res.email, res.checkEmailToken);
-            let emailStatus = "";
+            let emailStatus: string;
             if (emailResult instanceof Error) {
                 emailStatus = "email was not sent due to an error";
             } else {
@@ -186,7 +186,7 @@ export class AuthController {
                 sameSite: "none",
                 secure: true
             }
-            let jwtOptions: JwtSignOptions = {}
+            let jwtOptions: JwtSignOptions;
             if (remember) {
                 console.log(user.email + " : Remember me !");
                 cookieOptions["expires"] = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7 * 4); // 1 month
@@ -274,7 +274,7 @@ export class AuthController {
                 sameSite: "none",
                 secure: true
             }
-            let jwtOptions: JwtSignOptions = {}
+            let jwtOptions: JwtSignOptions;
             if (remember) {
                 console.log(requestedUserByEmail.email + " : Remember me !");
                 cookieOptions["expires"] = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7 * 4); // 1 month

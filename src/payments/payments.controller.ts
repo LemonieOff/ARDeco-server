@@ -40,7 +40,7 @@ export class PaymentsController {
         @Body() id
     ) {
         console.log("ID : ", id.id);
-        this.paymentService.createInvoice(id.id)
+        await this.paymentService.createInvoice(id.id)
     }
 
     @Post()

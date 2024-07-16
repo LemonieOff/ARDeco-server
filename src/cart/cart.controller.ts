@@ -43,7 +43,7 @@ export class CartController {
                 user: usr
             };
             const cart = await this.cartService.create(obj);
-            this.userService.update(usr.id, { cart: cart });
+            await this.userService.update(usr.id, { cart: cart });
         }
         console.log(
             "User : ",
@@ -138,7 +138,7 @@ export class CartController {
                 user: usr
             };
             const cart = await this.cartService.create(obj);
-            this.userService.update(usr.id, { cart: cart });
+            await this.userService.update(usr.id, { cart: cart });
         }
         console.log(
             "User : ",

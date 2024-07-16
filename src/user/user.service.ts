@@ -40,7 +40,7 @@ export class UserService {
     async delete(id: number): Promise<any> {
         //return this.userRepository.delete(id);
         console.log("Deleting user ", id);
-        this.userRepository
+        await this.userRepository
             .createQueryBuilder("user")
             .delete()
             .from(User)

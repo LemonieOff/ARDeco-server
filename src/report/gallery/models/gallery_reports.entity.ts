@@ -12,11 +12,11 @@ export class GalleryReport {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(type => Gallery, gallery => gallery.galleryReports, { onDelete: "CASCADE" })
+    @ManyToOne(() => Gallery, gallery => gallery.galleryReports, { onDelete: "CASCADE" })
     @JoinColumn({ name: "gallery_id" })
     gallery: Gallery;
 
-    @ManyToOne(type => User, user => user.galleryReports, { onDelete: "CASCADE" })
+    @ManyToOne(() => User, user => user.galleryReports, { onDelete: "CASCADE" })
     @JoinColumn({ name: "user_id" })
     user: User;
 

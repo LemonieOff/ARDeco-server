@@ -8,7 +8,7 @@ export class Gallery {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(type => User, user => user.galleries, { onDelete: "CASCADE" })
+    @ManyToOne(() => User, user => user.galleries, { onDelete: "CASCADE" })
     @JoinColumn({
         name: "user_id",
         referencedColumnName: "id"
@@ -36,9 +36,9 @@ export class Gallery {
     @Column({ type: "varchar" })
     room_type: string;
 
-    @OneToMany(type => GalleryReport, galleryReport => galleryReport.gallery)
+    @OneToMany(() => GalleryReport, galleryReport => galleryReport.gallery)
     galleryReports: GalleryReport[];
 
-    @OneToMany(type => Comment, comment => comment.gallery)
+    @OneToMany(() => Comment, comment => comment.gallery)
     comments: Comment[];
 }
