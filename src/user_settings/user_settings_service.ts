@@ -1,9 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { FindOptionsRelations, FindOptionsSelect, FindOptionsWhere, Repository } from "typeorm";
+import { DeepPartial, FindOneOptions, FindOptionsSelect, FindOptionsWhere, Repository } from "typeorm";
 import { UserSettings } from "./models/user_settings.entity";
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
-import { DeepPartial } from "typeorm";
 
 @Injectable()
 export class UserSettingsService {
@@ -21,13 +20,22 @@ export class UserSettingsService {
         return this.userRepository.save(data);
     }
 
-    async findOne(condit: {}, select: FindOptionsSelect<UserSettings> | null = null): Promise<UserSettings> {
+    async findOne(condit: FindOptionsWhere<UserSettings>, select: FindOptionsSelect<UserSettings> | null = null): Promise<UserSettings> {
+        const defaultOptions: FindOneOptions<UserSettings> = {
+            where: condit,
+            relations: {
+                user: true
+            },
+            loadEagerRelations: false
+        };
+
+        let settings: UserSettings;
         if (select === null) {
-            return this.userRepository.findOne({ where: condit });
+            settings = await this.userRepository.findOne({ ...defaultOptions, loadRelationIds: true });
+        } else {
+            settings = await this.userRepository.findOne({ ...defaultOptions, select: select });
         }
-        else {
-            return this.userRepository.findOne({ where: condit, select : select });
-        }
+        return settings;
     }
 
     async update(

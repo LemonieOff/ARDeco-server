@@ -33,7 +33,12 @@ export class UserSettingsController {
         @Param("id") id: number,
         @Res({ passthrough: true }) res: Response
     ) {
-        const item = await this.userSettingsService.findOne({ id: id });
+        const item = await this.userSettingsService.findOne({ id: id }, {
+            user: {
+                id: true,
+                role: true
+            }
+        });
 
         const authorizedUser = await this.checkAuthorization(
             req,
@@ -61,7 +66,13 @@ export class UserSettingsController {
         if (!(user instanceof User)) return user;
 
         const existingSettings = await this.userSettingsService.findOne({
-            user_id: user.id
+            user: {
+                id: user.id
+            }
+        }, {
+            user: {
+                id: true,
+            },
         });
         if (existingSettings) {
             res.status(200);
