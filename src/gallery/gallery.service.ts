@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { FindManyOptions, FindOptionsRelations, FindOptionsWhere, Repository } from "typeorm";
+import { FindManyOptions, FindOptionsRelations, FindOptionsSelect, FindOptionsWhere, Repository } from "typeorm";
 import { Gallery } from "./models/gallery.entity";
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
@@ -42,9 +42,10 @@ export class GalleryService {
         user_id: number | null,
         limit: number | null,
         begin_pos: number | null,
-        relationOptions: [FindOptionsRelations<Gallery>, string[]] = [{}, []]
+        relations: FindOptionsRelations<Gallery> = {},
+        select: FindOptionsSelect<Gallery> = {},
+        loadIds: boolean = false
     ): Promise<Gallery[]> {
-        const [relations, idsLoads] = relationOptions;
         let where: FindOptionsWhere<Gallery> = { visibility: true }; // Public items only
         if (user_id) {
             where = {
@@ -56,9 +57,9 @@ export class GalleryService {
         let options: FindManyOptions<Gallery> = {
             where: where,
             relations: relations,
-            loadRelationIds: {
-                relations: idsLoads
-            }
+            loadRelationIds: loadIds,
+            loadEagerRelations: false,
+            select: select,
         };
         if (limit) {
             options = {

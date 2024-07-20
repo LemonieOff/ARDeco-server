@@ -16,7 +16,7 @@ import { Gallery } from "./models/gallery.entity";
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 import { User } from "../user/models/user.entity";
 import { UserService } from "../user/user.service";
-import { FindOptionsRelations } from "typeorm";
+import { FindOptionsRelations, FindOptionsSelect } from "typeorm";
 
 @Controller(["gallery", "galery"])
 export class GalleryController {
@@ -24,7 +24,8 @@ export class GalleryController {
         private galleryService: GalleryService,
         private jwtService: JwtService,
         private userService: UserService
-    ) {}
+    ) {
+    }
 
     // Get all gallery items
     @Get()
@@ -120,20 +121,50 @@ export class GalleryController {
             begin_pos = null;
         }
 
+        // Default relations and selected relations' items
+        const relations: FindOptionsRelations<Gallery> = {
+            comments: true,
+            user: true
+        };
+        const select: FindOptionsSelect<Gallery> = {
+            id: true,
+            visibility: true,
+            description: true,
+            furniture: true,
+            name: true,
+            room_type: true,
+            comments: {
+                id: true
+            },
+            user: {
+                id: true
+            }
+        };
+
+        // Include more information about the user if required
         const user_details = req.query["user_details"];
-        const options: [FindOptionsRelations<Gallery>, string[]] = [{}, ["user"]];
         if (user_details !== undefined) {
-            options[0] = {
-                user: true
+            select.user = {
+                id: true,
+                role: true,
+                first_name: true,
+                last_name: true,
+                profile_picture_id: true
             };
-            options[1] = [];
+        }
+
+        // Include more information about the comments if required
+        const comments_details = req.query["comments_details"];
+        if (comments_details !== undefined) {
+            select.comments = true;
         }
 
         const items = await this.galleryService.findAll(
             user_id,
             limit,
             begin_pos,
-            options
+            relations,
+            select
         );
 
         res.status(200);
