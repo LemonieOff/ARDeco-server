@@ -1,21 +1,23 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { FindOptionsSelect, Repository } from "typeorm";
+import { FindOptionsRelations, FindOptionsSelect, FindOptionsWhere, Repository } from "typeorm";
 import { UserSettings } from "./models/user_settings.entity";
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
+import { DeepPartial } from "typeorm";
 
 @Injectable()
 export class UserSettingsService {
     constructor(
         @InjectRepository(UserSettings)
         private readonly userRepository: Repository<UserSettings>
-    ) {}
+    ) {
+    }
 
     async all(): Promise<UserSettings[]> {
         return this.userRepository.find();
     }
 
-    async create(data): Promise<UserSettings> {
+    async create(data: DeepPartial<UserSettings>): Promise<UserSettings> {
         return this.userRepository.save(data);
     }
 
@@ -37,12 +39,7 @@ export class UserSettingsService {
     }
 
     async delete(id: number): Promise<any> {
-        console.log("Deleting user ", id);
-        return this.userRepository
-            .createQueryBuilder("user_settings")
-            .delete()
-            .from(UserSettings)
-            .where("id = id", { id: id })
-            .execute();
+        console.log("Deleting user settings' :", id);
+        return await this.userRepository.delete({ id: id });
     }
 }

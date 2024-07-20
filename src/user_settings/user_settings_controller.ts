@@ -16,6 +16,7 @@ import { UserSettings } from "./models/user_settings.entity";
 import { User } from "../user/models/user.entity";
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 import { UserService } from "../user/user.service";
+import { UserSettingsCreateDto } from "./models/user_settings_create.dto";
 
 @Controller("settings")
 export class UserSettingsController {
@@ -23,7 +24,8 @@ export class UserSettingsController {
         private userSettingsService: UserSettingsService,
         private jwtService: JwtService,
         private userService: UserService
-    ) {}
+    ) {
+    }
 
     @Get(":id")
     async get(
@@ -83,7 +85,7 @@ export class UserSettingsController {
     @Post()
     async post(
         @Req() req: Request,
-        @Body() settings: QueryPartialEntity<UserSettings>,
+        @Body() settings: UserSettingsCreateDto,
         @Res({ passthrough: true }) res: Response
     ) {
         const cookie = req.cookies["jwt"];
@@ -115,7 +117,9 @@ export class UserSettingsController {
 
         // Check if user settings already exist, if so, return an error and don't create a new one
         const existingSettings = await this.userSettingsService.findOne({
-            user_id: user.id
+            user: {
+                id: user.id
+            }
         });
         if (existingSettings) {
             res.status(400);
@@ -128,8 +132,7 @@ export class UserSettingsController {
         }
 
         try {
-            settings.user_id = user.id;
-            const result = await this.userSettingsService.create(settings);
+            const result = await this.userSettingsService.create({ ...settings, user: { id: user.id } });
             res.status(201);
             return {
                 status: "OK",
@@ -176,6 +179,7 @@ export class UserSettingsController {
                 data: result
             };
         } catch (e) {
+            console.error(e);
             res.status(500);
             return {
                 status: "OK",
