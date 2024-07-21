@@ -167,8 +167,12 @@ export class AuthController {
             const res = await this.userService.create(user);
 
             // Create settings for the user
-            const settings = await this.userSettingsService.create({ user_id: res.id });
-            console.log("Settings created for user ", settings.user_id);
+            const settings = await this.userSettingsService.create({
+                user: {
+                    id: res.id
+                }
+            });
+            console.log("Settings created for user ", settings.user.id);
 
             // Send email
             const emailResult = this.mailService.sendWelcomeAndVerification(res.email, res.checkEmailToken);
@@ -185,8 +189,8 @@ export class AuthController {
                 httpOnly: true,
                 sameSite: "none",
                 secure: true
-            }
-            let jwtOptions: JwtSignOptions = {}
+            };
+            let jwtOptions: JwtSignOptions = {};
             if (remember) {
                 console.log(user.email + " : Remember me !");
                 cookieOptions["expires"] = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7 * 4); // 1 month
@@ -273,8 +277,8 @@ export class AuthController {
                 httpOnly: true,
                 sameSite: "none",
                 secure: true
-            }
-            let jwtOptions: JwtSignOptions = {}
+            };
+            let jwtOptions: JwtSignOptions = {};
             if (remember) {
                 console.log(requestedUserByEmail.email + " : Remember me !");
                 cookieOptions["expires"] = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7 * 4); // 1 month

@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { FindManyOptions, FindOptionsRelations, FindOptionsWhere, Repository } from "typeorm";
+import { FindManyOptions, FindOptionsRelations, FindOptionsSelect, FindOptionsWhere, Repository } from "typeorm";
 import { Gallery } from "./models/gallery.entity";
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
@@ -27,24 +27,31 @@ export class GalleryService {
         return await this.galleryRepository.save(data);
     }
 
-    async findOne(where: FindOptionsWhere<Gallery>, options: [FindOptionsRelations<Gallery>, string[]] = [{}, []]): Promise<Gallery> {
-        const [relations, idsLoads] = options;
+    // TODO : Blocked users restriction (gallery + comments)
+    async findOne(
+        where: FindOptionsWhere<Gallery>,
+        relations: FindOptionsRelations<Gallery> = {},
+        select: FindOptionsSelect<Gallery> = {},
+        loadIds: boolean = false
+    ): Promise<Gallery> {
         return this.galleryRepository.findOne({
             where: where,
             relations: relations,
-            loadRelationIds: {
-                relations: idsLoads
-            }
+            loadRelationIds: loadIds,
+            loadEagerRelations: false,
+            select: select
         });
     }
 
+    // TODO : Blocked users restriction (galleries + comments)
     async findAll(
         user_id: number | null,
         limit: number | null,
         begin_pos: number | null,
-        relationOptions: [FindOptionsRelations<Gallery>, string[]] = [{}, []]
+        relations: FindOptionsRelations<Gallery> = {},
+        select: FindOptionsSelect<Gallery> = {},
+        loadIds: boolean = false
     ): Promise<Gallery[]> {
-        const [relations, idsLoads] = relationOptions;
         let where: FindOptionsWhere<Gallery> = { visibility: true }; // Public items only
         if (user_id) {
             where = {
@@ -56,9 +63,9 @@ export class GalleryService {
         let options: FindManyOptions<Gallery> = {
             where: where,
             relations: relations,
-            loadRelationIds: {
-                relations: idsLoads
-            }
+            loadRelationIds: loadIds,
+            loadEagerRelations: false,
+            select: select
         };
         if (limit) {
             options = {
@@ -75,6 +82,7 @@ export class GalleryService {
         return this.galleryRepository.find(options);
     }
 
+    // TODO : Blocked users restriction (gallery + comments)
     async findForUser(user_id: number, visibility: boolean): Promise<Gallery[]> {
         let visibilityQuery = visibility === false ? { user_id: user_id } : {
             user_id: user_id,
@@ -82,7 +90,34 @@ export class GalleryService {
         };
 
         return this.galleryRepository.find({
-            where: visibilityQuery
+            where: visibilityQuery,
+            relations: {
+                user: {
+                    settings: true
+                },
+                comments: true
+            },
+            loadEagerRelations: false,
+            loadRelationIds: false,
+            select: {
+                id: true,
+                visibility: true,
+                description: true,
+                furniture: true,
+                name: true,
+                room_type: true,
+                comments: true,
+                user: {
+                    id: true,
+                    role: true,
+                    first_name: true,
+                    last_name: true,
+                    profile_picture_id: true,
+                    settings: {
+                        display_lastname_on_public: true
+                    }
+                }
+            }
         });
     }
 

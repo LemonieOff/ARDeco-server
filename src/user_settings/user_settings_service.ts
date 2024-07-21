@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { FindOptionsSelect, Repository } from "typeorm";
+import { DeepPartial, FindOneOptions, FindOptionsSelect, FindOptionsWhere, Repository } from "typeorm";
 import { UserSettings } from "./models/user_settings.entity";
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
@@ -9,23 +9,33 @@ export class UserSettingsService {
     constructor(
         @InjectRepository(UserSettings)
         private readonly userRepository: Repository<UserSettings>
-    ) {}
+    ) {
+    }
 
     async all(): Promise<UserSettings[]> {
         return this.userRepository.find();
     }
 
-    async create(data): Promise<UserSettings> {
+    async create(data: DeepPartial<UserSettings>): Promise<UserSettings> {
         return this.userRepository.save(data);
     }
 
-    async findOne(condit: {}, select: FindOptionsSelect<UserSettings> | null = null): Promise<UserSettings> {
+    async findOne(condit: FindOptionsWhere<UserSettings>, select: FindOptionsSelect<UserSettings> | null = null): Promise<UserSettings> {
+        const defaultOptions: FindOneOptions<UserSettings> = {
+            where: condit,
+            relations: {
+                user: true
+            },
+            loadEagerRelations: false
+        };
+
+        let settings: UserSettings;
         if (select === null) {
-            return this.userRepository.findOne({ where: condit });
+            settings = await this.userRepository.findOne({ ...defaultOptions, loadRelationIds: true });
+        } else {
+            settings = await this.userRepository.findOne({ ...defaultOptions, select: select });
         }
-        else {
-            return this.userRepository.findOne({ where: condit, select : select });
-        }
+        return settings;
     }
 
     async update(
@@ -37,12 +47,7 @@ export class UserSettingsService {
     }
 
     async delete(id: number): Promise<any> {
-        console.log("Deleting user ", id);
-        return this.userRepository
-            .createQueryBuilder("user_settings")
-            .delete()
-            .from(UserSettings)
-            .where("id = id", { id: id })
-            .execute();
+        console.log("Deleting user settings' :", id);
+        return await this.userRepository.delete({ id: id });
     }
 }
