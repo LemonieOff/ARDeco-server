@@ -27,6 +27,7 @@ export class GalleryService {
         return await this.galleryRepository.save(data);
     }
 
+    // TODO : Blocked users restriction (gallery + comments)
     async findOne(
         where: FindOptionsWhere<Gallery>,
         relations: FindOptionsRelations<Gallery> = {},
@@ -42,6 +43,7 @@ export class GalleryService {
         });
     }
 
+    // TODO : Blocked users restriction (galleries + comments)
     async findAll(
         user_id: number | null,
         limit: number | null,
@@ -80,6 +82,7 @@ export class GalleryService {
         return this.galleryRepository.find(options);
     }
 
+    // TODO : Blocked users restriction (gallery + comments)
     async findForUser(user_id: number, visibility: boolean): Promise<Gallery[]> {
         let visibilityQuery = visibility === false ? { user_id: user_id } : {
             user_id: user_id,
@@ -87,7 +90,29 @@ export class GalleryService {
         };
 
         return this.galleryRepository.find({
-            where: visibilityQuery
+            where: visibilityQuery,
+            relations: {
+                user: true,
+                comments: true
+            },
+            loadEagerRelations: false,
+            loadRelationIds: false,
+            select: {
+                id: true,
+                visibility: true,
+                description: true,
+                furniture: true,
+                name: true,
+                room_type: true,
+                comments: true,
+                user: {
+                    id: true,
+                    role: true,
+                    first_name: true,
+                    last_name: true,
+                    profile_picture_id: true
+                }
+            }
         });
     }
 
