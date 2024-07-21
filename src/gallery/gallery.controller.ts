@@ -183,16 +183,43 @@ export class GalleryController {
         @Param("id") id: number,
         @Res({ passthrough: true }) res: Response
     ) {
+        // Default relations and selected relations' items
+        const relations: FindOptionsRelations<Gallery> = {
+            comments: true,
+            user: true
+        };
+        const select: FindOptionsSelect<Gallery> = {
+            id: true,
+            visibility: true,
+            description: true,
+            furniture: true,
+            name: true,
+            room_type: true,
+            comments: {
+                id: true
+            },
+            user: {
+                id: true
+            }
+        };
+
         const user_details = req.query["user_details"];
-        const options: [FindOptionsRelations<Gallery>, string[]] = [{}, ["user"]];
         if (user_details !== undefined) {
-            options[0] = {
-                user: true
+            select.user = {
+                id: true,
+                role: true,
+                first_name: true,
+                last_name: true,
+                profile_picture_id: true
             };
-            options[1] = [];
         }
 
-        const item = await this.galleryService.findOne({ id: id }, options);
+        const comments_details = req.query["comments_details"];
+        if (comments_details !== undefined) {
+            select.comments = true;
+        }
+
+        const item = await this.galleryService.findOne({ id: id }, relations, select);
 
         const authorizedUser = await this.checkAuthorization(
             req,

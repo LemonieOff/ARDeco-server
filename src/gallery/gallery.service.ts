@@ -27,14 +27,18 @@ export class GalleryService {
         return await this.galleryRepository.save(data);
     }
 
-    async findOne(where: FindOptionsWhere<Gallery>, options: [FindOptionsRelations<Gallery>, string[]] = [{}, []]): Promise<Gallery> {
-        const [relations, idsLoads] = options;
+    async findOne(
+        where: FindOptionsWhere<Gallery>,
+        relations: FindOptionsRelations<Gallery> = {},
+        select: FindOptionsSelect<Gallery> = {},
+        loadIds: boolean = false
+    ): Promise<Gallery> {
         return this.galleryRepository.findOne({
             where: where,
             relations: relations,
-            loadRelationIds: {
-                relations: idsLoads
-            }
+            loadRelationIds: loadIds,
+            loadEagerRelations: false,
+            select: select
         });
     }
 
@@ -59,7 +63,7 @@ export class GalleryService {
             relations: relations,
             loadRelationIds: loadIds,
             loadEagerRelations: false,
-            select: select,
+            select: select
         };
         if (limit) {
             options = {
