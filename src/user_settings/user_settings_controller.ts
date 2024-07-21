@@ -1,14 +1,4 @@
-import {
-    Body,
-    Controller,
-    Delete,
-    Get,
-    Param,
-    Post,
-    Put,
-    Req,
-    Res
-} from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, Req, Res } from "@nestjs/common";
 import { UserSettingsService } from "./user_settings_service";
 import { Request, Response } from "express";
 import { JwtService } from "@nestjs/jwt";
@@ -72,8 +62,8 @@ export class UserSettingsController {
             }
         }, {
             user: {
-                id: true,
-            },
+                id: true
+            }
         });
         if (existingSettings) {
             res.status(200);
@@ -97,7 +87,7 @@ export class UserSettingsController {
     @Post()
     async post(
         @Req() req: Request,
-        @Body() settings: UserSettingsCreateDto,
+        @Body() settings: UserSettingsCreateDto, // TODO : Validate DTO
         @Res({ passthrough: true }) res: Response
     ) {
         const cookie = req.cookies["jwt"];
@@ -206,7 +196,7 @@ export class UserSettingsController {
     async editViaParam(
         @Req() req: Request,
         @Param("id") id: number,
-        @Body() item: QueryPartialEntity<UserSettings>,
+        @Body() item: QueryPartialEntity<UserSettings>, // TODO : DTO, validate DTO
         @Res({ passthrough: true }) res: Response
     ) {
         return await this.editItem(req, id, item, res);
@@ -216,15 +206,19 @@ export class UserSettingsController {
     @Put()
     async editOwnSettings(
         @Req() req: Request,
-        @Body() item: QueryPartialEntity<UserSettings>,
+        @Body() item: QueryPartialEntity<UserSettings>, // TODO : DTO, validate DTO
         @Res({ passthrough: true }) res: Response
     ) {
         const user = await this.checkAuthorization(req, res, false, null);
         if (!(user instanceof User)) return user;
 
         const existingSettings = await this.userSettingsService.findOne(
-            { user_id: user.id },
-            { id: true }
+            {
+                user: {
+                    id: user.id
+                }
+            },
+            { id: true, user: { id: true } }
         );
 
         if (!existingSettings) {
@@ -243,10 +237,10 @@ export class UserSettingsController {
     // Edit current user's settings
     @Put("/user/:user_id")
     async editSpecificUserSettings(
-      @Req() req: Request,
-      @Param("user_id") user_id: number,
-      @Body() item: QueryPartialEntity<UserSettings>,
-      @Res({ passthrough: true }) res: Response
+        @Req() req: Request,
+        @Param("user_id") user_id: number,
+        @Body() item: QueryPartialEntity<UserSettings>, // TODO : DTO, validate DTO
+        @Res({ passthrough: true }) res: Response
     ) {
         try {
             user_id = Number(user_id);
@@ -261,11 +255,9 @@ export class UserSettingsController {
         }
 
         const existingSettings = await this.userSettingsService.findOne(
-          { user_id: user_id },
-          { id: true }
+          { user: { id: user_id } },
+          { id: true, user: { id: true } }
         );
-
-        console.log(existingSettings);
 
         if (!existingSettings) {
             res.status(404);
@@ -287,7 +279,13 @@ export class UserSettingsController {
         res: Response
     ) {
         try {
-            const item = await this.userSettingsService.findOne({ id: id }, { id: true, user_id: true });
+            const item = await this.userSettingsService.findOne({ id: id }, {
+                id: true,
+                user: {
+                    id: true,
+                    role: true
+                }
+            });
 
             const authorizedUser = await this.checkAuthorization(
                 req,
@@ -306,14 +304,14 @@ export class UserSettingsController {
                 data: result
             };
         } catch (e) {
+            console.error(e);
             res.status(400);
             return {
                 status: "KO",
                 code: 400,
                 description:
                     "User settings was not updated because of an error",
-                error: e,
-                data: null
+                data: e.message
             };
         }
     }
