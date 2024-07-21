@@ -144,12 +144,18 @@ export class GalleryController {
         // Include more information about the user if required
         const user_details = req.query["user_details"];
         if (user_details !== undefined) {
+            relations.user = {
+                settings: true
+            }
             select.user = {
                 id: true,
                 role: true,
                 first_name: true,
                 last_name: true,
-                profile_picture_id: true
+                profile_picture_id: true,
+                settings: {
+                    display_lastname_on_public: true,
+                }
             };
         }
 
@@ -166,6 +172,15 @@ export class GalleryController {
             relations,
             select
         );
+
+        // Response object final customization
+        items.forEach((item) => {
+            // Remove the last name if needed (inexistant setting(s) or explicitly defined)
+            if (!item.user.settings || !item.user.settings.display_lastname_on_public) {
+                if (item.user.last_name) item.user.last_name = "";
+            }
+            delete item.user.settings;
+        });
 
         res.status(200);
         return {
@@ -205,12 +220,18 @@ export class GalleryController {
 
         const user_details = req.query["user_details"];
         if (user_details !== undefined) {
+            relations.user = {
+                settings: true
+            }
             select.user = {
                 id: true,
                 role: true,
                 first_name: true,
                 last_name: true,
-                profile_picture_id: true
+                profile_picture_id: true,
+                settings: {
+                    display_lastname_on_public: true,
+                }
             };
         }
 
@@ -220,6 +241,14 @@ export class GalleryController {
         }
 
         const item = await this.galleryService.findOne({ id: id }, relations, select);
+
+        // Response object final customization
+
+        // Remove the last name if needed (inexistant setting(s) or explicitly defined)
+        if (!item.user.settings || !item.user.settings.display_lastname_on_public) {
+            if (item.user.last_name) item.user.last_name = "";
+        }
+        delete item.user.settings;
 
         const authorizedUser = await this.checkAuthorization(
             req,
@@ -264,6 +293,15 @@ export class GalleryController {
         const visibility = !(user.id === user_id || user.role === "admin");
 
         const items = await this.galleryService.findForUser(user_id, visibility);
+
+        // Response object final customization
+        items.forEach((item) => {
+            // Remove the last name if needed (inexistant setting(s) or explicitly defined)
+            if (!item.user.settings || !item.user.settings.display_lastname_on_public) {
+                if (item.user.last_name) item.user.last_name = "";
+            }
+            delete item.user.settings;
+        });
 
         res.status(200);
         return {

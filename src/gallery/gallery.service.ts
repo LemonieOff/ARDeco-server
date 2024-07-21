@@ -92,7 +92,9 @@ export class GalleryService {
         return this.galleryRepository.find({
             where: visibilityQuery,
             relations: {
-                user: true,
+                user: {
+                    settings: true
+                },
                 comments: true
             },
             loadEagerRelations: false,
@@ -110,7 +112,10 @@ export class GalleryService {
                     role: true,
                     first_name: true,
                     last_name: true,
-                    profile_picture_id: true
+                    profile_picture_id: true,
+                    settings: {
+                        display_lastname_on_public: true
+                    }
                 }
             }
         });
