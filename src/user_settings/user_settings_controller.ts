@@ -47,6 +47,7 @@ export class UserSettingsController {
             item
         );
         if (!(authorizedUser instanceof User)) return authorizedUser;
+        delete item.user.role;
 
         res.status(200);
         return {
@@ -364,7 +365,7 @@ export class UserSettingsController {
 
         if (check_settings) {
             // Forbidden access if user is neither the creator nor an admin
-            if (settings.user_id !== user.id && user.role !== "admin") {
+            if (settings.user.id !== user.id && user.role !== "admin") {
                 res.status(403);
                 return {
                     status: "KO",
