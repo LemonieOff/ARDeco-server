@@ -409,7 +409,7 @@ export class AuthController {
         @Req() request: Request,
         @Body() body: DeleteAccountDto
     ) {
-        await this.deleteAccount(response, request, body);
+        return await this.deleteAccount(response, request, body);
     }
 
     @Post("close")
@@ -418,7 +418,7 @@ export class AuthController {
         @Req() request: Request,
         @Body() body: DeleteAccountDto
     ) {
-        await this.deleteAccount(response, request, body);
+        return await this.deleteAccount(response, request, body);
     }
 
     async deleteAccount(
