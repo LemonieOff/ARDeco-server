@@ -164,6 +164,18 @@ export class ProfilePictureController {
         return user;
     }
 
+    @Get("picture")
+    async getAllPicturesIds(
+        @Res({ passthrough: true }) res: Response,
+    ) {
+        res.status(200).json({
+            "status": "OK",
+            "code": 200,
+            "description": "All available picture ids",
+            "data": [0, 1, 2, 3, 4],
+        });
+    }
+
     @Get("picture/:id")
     async getPicture(
         @Req() req: Request,
