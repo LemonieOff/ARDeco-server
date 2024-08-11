@@ -16,6 +16,13 @@ export class ChangelogService {
         return this.ChangelogRepository.find({ order: { date: "DESC" } });
     }
 
+    async latest(): Promise<Changelog | null> {
+        return this.ChangelogRepository.findOne({
+            order: { date: "DESC" },
+            where: {},
+        });
+    }
+
     async create(data): Promise<Changelog> {
         const u = this.ChangelogRepository.save(data);
         console.log("Create changelog :", await u);

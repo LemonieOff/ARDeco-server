@@ -18,12 +18,11 @@ export class ChangelogController {
 
     @Get("latest")
     async getLatestChangelog(@Res({ passthrough: true }) res: Response) {
-        const changelogs = await this.changelogService.all();
-        const latestChangelog = changelogs[changelogs.length - 1];
+        const latestChangelog = await this.changelogService.latest();
         res.status(HttpStatus.OK).json({
             status: "OK",
             code: HttpStatus.OK,
-            description: "Latest changelog",
+            description: "Latest changelog version",
             data: latestChangelog,
         });
     }
