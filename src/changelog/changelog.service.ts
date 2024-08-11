@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Not, Repository } from "typeorm";
+import { Repository } from "typeorm";
 import { Changelog } from "./models/changelog.entity";
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
@@ -8,12 +8,19 @@ import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 export class ChangelogService {
     constructor(
         @InjectRepository(Changelog)
-        private readonly ChangelogRepository: Repository<Changelog>
+        private readonly ChangelogRepository: Repository<Changelog>,
     ) {
     }
 
     async all(): Promise<Changelog[]> {
-        return this.ChangelogRepository.find();
+        return this.ChangelogRepository.find({ order: { date: "DESC" } });
+    }
+
+    async latest(): Promise<Changelog | null> {
+        return this.ChangelogRepository.findOne({
+            order: { date: "DESC" },
+            where: {},
+        });
     }
 
     async create(data): Promise<Changelog> {
@@ -28,7 +35,7 @@ export class ChangelogService {
 
     async update(
         id: number,
-        data: QueryPartialEntity<Changelog>
+        data: QueryPartialEntity<Changelog>,
     ): Promise<Changelog> {
         await this.ChangelogRepository.update(id, data);
         return await this.findOne({ id: id });
