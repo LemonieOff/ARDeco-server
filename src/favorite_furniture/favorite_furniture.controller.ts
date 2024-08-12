@@ -42,7 +42,8 @@ export class FavoriteFurnitureController {
                     height: furniture.height,
                     width: furniture.width,
                     depth: furniture.depth,
-                    company: furniture.company_name
+                    company: furniture.company_name,
+                    model_id: furniture.model_id,
                 },
                 favorite_furniture: item
             });
