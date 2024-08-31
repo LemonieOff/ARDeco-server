@@ -1,5 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { CatalogColors } from "./catalog_colors.entity";
+import { CatalogRooms } from "./catalog_rooms.entity";
 
 @Entity("catalog")
 export class Catalog {
@@ -15,8 +16,8 @@ export class Catalog {
     @Column()
     styles: string; // CSV array "style1,style2,style3"
 
-    @Column()
-    rooms: string; // CSV array "room1,room2,room3"
+    @OneToMany(_ => CatalogRooms, catalogRooms => catalogRooms.room)
+    rooms: CatalogRooms[];
 
     @Column()
     width: number; // in cm
