@@ -41,6 +41,9 @@ export class Catalog {
     @Column({ default: true })
     active: boolean; // true if the product is active, false if it is not active
 
+    @Column( { default: false})
+    archived: boolean; // true if the product has been archived
+
     @Column()
     company: number; // Company ID
 
