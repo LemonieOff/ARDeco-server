@@ -1,6 +1,7 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { CatalogColors } from "./catalog_colors.entity";
 import { CatalogRooms } from "./catalog_rooms.entity";
+import { CatalogStyles } from "./catalog_styles.entity";
 
 @Entity("catalog")
 export class Catalog {
@@ -13,8 +14,8 @@ export class Catalog {
     @Column()
     price: number; // in euro cents
 
-    @Column()
-    styles: string; // CSV array "style1,style2,style3"
+    @OneToMany(_ => CatalogStyles, catalogStyles => catalogStyles.style)
+    styles: CatalogStyles[];
 
     @OneToMany(_ => CatalogRooms, catalogRooms => catalogRooms.room)
     rooms: CatalogRooms[];
@@ -29,7 +30,7 @@ export class Catalog {
     depth: number; // in cm
 
     @OneToMany(_ => CatalogColors, catalogColors => catalogColors.furniture)
-    colors: CatalogColors[]; // CSV array "color1,color2,color3"
+    colors: CatalogColors[];
 
     @Column()
     object_id: string; // Partner object ID
