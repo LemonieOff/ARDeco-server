@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { CatalogColors } from "./catalog_colors.entity";
 
 @Entity("catalog")
 export class Catalog {
@@ -26,8 +27,8 @@ export class Catalog {
     @Column()
     depth: number; // in cm
 
-    @Column()
-    colors: string; // CSV array "color1,color2,color3"
+    @OneToMany(_ => CatalogColors, catalogColors => catalogColors.furniture)
+    colors: CatalogColors[]; // CSV array "color1,color2,color3"
 
     @Column()
     object_id: string; // Partner object ID
