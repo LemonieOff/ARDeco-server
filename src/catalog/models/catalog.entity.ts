@@ -23,10 +23,10 @@ export class Catalog {
     @Column()
     depth: number; // in cm
 
-    @OneToMany(_ => CatalogStyles, catalogStyles => catalogStyles.style, { cascade: true })
+    @OneToMany(_ => CatalogStyles, catalogStyles => catalogStyles.furniture, { cascade: true })
     styles: CatalogStyles[];
 
-    @OneToMany(_ => CatalogRooms, catalogRooms => catalogRooms.room, { cascade: true })
+    @OneToMany(_ => CatalogRooms, catalogRooms => catalogRooms.furniture, { cascade: true })
     rooms: CatalogRooms[];
 
     @OneToMany(_ => CatalogColors, catalogColors => catalogColors.furniture, { cascade: true })
