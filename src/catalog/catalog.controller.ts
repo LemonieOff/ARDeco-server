@@ -1,23 +1,12 @@
-import {
-    Body,
-    Controller,
-    Delete,
-    Get,
-    Param,
-    Post,
-    Put,
-    Query,
-    Req,
-    Res
-} from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseArrayPipe, Post, Put, Query, Req, Res } from "@nestjs/common";
 import { CatalogService } from "./catalog.service";
 import { UserService } from "../user/user.service";
 import { Request, Response } from "express";
 import { JwtService } from "@nestjs/jwt";
 import { Catalog } from "./models/catalog.entity";
-import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 import { User } from "../user/models/user.entity";
 import { CatalogFilterDto } from "./models/catalog-filter.dto";
+import { CatalogCreateDto } from "./dtos/catalog-create.dto";
 
 @Controller("catalog")
 export class CatalogController {
@@ -143,13 +132,33 @@ export class CatalogController {
     async add(
         @Req() req: Request,
         @Param("id") id: number,
-        @Body() catalog: QueryPartialEntity<Catalog>[],
+        @Body(new ParseArrayPipe({ items: CatalogCreateDto })) catalog: CatalogCreateDto[],
         @Res({ passthrough: true }) res: Response
     ) {
         const authorizedCompany = await this.checkAuthorization(req, res, id);
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
         const company = authorizedCompany.id === id ? authorizedCompany : await this.userService.findOne({ id: id });
+
+        if (!company) {
+            res.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description: "Company not found",
+                data: null
+            };
+        }
+
+        if (company.role !== "company") {
+            res.status(403);
+            return {
+                status: "KO",
+                code: 403,
+                description: "User is not a company",
+                data: null
+            };
+        }
 
         if (!(catalog instanceof Array) || catalog.length === 0) {
             res.status(400);
@@ -210,7 +219,7 @@ export class CatalogController {
         @Req() req: Request,
         @Param("company_id") company_id: number,
         @Param("object_id") object_id: string,
-        @Body() catalog: QueryPartialEntity<Catalog>,
+        @Body() catalog: CatalogCreateDto,
         @Res({ passthrough: true }) res: Response
     ) {
         const authorizedCompany = await this.checkAuthorization(
@@ -239,6 +248,8 @@ export class CatalogController {
 
         catalog.object_id = object_id;
 
+        // TODO : This function (checkObject) is not adapted to update,
+        //  as it's modifying company_name if not passed in updated data
         const errors = this.checkObject(company, catalog, 0, false);
         if (errors.length > 0) {
             res.status(400);
@@ -282,7 +293,7 @@ export class CatalogController {
         const authorizedCompany = await this.checkAuthorization(req, res, company_id);
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
-        const removedObjects = await this.catalogService.deleteAllObjectsFromCompany(company_id);
+        const removedObjects = await this.catalogService.archiveAllForCompany(company_id);
         if (removedObjects === null) {
             res.status(500);
             return {
@@ -327,7 +338,7 @@ export class CatalogController {
             };
         }
 
-        const removedObject = await this.catalogService.delete(object.id);
+        const removedObject = await this.catalogService.archive(object.id);
         if (removedObject === null) {
             res.status(500);
             return {
@@ -402,7 +413,7 @@ export class CatalogController {
             };
         }
 
-        const removedObjects = await this.catalogService.deleteArray(ids);
+        const removedObjects = await this.catalogService.archiveArray(ids);
         if (removedObjects === null) {
             res.status(500);
             return {
@@ -451,7 +462,7 @@ export class CatalogController {
 
     checkObject(
         company: User,
-        catalog: QueryPartialEntity<Catalog>,
+        catalog: CatalogCreateDto,
         number: number,
         check_id = true
     ): string[] {
@@ -479,40 +490,6 @@ export class CatalogController {
                     });
             }
         }
-
-        if (!catalog.name) errors.push(number + " - \"name\" field is required");
-        if (!catalog.price)
-            errors.push(number + " - \"Price\" field is required");
-        if (!catalog.styles)
-            errors.push(number + " - \"Styles\" field is required");
-        if (!catalog.rooms)
-            errors.push(number + " - \"Rooms\" field is required");
-        if (!catalog.width)
-            errors.push(number + " - \"Width\" field is required");
-        if (!catalog.height)
-            errors.push(number + " - \"Height\" field is required");
-        if (!catalog.depth)
-            errors.push(number + " - \"Depth\" field is required");
-        if (!catalog.colors)
-            errors.push(number + " - \"Colors\" field is required");
-
-        if (errors.length > 0) return errors;
-
-        catalog.styles = catalog.styles
-            .toString()
-            .split(",")
-            .map(x => x.trim())
-            .join();
-        catalog.rooms = catalog.rooms
-            .toString()
-            .split(",")
-            .map(x => x.trim())
-            .join();
-        catalog.colors = catalog.colors
-            .toString()
-            .split(",")
-            .map(x => x.trim())
-            .join();
 
         return errors;
     }

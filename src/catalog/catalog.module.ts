@@ -6,10 +6,18 @@ import { CatalogController } from "./catalog.controller";
 import { CatalogService } from "./catalog.service";
 import { UserModule } from "../user/user.module";
 import { ArchiveModule } from "../archive/archive.module";
+import { CatalogColors } from "./models/catalog_colors.entity";
+import { CatalogRooms } from "./models/catalog_rooms.entity";
+import { CatalogStyles } from "./models/catalog_styles.entity";
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Catalog]),
+        TypeOrmModule.forFeature([
+            Catalog,
+            CatalogColors,
+            CatalogRooms,
+            CatalogStyles
+        ]),
         JwtModule.register({
             secret: "secret"
         }),
@@ -20,4 +28,5 @@ import { ArchiveModule } from "../archive/archive.module";
     providers: [CatalogService],
     exports: [CatalogService]
 })
-export class CatalogModule {}
+export class CatalogModule {
+}

@@ -34,7 +34,7 @@ export class ArchiveController {
                 data: null
             };
         } else if (user.role == "admin") {
-            const objects = await this.archiveService.findAllObjectsFromCompany(id)
+            const objects = await this.archiveService.findAllForCompany(id)
             if (objects === null) {
                 res.status(400);
                 return {
@@ -55,7 +55,7 @@ export class ArchiveController {
         const authorizedCompany = await this.checkAuthorization(req, res, id);
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
-        const objects = await this.archiveService.findAllObjectsFromCompany(
+        const objects = await this.archiveService.findAllForCompany(
             authorizedCompany.id
         );
 
@@ -92,7 +92,7 @@ export class ArchiveController {
         );
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
-        const removedObject = await this.archiveService.deleteObjectFromCompany(company_id, item_id);
+        const removedObject = await this.archiveService.deleteObjectForCompany(company_id, item_id);
 
         if (removedObject === null) {
             res.status(404);
@@ -123,7 +123,7 @@ export class ArchiveController {
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
         const removedObjects =
-            await this.archiveService.deleteAllObjectsFromCompany(
+            await this.archiveService.deleteAllForCompany(
                 authorizedCompany.id
             );
         if (removedObjects === null) {

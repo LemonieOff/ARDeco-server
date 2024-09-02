@@ -1,54 +1,85 @@
-import { forwardRef, Inject, Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
+import { Injectable } from "@nestjs/common";
 import { Repository } from "typeorm";
-import { Archive } from "./models/archive.entity";
 import { Catalog } from "../catalog/models/catalog.entity";
-import { CatalogService } from "../catalog/catalog.service";
+import { InjectRepository } from "@nestjs/typeorm";
 
 @Injectable()
 export class ArchiveService {
     constructor(
-        @InjectRepository(Archive)
-        private readonly archiveRepository: Repository<Archive>,
-        @Inject(forwardRef(() => CatalogService))
-        private readonly catalogService: CatalogService
+        @InjectRepository(Catalog)
+        private readonly archiveRepository: Repository<Catalog>
     ) {
     }
 
-    async create(data): Promise<Archive> {
-        return await this.archiveRepository.save(data);
+    async archive(item: Catalog): Promise<Catalog> {
+        item.archived = true;
+        return await this.archiveRepository.save(item);
     }
 
-    async findById(id: number): Promise<Archive> {
-        return await this.archiveRepository.findOne({ where: { id: id } });
+    async findById(id: number): Promise<Catalog> {
+        return await this.archiveRepository.findOne({
+            where: {
+                id: id,
+                archived: true
+            }
+        });
     }
 
-    async findByObjectId(id: string): Promise<Archive> {
-        return await this.archiveRepository.findOne({ where: { object_id: id } });
+    async findByObjectId(id: string): Promise<Catalog> {
+        return await this.archiveRepository.findOne({
+            where: {
+                object_id: id,
+                archived: true
+            }
+        });
     }
 
-    async findAllObjectsFromCompany(id: number): Promise<Archive[]> {
-        return this.archiveRepository.find({ where: { company: id } });
+    async findByObjectIdAndCompany(id: string, company_id: number): Promise<Catalog> {
+        return await this.archiveRepository.findOne({
+            where: {
+                object_id: id,
+                company: company_id,
+                archived: true
+            }
+        });
     }
 
-    async deleteAllObjectsFromCompany(id: number): Promise<any> {
-        const backup = await this.findAllObjectsFromCompany(id);
-        await this.archiveRepository.delete({ company: id });
+    async findAllForCompany(id: number): Promise<Catalog[]> {
+        return this.archiveRepository.find({
+            where: {
+                company: id,
+                archived: true
+            }
+        });
+    }
+
+    async deleteAllForCompany(id: number): Promise<Catalog[]> {
+        const backup = await this.findAllForCompany(id);
+        await this.archiveRepository.delete({
+            company: id,
+            archived: true
+        });
         return backup;
     }
 
-    async deleteObjectFromCompany(company_id: number, object_id: string): Promise<any> {
-        const backup = await this.findByObjectId(object_id);
+    async deleteObjectForCompany(company_id: number, object_id: string): Promise<Catalog> {
+        const backup = await this.findByObjectIdAndCompany(object_id, company_id);
         await this.archiveRepository.delete({
             company: company_id,
-            object_id: object_id
+            object_id: object_id,
+            archived: true
         });
         return backup;
     }
 
     async restore(id: string): Promise<Catalog> {
-        const backup = await this.findByObjectId(id);
-        await this.archiveRepository.delete(backup.id);
-        return await this.catalogService.create(backup);
+        const item = await this.findByObjectId(id);
+        item.archived = false;
+        return await this.archiveRepository.save(item);
+    }
+
+    async restoreItem(item: Catalog): Promise<Catalog> {
+        item.archived = false;
+        return await this.archiveRepository.save(item);
     }
 }

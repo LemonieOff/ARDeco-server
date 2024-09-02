@@ -14,12 +14,6 @@ export class Catalog {
     @Column()
     price: number; // in euro cents
 
-    @OneToMany(_ => CatalogStyles, catalogStyles => catalogStyles.style)
-    styles: CatalogStyles[];
-
-    @OneToMany(_ => CatalogRooms, catalogRooms => catalogRooms.room)
-    rooms: CatalogRooms[];
-
     @Column()
     width: number; // in cm
 
@@ -29,19 +23,28 @@ export class Catalog {
     @Column()
     depth: number; // in cm
 
-    @OneToMany(_ => CatalogColors, catalogColors => catalogColors.furniture)
+    @OneToMany(_ => CatalogStyles, catalogStyles => catalogStyles.style, { cascade: true })
+    styles: CatalogStyles[];
+
+    @OneToMany(_ => CatalogRooms, catalogRooms => catalogRooms.room, { cascade: true })
+    rooms: CatalogRooms[];
+
+    @OneToMany(_ => CatalogColors, catalogColors => catalogColors.furniture, { cascade: true })
     colors: CatalogColors[];
 
     @Column()
     object_id: string; // Partner object ID
 
-    @Column({ type: "int", default: 0 }) // Default is used when no model is available
+    @Column({
+        type: "int",
+        default: 0
+    }) // Default is used when no model is available
     model_id: number; // 3D model ID in the model database
 
     @Column({ default: true })
     active: boolean; // true if the product is active, false if it is not active
 
-    @Column( { default: false})
+    @Column({ default: false })
     archived: boolean; // true if the product has been archived
 
     @Column()
