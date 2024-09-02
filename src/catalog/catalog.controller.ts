@@ -285,7 +285,7 @@ export class CatalogController {
         };
     }
 
-    @Delete(":company_id/removeAll")
+    @Delete([":company_id/removeAll", ":company_id/archiveAll"])
     async removeAll(
         @Req() req: Request,
         @Param("company_id") company_id: number,
@@ -359,7 +359,7 @@ export class CatalogController {
         }
     }
 
-    @Delete(":company_id/remove")
+    @Delete([":company_id/remove", ":company_id/archive"])
     async remove(
         @Req() req: Request,
         @Param("company_id") company_id: number,

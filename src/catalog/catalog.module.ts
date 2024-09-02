@@ -9,6 +9,7 @@ import { ArchiveModule } from "../archive/archive.module";
 import { CatalogColors } from "./models/catalog_colors.entity";
 import { CatalogRooms } from "./models/catalog_rooms.entity";
 import { CatalogStyles } from "./models/catalog_styles.entity";
+import { CatalogValuesController } from "./catalog-values.controller";
 
 @Module({
     imports: [
@@ -24,7 +25,7 @@ import { CatalogStyles } from "./models/catalog_styles.entity";
         UserModule,
         forwardRef(() => ArchiveModule)
     ],
-    controllers: [CatalogController],
+    controllers: [CatalogController, CatalogValuesController],
     providers: [CatalogService],
     exports: [CatalogService]
 })
