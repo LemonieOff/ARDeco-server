@@ -5,8 +5,9 @@ import { Request, Response } from "express";
 import { JwtService } from "@nestjs/jwt";
 import { Catalog } from "./models/catalog.entity";
 import { User } from "../user/models/user.entity";
-import { CatalogFilterDto } from "./models/catalog-filter.dto";
+import { CatalogFilterDto } from "./dtos/catalog-filter.dto";
 import { CatalogCreateDto } from "./dtos/catalog-create.dto";
+import { CatalogResponseDto } from "./dtos/catalog-response.dto";
 
 @Controller("catalog")
 export class CatalogController {
@@ -66,7 +67,7 @@ export class CatalogController {
         status: string;
         code: number;
         description: string;
-        data: null | Catalog[];
+        data: null | CatalogResponseDto[];
     }> {
         const cookie = req.cookies["jwt"];
         const data = cookie ? this.jwtService.verify(cookie) : null;
@@ -313,7 +314,7 @@ export class CatalogController {
         };
     }
 
-    @Delete(":company_id/remove/:object_id")
+    @Delete([":company_id/remove/:object_id", ":company_id/archive/:object_id"])
     async removeOne(
         @Req() req: Request,
         @Param("company_id") company_id: number,
