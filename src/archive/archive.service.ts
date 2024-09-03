@@ -59,7 +59,12 @@ export class ArchiveService {
                 id: id,
                 archived: true
             },
-            ...selectRelations
+            ...selectRelations,
+            select: {
+                colors: true,
+                styles: true,
+                rooms: true
+            }
         });
     }
 

@@ -55,9 +55,10 @@ export class CatalogService {
     ) {
     }
 
-    async all(): Promise<CatalogResponseDto[]> {
+    async all(activeOnly: boolean = false): Promise<CatalogResponseDto[]> {
+        const active = activeOnly ? { active: true } : {};
         const catalog = await this.catalogRepository.find({
-            where: { archived: false },
+            where: { archived: false, ...active },
             ...selectRelations
         });
 
@@ -160,6 +161,8 @@ export class CatalogService {
             object.price = data.price;
         if (data.object_id && data.object_id !== object.object_id)
             object.object_id = data.object_id;
+        if (data.active !== undefined && data.active !== object.active)
+            object.active = data.active;
 
         if (data.colors && data.colors.length > 0) {
             const oldItems = object.colors;

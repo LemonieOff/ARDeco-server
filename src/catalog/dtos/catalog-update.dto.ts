@@ -1,9 +1,8 @@
 import {
     ArrayNotEmpty,
     IsArray,
-    IsEmpty,
+    IsBoolean,
     IsLowercase,
-    IsNotEmpty,
     IsNumber,
     IsOptional,
     IsString
@@ -37,6 +36,10 @@ export class CatalogUpdateDto {
     @IsOptional()
     @IsNumber()
     depth: number;
+
+    @IsOptional()
+    @IsBoolean()
+    active: boolean;
 
     @IsOptional()
     @IsArray()

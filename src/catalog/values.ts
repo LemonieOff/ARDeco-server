@@ -16,7 +16,8 @@ const colors = [
     "silver",
     "olive",
     "navy",
-    "teal"
+    "teal",
+    "ivory",
 ];
 
 const styles = [

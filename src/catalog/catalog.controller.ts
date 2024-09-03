@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseArrayPipe, Post, Put, Query, Req, Res } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseArrayPipe, Post, Put, Req, Res } from "@nestjs/common";
 import { CatalogService } from "./catalog.service";
 import { UserService } from "../user/user.service";
 import { Request, Response } from "express";
@@ -188,11 +188,11 @@ export class CatalogController {
         };
     }
 
-    @Put(":company_id/edit/:object_id")
+    @Put(":company_id/edit/:catalog_id")
     async update(
         @Req() req: Request,
         @Param("company_id") company_id: number,
-        @Param("object_id") object_id: string,
+        @Param("catalog_id") catalog_id: number,
         @Body() catalog: CatalogUpdateDto,
         @Res({ passthrough: true }) res: Response
     ) {
@@ -206,7 +206,7 @@ export class CatalogController {
         const company = authorizedCompany.id === company_id ? authorizedCompany : await this.userService.findOne({ id: company_id });
 
         const object = await this.catalogService.findOne({
-            object_id: object_id,
+            id: catalog_id,
             company: company_id
         });
 
@@ -281,18 +281,18 @@ export class CatalogController {
         };
     }
 
-    @Delete([":company_id/remove/:object_id", ":company_id/archive/:object_id"])
+    @Delete([":company_id/remove/:catalog_id", ":company_id/archive/:catalog_id"])
     async removeOne(
         @Req() req: Request,
         @Param("company_id") company_id: number,
-        @Param("object_id") object_id: string,
+        @Param("catalog_id") catalog_id: number,
         @Res({ passthrough: true }) res: Response
     ) {
         const authorizedCompany = await this.checkAuthorization(req, res, company_id);
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
         const object = await this.catalogService.findOne({
-            object_id: object_id,
+            id: catalog_id,
             company: company_id
         });
 
