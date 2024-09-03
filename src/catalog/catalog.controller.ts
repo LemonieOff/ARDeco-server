@@ -20,42 +20,15 @@ export class CatalogController {
 
     @Get()
     async getCatalog(
-        @Query() filters: any,
         @Res({ passthrough: true }) res: Response
     ) {
-        const items = await this.catalogService.all();
-
-        if (!filters || (typeof filters === "object" && Object.keys(filters).length === 0)) {
-            // If no filters provided, return all items
-            res.status(200);
-            return {
-                status: "OK",
-                code: 200,
-                description: "All objects from catalog",
-                data: items
-            };
-        }
-
-        // TODO : Make a better and coherent response here
-        // Filter the catalog items based on the provided filters
-        return items.filter(item => {
-            console.log(item);
-            let i = true;
-            for (const key in filters) {
-                console.log("Comp : ", item[key], " and ", filters[key]);
-                if (item[key] == undefined) return false;
-                if (item[key].toString() !== filters[key]) {
-                    console.log(
-                        "comp : ",
-                        item[key].toString(),
-                        " : ",
-                        filters[key]
-                    );
-                    i = false; // Item doesn't match the filter condition
-                }
-            }
-            return i; // All filter conditions passed, include the item
-        });
+        res.status(200);
+        return {
+            status: "OK",
+            code: 200,
+            description: "All objects from catalog",
+            data: await this.catalogService.all(true)
+        };
     }
 
     @Get("company/:company_id")
