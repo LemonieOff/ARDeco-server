@@ -2,12 +2,14 @@ import {
     ArrayNotEmpty,
     IsArray,
     IsEmpty,
+    IsIn,
     IsLowercase,
     IsNotEmpty,
     IsNumber,
     IsOptional,
     IsString
 } from "@nestjs/class-validator";
+import { colors, rooms, styles } from "../values";
 
 export class CatalogCreateDto {
     @IsEmpty()
@@ -43,16 +45,19 @@ export class CatalogCreateDto {
     @IsArray()
     @ArrayNotEmpty()
     @IsLowercase({ each: true })
+    @IsIn(colors, { each: true })
     colors: string[];
 
     @IsArray()
     @ArrayNotEmpty()
     @IsLowercase({ each: true })
+    @IsIn(rooms, { each: true })
     rooms: string[];
 
     @IsArray()
     @ArrayNotEmpty()
     @IsLowercase({ each: true })
+    @IsIn(styles, { each: true })
     styles: string[];
 
     // TODO : models
