@@ -16,8 +16,7 @@ export class CatalogRooms {
     furniture: Catalog;
 
     @Column({
-        type: "int",
-        update: false
+        type: "int"
     })
     furniture_id: number;
 

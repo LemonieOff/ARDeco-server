@@ -3,11 +3,11 @@ import { CatalogService } from "./catalog.service";
 import { UserService } from "../user/user.service";
 import { Request, Response } from "express";
 import { JwtService } from "@nestjs/jwt";
-import { Catalog } from "./models/catalog.entity";
 import { User } from "../user/models/user.entity";
 import { CatalogFilterDto } from "./dtos/catalog-filter.dto";
 import { CatalogCreateDto } from "./dtos/catalog-create.dto";
 import { CatalogResponseDto } from "./dtos/catalog-response.dto";
+import { CatalogUpdateDto } from "./dtos/catalog-update.dto";
 
 @Controller("catalog")
 export class CatalogController {
@@ -220,7 +220,7 @@ export class CatalogController {
         @Req() req: Request,
         @Param("company_id") company_id: number,
         @Param("object_id") object_id: string,
-        @Body() catalog: CatalogCreateDto,
+        @Body() catalog: CatalogUpdateDto,
         @Res({ passthrough: true }) res: Response
     ) {
         const authorizedCompany = await this.checkAuthorization(
@@ -247,11 +247,7 @@ export class CatalogController {
             };
         }
 
-        catalog.object_id = object_id;
-
-        // TODO : This function (checkObject) is not adapted to update,
-        //  as it's modifying company_name if not passed in updated data
-        const errors = this.checkObject(company, catalog, 0, false);
+        const errors = this.checkObject(company, catalog);
         if (errors.length > 0) {
             res.status(400);
             return {
@@ -262,10 +258,7 @@ export class CatalogController {
             };
         }
 
-        const updatedObject = await this.catalogService.update(
-            object.id,
-            catalog
-        );
+        const updatedObject = await this.catalogService.update(object, catalog);
         if (updatedObject === null) {
             res.status(400);
             return {
@@ -275,6 +268,7 @@ export class CatalogController {
                 data: null
             };
         }
+
 
         res.status(200);
         return {
@@ -463,24 +457,35 @@ export class CatalogController {
 
     checkObject(
         company: User,
-        catalog: CatalogCreateDto,
-        number: number,
-        check_id = true
+        catalog: CatalogCreateDto | CatalogUpdateDto,
+        number: number = 0
     ): string[] {
-        catalog.company = company.id;
-        if (!catalog.company_name) {
-            catalog.company_name = company.first_name + "-" + company.last_name;
-        }
-
         const errors: string[] = [];
 
-        // In case of creation, we need to check if ID is missing to create one, or check if already exists
-        // But in update, we don't need to check if ID is missing or already existant, as the object is keeping its ID
-        // NOTE : Maybe let the company change the ID of an object ? (possibly a bad idea because it can break orders and order history)
-        if (check_id) {
+        // Catalog creation
+        if (catalog instanceof CatalogCreateDto) {
+            catalog.company = company.id;
+            if (!catalog.company_name) {
+                catalog.company_name = company.first_name + "-" + company.last_name;
+            }
+
             if (!catalog.object_id)
                 catalog.object_id = this.generateNewId(company);
             else {
+                this.catalogService
+                    .findOne({ object_id: `${catalog.object_id}` })
+                    .then(res => {
+                        if (res !== null)
+                            errors.push(
+                                number + " - \"object_id\" already exists"
+                            );
+                    });
+            }
+        }
+
+        // Catalog update
+        if (catalog instanceof CatalogUpdateDto) {
+            if (catalog.object_id) {
                 this.catalogService
                     .findOne({ object_id: `${catalog.object_id}` })
                     .then(res => {
