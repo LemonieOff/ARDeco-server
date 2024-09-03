@@ -4,6 +4,7 @@ import { Request, Response } from "express";
 import { JwtService } from "@nestjs/jwt";
 import { User } from "../user/models/user.entity";
 import { ArchiveService } from "./archive.service";
+import { Catalog } from "../catalog/models/catalog.entity";
 
 @Controller("archive")
 export class ArchiveController {
@@ -21,7 +22,7 @@ export class ArchiveController {
         @Res({ passthrough: true }) res: Response
     ) {
         const authorizedCompany = await this.checkAuthorization(req, res, id);
-        if (!(authorizedCompany instanceof User)) return authorizedCompany;
+        if (!(authorizedCompany instanceof Array)) return authorizedCompany;
 
         const objects = await this.archiveService.findAllForCompany(
             id
@@ -49,7 +50,7 @@ export class ArchiveController {
     async remove(
         @Req() req: Request,
         @Param("company_id") company_id: number,
-        @Param("item_id") item_id: string,
+        @Param("item_id") item_id: number,
         @Res({ passthrough: true }) res: Response
     ) {
         const authorizedCompany = await this.checkAuthorization(
@@ -58,7 +59,7 @@ export class ArchiveController {
             company_id,
             item_id
         );
-        if (!(authorizedCompany instanceof User)) return authorizedCompany;
+        if (!(authorizedCompany instanceof Array)) return authorizedCompany;
 
         const removedObject = await this.archiveService.deleteObjectForCompany(company_id, item_id);
 
@@ -88,11 +89,13 @@ export class ArchiveController {
         @Res({ passthrough: true }) res: Response
     ) {
         const authorizedCompany = await this.checkAuthorization(req, res, id);
-        if (!(authorizedCompany instanceof User)) return authorizedCompany;
+        if (!(authorizedCompany instanceof Array)) return authorizedCompany;
+
+        const [company, _] = authorizedCompany;
 
         const removedObjects =
             await this.archiveService.deleteAllForCompany(
-                authorizedCompany.id
+                company.id
             );
         if (removedObjects === null) {
             res.status(400);
@@ -117,7 +120,7 @@ export class ArchiveController {
     async restore(
         @Req() req: Request,
         @Param("id") company_id: number,
-        @Param("item_id") item_id: string,
+        @Param("item_id") item_id: number,
         @Res({ passthrough: true }) res: Response
     ) {
         const authorizedCompany = await this.checkAuthorization(
@@ -126,9 +129,11 @@ export class ArchiveController {
             company_id,
             item_id
         );
-        if (!(authorizedCompany instanceof User)) return authorizedCompany;
+        if (!(authorizedCompany instanceof Array)) return authorizedCompany;
 
-        const restored_object = await this.archiveService.restore(item_id);
+        const [_, object] = authorizedCompany;
+
+        const restored_object = await this.archiveService.restore(object);
         console.log(restored_object);
 
         if (restored_object === null) {
@@ -154,8 +159,15 @@ export class ArchiveController {
         req: Request,
         res: Response,
         id: number,
-        object_id: string = null
-    ) {
+        item_id: number = null
+    ): Promise<[User, Catalog] | {
+        status: string,
+        code: number,
+        description: string,
+        data: null
+    }> {
+        let object: Catalog = null;
+
         const cookie = req.cookies["jwt"];
         const data = cookie ? this.jwtService.verify(cookie) : null;
 
@@ -227,8 +239,8 @@ export class ArchiveController {
             };
         }
 
-        if (object_id) {
-            const object = await this.archiveService.findByObjectId(object_id);
+        if (item_id) {
+            object = await this.archiveService.findById(item_id);
 
             if (object === null) {
                 res.status(404);
@@ -241,6 +253,6 @@ export class ArchiveController {
             }
         }
 
-        return company;
+        return [company, object];
     }
 }
