@@ -1,23 +1,13 @@
-import {
-    Body,
-    Controller,
-    Delete,
-    Get,
-    Param,
-    Post,
-    Put,
-    Query,
-    Req,
-    Res
-} from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseArrayPipe, Post, Put, Req, Res } from "@nestjs/common";
 import { CatalogService } from "./catalog.service";
 import { UserService } from "../user/user.service";
 import { Request, Response } from "express";
 import { JwtService } from "@nestjs/jwt";
-import { Catalog } from "./models/catalog.entity";
-import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 import { User } from "../user/models/user.entity";
-import { CatalogFilterDto } from "./models/catalog-filter.dto";
+import { CatalogFilterDto } from "./dtos/catalog-filter.dto";
+import { CatalogCreateDto } from "./dtos/catalog-create.dto";
+import { CatalogResponseDto } from "./dtos/catalog-response.dto";
+import { CatalogUpdateDto } from "./dtos/catalog-update.dto";
 
 @Controller("catalog")
 export class CatalogController {
@@ -30,42 +20,57 @@ export class CatalogController {
 
     @Get()
     async getCatalog(
-        @Query() filters: any,
         @Res({ passthrough: true }) res: Response
     ) {
-        const items = await this.catalogService.all();
+        res.status(200);
+        return {
+            status: "OK",
+            code: 200,
+            description: "All objects from catalog",
+            data: await this.catalogService.all(true)
+        };
+    }
 
-        if (!filters || (typeof filters === "object" && Object.keys(filters).length === 0)) {
-            // If no filters provided, return all items
-            res.status(200);
+    @Post()
+    async filterCatalog(
+        @Req() req: Request,
+        @Body() body: CatalogFilterDto,
+        @Res({ passthrough: true }) res: Response
+    ) {
+        const cookie = req.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+
+        // Cookie or JWT not valid
+        if (!cookie || !data) {
+            res.status(401);
             return {
-                status: "OK",
-                code: 200,
-                description: "All objects from catalog",
-                data: items
+                status: "KO",
+                code: 401,
+                description: "You are not connected",
+                data: null
             };
         }
 
-        // TODO : Make a better and coherent response here
-        // Filter the catalog items based on the provided filters
-        return items.filter(item => {
-            console.log(item);
-            let i = true;
-            for (const key in filters) {
-                console.log("Comp : ", item[key], " and ", filters[key]);
-                if (item[key] == undefined) return false;
-                if (item[key].toString() !== filters[key]) {
-                    console.log(
-                        "comp : ",
-                        item[key].toString(),
-                        " : ",
-                        filters[key]
-                    );
-                    i = false; // Item doesn't match the filter condition
-                }
-            }
-            return i; // All filter conditions passed, include the item
-        });
+        const company = await this.userService.findOne({ id: data["id"] });
+
+        if (!company) {
+            res.status(403);
+            return {
+                status: "KO",
+                code: 403,
+                description:
+                    "Your user doesn't exists ant can't access this resource",
+                data: null
+            };
+        }
+
+        res.status(200);
+        return {
+            status: "OK",
+            code: 200,
+            description: "All filtered objects from catalog",
+            data: await this.catalogService.filter(body)
+        };
     }
 
     @Get("company/:company_id")
@@ -77,7 +82,7 @@ export class CatalogController {
         status: string;
         code: number;
         description: string;
-        data: null | Catalog[];
+        data: null | CatalogResponseDto[];
     }> {
         const cookie = req.cookies["jwt"];
         const data = cookie ? this.jwtService.verify(cookie) : null;
@@ -143,13 +148,33 @@ export class CatalogController {
     async add(
         @Req() req: Request,
         @Param("id") id: number,
-        @Body() catalog: QueryPartialEntity<Catalog>[],
+        @Body(new ParseArrayPipe({ items: CatalogCreateDto })) catalog: CatalogCreateDto[],
         @Res({ passthrough: true }) res: Response
     ) {
         const authorizedCompany = await this.checkAuthorization(req, res, id);
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
         const company = authorizedCompany.id === id ? authorizedCompany : await this.userService.findOne({ id: id });
+
+        if (!company) {
+            res.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description: "Company not found",
+                data: null
+            };
+        }
+
+        if (company.role !== "company") {
+            res.status(403);
+            return {
+                status: "KO",
+                code: 403,
+                description: "User is not a company",
+                data: null
+            };
+        }
 
         if (!(catalog instanceof Array) || catalog.length === 0) {
             res.status(400);
@@ -205,12 +230,12 @@ export class CatalogController {
         };
     }
 
-    @Put(":company_id/edit/:object_id")
+    @Put(":company_id/edit/:catalog_id")
     async update(
         @Req() req: Request,
         @Param("company_id") company_id: number,
-        @Param("object_id") object_id: string,
-        @Body() catalog: QueryPartialEntity<Catalog>,
+        @Param("catalog_id") catalog_id: number,
+        @Body() catalog: CatalogUpdateDto,
         @Res({ passthrough: true }) res: Response
     ) {
         const authorizedCompany = await this.checkAuthorization(
@@ -223,7 +248,7 @@ export class CatalogController {
         const company = authorizedCompany.id === company_id ? authorizedCompany : await this.userService.findOne({ id: company_id });
 
         const object = await this.catalogService.findOne({
-            object_id: object_id,
+            id: catalog_id,
             company: company_id
         });
 
@@ -237,9 +262,7 @@ export class CatalogController {
             };
         }
 
-        catalog.object_id = object_id;
-
-        const errors = this.checkObject(company, catalog, 0, false);
+        const errors = this.checkObject(company, catalog);
         if (errors.length > 0) {
             res.status(400);
             return {
@@ -250,10 +273,7 @@ export class CatalogController {
             };
         }
 
-        const updatedObject = await this.catalogService.update(
-            object.id,
-            catalog
-        );
+        const updatedObject = await this.catalogService.update(object, catalog);
         if (updatedObject === null) {
             res.status(400);
             return {
@@ -264,6 +284,7 @@ export class CatalogController {
             };
         }
 
+
         res.status(200);
         return {
             status: "OK",
@@ -273,7 +294,7 @@ export class CatalogController {
         };
     }
 
-    @Delete(":company_id/removeAll")
+    @Delete([":company_id/removeAll", ":company_id/archiveAll"])
     async removeAll(
         @Req() req: Request,
         @Param("company_id") company_id: number,
@@ -282,7 +303,7 @@ export class CatalogController {
         const authorizedCompany = await this.checkAuthorization(req, res, company_id);
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
-        const removedObjects = await this.catalogService.deleteAllObjectsFromCompany(company_id);
+        const removedObjects = await this.catalogService.archiveAllForCompany(company_id);
         if (removedObjects === null) {
             res.status(500);
             return {
@@ -302,18 +323,18 @@ export class CatalogController {
         };
     }
 
-    @Delete(":company_id/remove/:object_id")
+    @Delete([":company_id/remove/:catalog_id", ":company_id/archive/:catalog_id"])
     async removeOne(
         @Req() req: Request,
         @Param("company_id") company_id: number,
-        @Param("object_id") object_id: string,
+        @Param("catalog_id") catalog_id: number,
         @Res({ passthrough: true }) res: Response
     ) {
         const authorizedCompany = await this.checkAuthorization(req, res, company_id);
         if (!(authorizedCompany instanceof User)) return authorizedCompany;
 
         const object = await this.catalogService.findOne({
-            object_id: object_id,
+            id: catalog_id,
             company: company_id
         });
 
@@ -327,7 +348,7 @@ export class CatalogController {
             };
         }
 
-        const removedObject = await this.catalogService.delete(object.id);
+        const removedObject = await this.catalogService.archive(object.id);
         if (removedObject === null) {
             res.status(500);
             return {
@@ -347,7 +368,7 @@ export class CatalogController {
         }
     }
 
-    @Delete(":company_id/remove")
+    @Delete([":company_id/remove", ":company_id/archive"])
     async remove(
         @Req() req: Request,
         @Param("company_id") company_id: number,
@@ -402,7 +423,7 @@ export class CatalogController {
             };
         }
 
-        const removedObjects = await this.catalogService.deleteArray(ids);
+        const removedObjects = await this.catalogService.archiveArray(ids);
         if (removedObjects === null) {
             res.status(500);
             return {
@@ -451,21 +472,18 @@ export class CatalogController {
 
     checkObject(
         company: User,
-        catalog: QueryPartialEntity<Catalog>,
-        number: number,
-        check_id = true
+        catalog: CatalogCreateDto | CatalogUpdateDto,
+        number: number = 0
     ): string[] {
-        catalog.company = company.id;
-        if (!catalog.company_name) {
-            catalog.company_name = company.first_name + "-" + company.last_name;
-        }
-
         const errors: string[] = [];
 
-        // In case of creation, we need to check if ID is missing to create one, or check if already exists
-        // But in update, we don't need to check if ID is missing or already existant, as the object is keeping its ID
-        // NOTE : Maybe let the company change the ID of an object ? (possibly a bad idea because it can break orders and order history)
-        if (check_id) {
+        // Catalog creation
+        if (catalog instanceof CatalogCreateDto) {
+            catalog.company = company.id;
+            if (!catalog.company_name) {
+                catalog.company_name = company.first_name + "-" + company.last_name;
+            }
+
             if (!catalog.object_id)
                 catalog.object_id = this.generateNewId(company);
             else {
@@ -480,39 +498,19 @@ export class CatalogController {
             }
         }
 
-        if (!catalog.name) errors.push(number + " - \"name\" field is required");
-        if (!catalog.price)
-            errors.push(number + " - \"Price\" field is required");
-        if (!catalog.styles)
-            errors.push(number + " - \"Styles\" field is required");
-        if (!catalog.rooms)
-            errors.push(number + " - \"Rooms\" field is required");
-        if (!catalog.width)
-            errors.push(number + " - \"Width\" field is required");
-        if (!catalog.height)
-            errors.push(number + " - \"Height\" field is required");
-        if (!catalog.depth)
-            errors.push(number + " - \"Depth\" field is required");
-        if (!catalog.colors)
-            errors.push(number + " - \"Colors\" field is required");
-
-        if (errors.length > 0) return errors;
-
-        catalog.styles = catalog.styles
-            .toString()
-            .split(",")
-            .map(x => x.trim())
-            .join();
-        catalog.rooms = catalog.rooms
-            .toString()
-            .split(",")
-            .map(x => x.trim())
-            .join();
-        catalog.colors = catalog.colors
-            .toString()
-            .split(",")
-            .map(x => x.trim())
-            .join();
+        // Catalog update
+        if (catalog instanceof CatalogUpdateDto) {
+            if (catalog.object_id) {
+                this.catalogService
+                    .findOne({ object_id: `${catalog.object_id}` })
+                    .then(res => {
+                        if (res !== null)
+                            errors.push(
+                                number + " - \"object_id\" already exists"
+                            );
+                    });
+            }
+        }
 
         return errors;
     }
@@ -585,11 +583,5 @@ export class CatalogController {
         }
 
         return company;
-    }
-
-    @Get("filter")
-    async filterCatalog(@Body() filterDto: CatalogFilterDto) {
-        const result = await this.catalogService.filterCatalog(filterDto);
-        return { data: result };
     }
 }

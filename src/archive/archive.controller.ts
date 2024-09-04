@@ -4,6 +4,7 @@ import { Request, Response } from "express";
 import { JwtService } from "@nestjs/jwt";
 import { User } from "../user/models/user.entity";
 import { ArchiveService } from "./archive.service";
+import { Catalog } from "../catalog/models/catalog.entity";
 
 @Controller("archive")
 export class ArchiveController {
@@ -20,43 +21,11 @@ export class ArchiveController {
         @Param("id") id: number,
         @Res({ passthrough: true }) res: Response
     ) {
-        const cookie = req.cookies["jwt"];
-        const data = cookie ? this.jwtService.verify(cookie) : null;
-        const user = await this.userService.findOne({ id: data["id"] });
-        console.log("role", user.role);
-        console.log("data", data);
-        if (!cookie || !data) {
-            res.status(401);
-            return {
-                status: "KO",
-                code: 401,
-                description: "You are not connected",
-                data: null
-            };
-        } else if (user.role == "admin") {
-            const objects = await this.archiveService.findAllObjectsFromCompany(id)
-            if (objects === null) {
-                res.status(400);
-                return {
-                    status: "KO",
-                    code: 400,
-                    description: "Objects not found",
-                    data: null
-                };
-            }
-            res.status(200);
-            return {
-                status: "OK",
-                code: 200,
-                description: "Objects list",
-                data: objects
-            };
-        }
         const authorizedCompany = await this.checkAuthorization(req, res, id);
-        if (!(authorizedCompany instanceof User)) return authorizedCompany;
+        if (!(authorizedCompany instanceof Array)) return authorizedCompany;
 
-        const objects = await this.archiveService.findAllObjectsFromCompany(
-            authorizedCompany.id
+        const objects = await this.archiveService.findAllForCompany(
+            id
         );
 
         if (objects === null) {
@@ -81,7 +50,7 @@ export class ArchiveController {
     async remove(
         @Req() req: Request,
         @Param("company_id") company_id: number,
-        @Param("item_id") item_id: string,
+        @Param("item_id") item_id: number,
         @Res({ passthrough: true }) res: Response
     ) {
         const authorizedCompany = await this.checkAuthorization(
@@ -90,9 +59,9 @@ export class ArchiveController {
             company_id,
             item_id
         );
-        if (!(authorizedCompany instanceof User)) return authorizedCompany;
+        if (!(authorizedCompany instanceof Array)) return authorizedCompany;
 
-        const removedObject = await this.archiveService.deleteObjectFromCompany(company_id, item_id);
+        const removedObject = await this.archiveService.deleteObjectForCompany(company_id, item_id);
 
         if (removedObject === null) {
             res.status(404);
@@ -120,11 +89,13 @@ export class ArchiveController {
         @Res({ passthrough: true }) res: Response
     ) {
         const authorizedCompany = await this.checkAuthorization(req, res, id);
-        if (!(authorizedCompany instanceof User)) return authorizedCompany;
+        if (!(authorizedCompany instanceof Array)) return authorizedCompany;
+
+        const [company, _] = authorizedCompany;
 
         const removedObjects =
-            await this.archiveService.deleteAllObjectsFromCompany(
-                authorizedCompany.id
+            await this.archiveService.deleteAllForCompany(
+                company.id
             );
         if (removedObjects === null) {
             res.status(400);
@@ -149,7 +120,7 @@ export class ArchiveController {
     async restore(
         @Req() req: Request,
         @Param("id") company_id: number,
-        @Param("item_id") item_id: string,
+        @Param("item_id") item_id: number,
         @Res({ passthrough: true }) res: Response
     ) {
         const authorizedCompany = await this.checkAuthorization(
@@ -158,9 +129,12 @@ export class ArchiveController {
             company_id,
             item_id
         );
-        if (!(authorizedCompany instanceof User)) return authorizedCompany;
+        if (!(authorizedCompany instanceof Array)) return authorizedCompany;
 
-        const restored_object = await this.archiveService.restore(item_id);
+        const [_, object] = authorizedCompany;
+
+        const restored_object = await this.archiveService.restore(object);
+        console.log(restored_object);
 
         if (restored_object === null) {
             res.status(400);
@@ -184,9 +158,16 @@ export class ArchiveController {
     async checkAuthorization(
         req: Request,
         res: Response,
-        id: number, // Company id in normal cases, archive item id in other cases
-        object_id: string = null
-    ) {
+        id: number,
+        item_id: number = null
+    ): Promise<[User, Catalog] | {
+        status: string,
+        code: number,
+        description: string,
+        data: null
+    }> {
+        let object: Catalog = null;
+
         const cookie = req.cookies["jwt"];
         const data = cookie ? this.jwtService.verify(cookie) : null;
 
@@ -201,18 +182,65 @@ export class ArchiveController {
             };
         }
 
-        if (id.toString() !== data["id"].toString()) {
+        // Check if request user exists
+        const company = await this.userService.findOne({ id: data["id"] });
+        if (!company) {
             res.status(403);
             return {
                 status: "KO",
                 code: 403,
-                description: "You are not allowed to access this resource",
+                description: "Your user doesn't exists ant can't access this resource",
                 data: null
             };
         }
 
-        if (object_id) {
-            const object = await this.archiveService.findByObjectId(object_id);
+        if (company.role === "admin") {
+            // Do nothing, admins are allowed to do everything
+        } else if (company.role === "company") {
+            if (Number(id) !== company.id) {
+                res.status(403);
+                return {
+                    status: "KO",
+                    code: 403,
+                    description: "You are not allowed to access this resource",
+                    data: null
+                };
+            }
+
+            if (!company.company_api_key) {
+                res.status(403);
+                return {
+                    status: "KO",
+                    code: 401,
+                    description:
+                        "You don't have any API key, please generate one before using this endpoint",
+                    data: null
+                };
+            }
+
+            // Wrong company API key
+            if (company.company_api_key !== req.query["company_api_key"]) {
+                res.status(403);
+                return {
+                    status: "KO",
+                    code: 401,
+                    description:
+                        "API key is not valid in \"company_api_key\" query parameter",
+                    data: null
+                };
+            }
+        } else {
+            res.status(403);
+            return {
+                status: "KO",
+                code: 403,
+                description: "Your account type doesn't allow access to company resources",
+                data: null
+            };
+        }
+
+        if (item_id) {
+            object = await this.archiveService.findById(item_id);
 
             if (object === null) {
                 res.status(404);
@@ -223,53 +251,8 @@ export class ArchiveController {
                     data: null
                 };
             }
-
-            if (object.company.toString() !== data["id"].toString()) {
-                res.status(403);
-                return {
-                    status: "KO",
-                    code: 403,
-                    description: "You are not allowed to restore this object",
-                    data: null
-                };
-            }
         }
 
-        const company = await this.userService.findOne({ id: data["id"] });
-        if (!company) {
-            res.status(403);
-            return {
-                status: "KO",
-                code: 403,
-                description:
-                    "Your user doesn't exists ant can't access this resource",
-                data: null
-            };
-        }
-
-        if (!company["company_api_key"]) {
-            res.status(403);
-            return {
-                status: "KO",
-                code: 401,
-                description:
-                    "You don't have any API key, please generate one before using this endpoint",
-                data: null
-            };
-        }
-
-        // Wrong company API key
-        if (company.company_api_key !== req.query["company_api_key"]) {
-            res.status(403);
-            return {
-                status: "KO",
-                code: 401,
-                description:
-                    "API key is not valid in \"company_api_key\" query parameter",
-                data: null
-            };
-        }
-
-        return company;
+        return [company, object];
     }
 }
