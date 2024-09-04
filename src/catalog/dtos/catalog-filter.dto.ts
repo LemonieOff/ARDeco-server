@@ -1,18 +1,29 @@
-// catalog-filter.dto.ts
+import { ArrayNotEmpty, IsArray, IsIn, IsLowercase, IsNumber, IsOptional } from "@nestjs/class-validator";
+import { colors, rooms, styles } from "../values";
 
 export class CatalogFilterDto {
-    name?: string;
-    price?: number;
-    styles?: string;
-    rooms?: string;
-    width?: number;
-    height?: number;
-    depth?: number;
-    colors?: string;
-    object_id?: string;
-    model_id?: number;
-    active?: boolean;
-    company?: number;
-    company_name?: string;
-  }
-  
+    @IsOptional()
+    @IsNumber()
+    price: number;
+
+    @IsOptional()
+    @IsArray()
+    @ArrayNotEmpty()
+    @IsLowercase({ each: true })
+    @IsIn(colors, { each: true })
+    colors: string[];
+
+    @IsOptional()
+    @IsArray()
+    @ArrayNotEmpty()
+    @IsLowercase({ each: true })
+    @IsIn(rooms, { each: true })
+    rooms: string[];
+
+    @IsOptional()
+    @IsArray()
+    @ArrayNotEmpty()
+    @IsLowercase({ each: true })
+    @IsIn(styles, { each: true })
+    styles: string[];
+}

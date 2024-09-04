@@ -31,6 +31,48 @@ export class CatalogController {
         };
     }
 
+    @Post()
+    async filterCatalog(
+        @Req() req: Request,
+        @Body() body: CatalogFilterDto,
+        @Res({ passthrough: true }) res: Response
+    ) {
+        const cookie = req.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+
+        // Cookie or JWT not valid
+        if (!cookie || !data) {
+            res.status(401);
+            return {
+                status: "KO",
+                code: 401,
+                description: "You are not connected",
+                data: null
+            };
+        }
+
+        const company = await this.userService.findOne({ id: data["id"] });
+
+        if (!company) {
+            res.status(403);
+            return {
+                status: "KO",
+                code: 403,
+                description:
+                    "Your user doesn't exists ant can't access this resource",
+                data: null
+            };
+        }
+
+        res.status(200);
+        return {
+            status: "OK",
+            code: 200,
+            description: "All filtered objects from catalog",
+            data: await this.catalogService.filter(body)
+        };
+    }
+
     @Get("company/:company_id")
     async getCompanyCatalog(
         @Req() req: Request,
@@ -541,11 +583,5 @@ export class CatalogController {
         }
 
         return company;
-    }
-
-    @Get("filter")
-    async filterCatalog(@Body() filterDto: CatalogFilterDto) {
-        const result = await this.catalogService.filterCatalog(filterDto);
-        return { data: result };
     }
 }

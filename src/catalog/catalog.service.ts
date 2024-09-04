@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { FindManyOptions, FindOptionsWhere, In, Repository } from "typeorm";
+import { FindManyOptions, FindOptionsWhere, In, LessThanOrEqual, Any, Repository } from "typeorm";
 import { Catalog } from "./models/catalog.entity";
 import { ArchiveService } from "../archive/archive.service";
 import { CatalogFilterDto } from "./dtos/catalog-filter.dto";
@@ -59,6 +59,46 @@ export class CatalogService {
         const active = activeOnly ? { active: true } : {};
         const catalog = await this.catalogRepository.find({
             where: { archived: false, ...active },
+            ...selectRelations
+        });
+
+        return catalog.map(catalog => ({
+            ...catalog,
+            colors: catalog.colors.map(color => color.color),
+            styles: catalog.styles.map(style => style.style),
+            rooms: catalog.rooms.map(room => room.room)
+        }));
+    }
+
+    async filter(query: CatalogFilterDto): Promise<CatalogResponseDto[]> {
+        const where: FindOptionsWhere<Catalog> = {};
+        if (query.price) {
+            console.log("Price");
+            where.price = LessThanOrEqual(query.price);
+        }
+        if (query.colors) {
+            console.log("Colors");
+            where.colors = {
+                color: In(query.colors)
+            };
+        }
+        if (query.styles) {
+            console.log("Styles");
+            where.styles = {
+                style: In(query.styles)
+            };
+        }
+        if (query.rooms) {
+            console.log("Rooms");
+            where.rooms = {
+                room: In(query.rooms)
+            };
+        }
+
+        console.log("");
+
+        const catalog = await this.catalogRepository.find({
+            where: { ...where, archived: false, active: true },
             ...selectRelations
         });
 
@@ -286,12 +326,5 @@ export class CatalogService {
         }
 
         return archivedList;
-    }
-
-    async filterCatalog(filterDto: CatalogFilterDto): Promise<Catalog[]> {
-        // Implement your filtering logic based on the provided criteria
-        return this.catalogRepository.find({
-            // where: filterDto
-        });
     }
 }
