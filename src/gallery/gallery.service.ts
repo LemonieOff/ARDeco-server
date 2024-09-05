@@ -1,14 +1,25 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { FindManyOptions, FindOptionsRelations, FindOptionsSelect, FindOptionsWhere, Repository } from "typeorm";
+import {
+    And,
+    FindManyOptions,
+    FindOptionsRelations,
+    FindOptionsSelect,
+    FindOptionsWhere,
+    In,
+    Not,
+    Repository
+} from "typeorm";
 import { Gallery } from "./models/gallery.entity";
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
+import { BlockedUsersService } from "../blocked_users/blocked_users.service";
 
 @Injectable()
 export class GalleryService {
     constructor(
         @InjectRepository(Gallery)
-        private readonly galleryRepository: Repository<Gallery>
+        private readonly galleryRepository: Repository<Gallery>,
+        private blockedUsersService: BlockedUsersService
     ) {
     }
 
@@ -43,8 +54,9 @@ export class GalleryService {
         });
     }
 
-    // TODO : Blocked users restriction (galleries + comments)
+    // TODO : Blocked users restriction (comments)
     async findAll(
+        fetcher_id: number,
         user_id: number | null,
         limit: number | null,
         begin_pos: number | null,
@@ -52,11 +64,19 @@ export class GalleryService {
         select: FindOptionsSelect<Gallery> = {},
         loadIds: boolean = false
     ): Promise<Gallery[]> {
+        const [blocked, blocking] = await this.blockedUsersService.findByBlockedAndBlocking(fetcher_id);
+
         let where: FindOptionsWhere<Gallery> = { visibility: true }; // Public items only
         if (user_id) {
+            if (blocked.includes(user_id) || blocking.includes(user_id)) return [];
             where = {
                 ...where,
                 user_id: user_id
+            };
+        } else {
+            where = {
+                ...where,
+                user_id: And(Not(In(blocked)), Not(In(blocking)))
             };
         }
 

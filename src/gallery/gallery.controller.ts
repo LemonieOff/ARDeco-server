@@ -34,6 +34,20 @@ export class GalleryController {
             };
         }
 
+        // User retrieving
+        const fetcher = await this.userService.findOne({ id: data["id"] });
+
+        // User not found
+        if (!fetcher) {
+            return {
+                status: "KO",
+                code: 403,
+                description:
+                    "You are not allowed to access/modify this resource",
+                data: null
+            };
+        }
+
         // Get all query parameters
         const user_id_query = req.query["user_id"];
         const limit_query = req.query["limit"];
@@ -117,6 +131,7 @@ export class GalleryController {
         const [select, relations] = this.getSelect(req);
 
         const items = await this.galleryService.findAll(
+            fetcher.id,
             user_id,
             limit,
             begin_pos,
