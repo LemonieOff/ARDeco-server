@@ -1,14 +1,4 @@
-import {
-    Body,
-    Controller,
-    Delete,
-    Get,
-    Param,
-    Post,
-    Put,
-    Req,
-    Res
-} from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, Req, Res } from "@nestjs/common";
 import { GalleryService } from "./gallery.service";
 import { Request, Response } from "express";
 import { JwtService } from "@nestjs/jwt";
@@ -76,6 +66,8 @@ export class GalleryController {
                     data: null
                 };
             }
+
+            // TODO : Check blocked_user
         } else {
             user_id = null;
         }
@@ -122,48 +114,7 @@ export class GalleryController {
         }
 
         // Default relations and selected relations' items
-        const relations: FindOptionsRelations<Gallery> = {
-            comments: true,
-            user: true
-        };
-        const select: FindOptionsSelect<Gallery> = {
-            id: true,
-            visibility: true,
-            description: true,
-            furniture: true,
-            name: true,
-            room_type: true,
-            comments: {
-                id: true
-            },
-            user: {
-                id: true
-            }
-        };
-
-        // Include more information about the user if required
-        const user_details = req.query["user_details"];
-        if (user_details !== undefined) {
-            relations.user = {
-                settings: true
-            }
-            select.user = {
-                id: true,
-                role: true,
-                first_name: true,
-                last_name: true,
-                profile_picture_id: true,
-                settings: {
-                    display_lastname_on_public: true,
-                }
-            };
-        }
-
-        // Include more information about the comments if required
-        const comments_details = req.query["comments_details"];
-        if (comments_details !== undefined) {
-            select.comments = true;
-        }
+        const [select, relations] = this.getSelect(req);
 
         const items = await this.galleryService.findAll(
             user_id,
@@ -198,47 +149,7 @@ export class GalleryController {
         @Param("id") id: number,
         @Res({ passthrough: true }) res: Response
     ) {
-        // Default relations and selected relations' items
-        const relations: FindOptionsRelations<Gallery> = {
-            comments: true,
-            user: true
-        };
-        const select: FindOptionsSelect<Gallery> = {
-            id: true,
-            visibility: true,
-            description: true,
-            furniture: true,
-            name: true,
-            room_type: true,
-            comments: {
-                id: true
-            },
-            user: {
-                id: true
-            }
-        };
-
-        const user_details = req.query["user_details"];
-        if (user_details !== undefined) {
-            relations.user = {
-                settings: true
-            }
-            select.user = {
-                id: true,
-                role: true,
-                first_name: true,
-                last_name: true,
-                profile_picture_id: true,
-                settings: {
-                    display_lastname_on_public: true,
-                }
-            };
-        }
-
-        const comments_details = req.query["comments_details"];
-        if (comments_details !== undefined) {
-            select.comments = true;
-        }
+        const [select, relations] = this.getSelect(req);
 
         const item = await this.galleryService.findOne({ id: id }, relations, select);
 
@@ -549,5 +460,52 @@ export class GalleryController {
         }
 
         return user;
+    }
+
+    getSelect(req: Request): [FindOptionsSelect<Gallery>, FindOptionsRelations<Gallery>] {
+        const relations: FindOptionsRelations<Gallery> = {
+            comments: true,
+            user: true
+        };
+        const select: FindOptionsSelect<Gallery> = {
+            id: true,
+            visibility: true,
+            description: true,
+            furniture: true,
+            name: true,
+            room_type: true,
+            comments: {
+                id: true
+            },
+            user: {
+                id: true
+            }
+        };
+
+        // Include more information about the user if required
+        const user_details = req.query["user_details"];
+        if (user_details !== undefined) {
+            relations.user = {
+                settings: true
+            };
+            select.user = {
+                id: true,
+                role: true,
+                first_name: true,
+                last_name: true,
+                profile_picture_id: true,
+                settings: {
+                    display_lastname_on_public: true
+                }
+            };
+        }
+
+        // Include more information about the comments if required
+        const comments_details = req.query["comments_details"];
+        if (comments_details !== undefined) {
+            select.comments = true;
+        }
+
+        return [select, relations];
     }
 }
