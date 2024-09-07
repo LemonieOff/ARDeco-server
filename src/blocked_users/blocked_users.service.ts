@@ -56,6 +56,17 @@ export class BlockedUsersService {
         return [blocked, blocking];
     }
 
+    async checkBlockedForBlocker(blocker_id: number, blocked_id: number): Promise<boolean> {
+        const result = await this.blockedUsersRepository.findOne({
+            where: {
+                user_id: blocker_id,
+                blocked_user_id: blocked_id
+            }
+        });
+
+        return !(!result);
+    }
+
     remove(user_id: number, blocked_user_id: number) {
         return this.blockedUsersRepository.delete({
             user_id: user_id,

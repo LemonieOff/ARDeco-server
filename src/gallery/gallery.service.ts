@@ -38,7 +38,6 @@ export class GalleryService {
         return await this.galleryRepository.save(data);
     }
 
-    // TODO : Blocked users restriction (gallery + comments)
     async findOne(
         where: FindOptionsWhere<Gallery>,
         relations: FindOptionsRelations<Gallery> = {},
@@ -47,6 +46,37 @@ export class GalleryService {
     ): Promise<Gallery> {
         return this.galleryRepository.findOne({
             where: where,
+            relations: relations,
+            loadRelationIds: loadIds,
+            loadEagerRelations: false,
+            select: select
+        });
+    }
+
+    async findOneById(
+        id: number,
+        relations: FindOptionsRelations<Gallery>,
+        select: FindOptionsSelect<Gallery> = {}
+    ) {
+        return this.findOne({ id: id }, relations, select);
+    }
+
+    // TODO : Blocked users restriction (comments)
+    async findOneRestricted(
+        fetcher_id: number,
+        id: number,
+        relations: FindOptionsRelations<Gallery> = {},
+        select: FindOptionsSelect<Gallery> = {},
+        loadIds: boolean = false
+    ): Promise<Gallery> {
+        const [blocked, blocking] = await this.blockedUsersService.findByBlockedAndBlocking(fetcher_id);
+
+        return this.galleryRepository.findOne({
+            where: {
+                id: id,
+                visibility: true,
+                user_id: And(Not(In(blocked)), Not(In(blocking)))
+            },
             relations: relations,
             loadRelationIds: loadIds,
             loadEagerRelations: false,

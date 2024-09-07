@@ -7,46 +7,23 @@ import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 import { User } from "../user/models/user.entity";
 import { UserService } from "../user/user.service";
 import { FindOptionsRelations, FindOptionsSelect } from "typeorm";
+import { BlockedUsersService } from "../blocked_users/blocked_users.service";
 
 @Controller(["gallery", "galery"])
 export class GalleryController {
     constructor(
         private galleryService: GalleryService,
         private jwtService: JwtService,
-        private userService: UserService
+        private userService: UserService,
+        private blockedUsersService: BlockedUsersService
     ) {
     }
 
     // Get all gallery items
     @Get()
     async all(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-        const cookie = req.cookies["jwt"];
-        const data = cookie ? this.jwtService.verify(cookie) : null;
-
-        // Cookie or JWT not valid
-        if (!cookie || !data) {
-            res.status(401);
-            return {
-                status: "KO",
-                code: 401,
-                description: "You are not connected",
-                data: null
-            };
-        }
-
-        // User retrieving
-        const fetcher = await this.userService.findOne({ id: data["id"] });
-
-        // User not found
-        if (!fetcher) {
-            return {
-                status: "KO",
-                code: 403,
-                description:
-                    "You are not allowed to access/modify this resource",
-                data: null
-            };
-        }
+        const fetcher = await this.checkLogin(req, res);
+        if (!(fetcher instanceof User)) return fetcher;
 
         // Get all query parameters
         const user_id_query = req.query["user_id"];
@@ -57,7 +34,7 @@ export class GalleryController {
         let limit: number | null = Number(limit_query);
         let begin_pos: number | null = Number(begin_pos_query);
 
-        // If user_id query is set, check if it's a number and if the user exists
+        // If the user_id param query is set, check if it's a number and if the user exists
         if (user_id_query) {
             if (isNaN(user_id)) {
                 res.status(400);
@@ -80,13 +57,11 @@ export class GalleryController {
                     data: null
                 };
             }
-
-            // TODO : Check blocked_user
         } else {
             user_id = null;
         }
 
-        // If limit query is set, check if it's a number
+        // If the limit param query is set, check if it's a number
         if (limit_query) {
             if (isNaN(limit)) {
                 res.status(400);
@@ -101,7 +76,7 @@ export class GalleryController {
             limit = null;
         }
 
-        // If begin_pos query is set, check if it's a number
+        // If the begin_pos param query is set, check if it's a number
         if (begin_pos_query) {
             if (isNaN(begin_pos)) {
                 res.status(400);
@@ -113,7 +88,7 @@ export class GalleryController {
                 };
             }
 
-            // limit is mandatory if begin_pos is set
+            // Limit is mandatory if begin_pos is set
             if (!limit) {
                 res.status(400);
                 return {
@@ -164,9 +139,15 @@ export class GalleryController {
         @Param("id") id: number,
         @Res({ passthrough: true }) res: Response
     ) {
+        const user = await this.checkLogin(req, res);
+        if (!(user instanceof User)) return user;
+
         const [select, relations] = this.getSelect(req);
 
-        const item = await this.galleryService.findOne({ id: id }, relations, select);
+        const item = await this.galleryService.findOneById(id, relations, select);
+
+        const authError = await this.checkViewAccess(item, user, res);
+        if (authError) return authError;
 
         // Response object final customization
 
@@ -175,14 +156,6 @@ export class GalleryController {
             if (item.user.last_name) item.user.last_name = "";
         }
         delete item.user.settings;
-
-        const authorizedUser = await this.checkAuthorization(
-            req,
-            res,
-            item,
-            "view"
-        );
-        if (!(authorizedUser instanceof User)) return authorizedUser;
 
         res.status(200);
         return {
@@ -211,10 +184,13 @@ export class GalleryController {
             };
         }
 
-        const user = await this.checkAuthorization(req, res, null, "user_gallery", user_id);
+        const user = await this.checkLogin(req, res);
         if (!(user instanceof User)) return user;
 
-        // If user is not the creator nor an admin, can't see private items
+        const authError = this.checkPermissions(user, res, null, "user_gallery", user_id);
+        if (authError) return authError;
+
+        // If the user is not the creator nor an admin, can't see private items
         // Visibility false means all items, and true means only public items
         const visibility = !(user.id === user_id || user.role === "admin");
 
@@ -244,32 +220,8 @@ export class GalleryController {
         @Body() item: QueryPartialEntity<Gallery>,
         @Res({ passthrough: true }) res: Response
     ) {
-        const cookie = req.cookies["jwt"];
-        const data = cookie ? this.jwtService.verify(cookie) : null;
-
-        // Cookie or JWT not valid
-        if (!cookie || !data) {
-            res.status(401);
-            return {
-                status: "KO",
-                code: 401,
-                description:
-                    "You have to login in order to create a gallery item",
-                data: null
-            };
-        }
-
-        const user = await this.userService.findOne({ id: data["id"] });
-
-        if (!user) {
-            res.status(403);
-            return {
-                status: "KO",
-                code: 403,
-                description: "You are not allowed to create a gallery item",
-                data: null
-            };
-        }
+        const user = await this.checkLogin(req, res);
+        if (!(user instanceof User)) return user;
 
         try {
             item.user = user;
@@ -299,10 +251,13 @@ export class GalleryController {
         @Param("id") id: number,
         @Res({ passthrough: true }) res: Response
     ) {
+        const user = await this.checkLogin(req, res);
+        if (!(user instanceof User)) return user;
+
         const item = await this.galleryService.findOne({ id: id });
 
-        const authorizedUser = await this.checkAuthorization(
-            req,
+        const authorizedUser = this.checkPermissions(
+            user,
             res,
             item,
             "delete"
@@ -346,10 +301,13 @@ export class GalleryController {
         res: Response
     ) {
         try {
+            const user = await this.checkLogin(req, res);
+            if (!(user instanceof User)) return user;
+
             const item = await this.galleryService.findOne({ id: id });
 
-            const authorizedUser = await this.checkAuthorization(
-                req,
+            const authorizedUser = this.checkPermissions(
+                user,
                 res,
                 item,
                 "edit"
@@ -376,31 +334,15 @@ export class GalleryController {
         }
     }
 
-    async checkAuthorization(
+    async checkLogin(
         req: Request,
-        res: Response,
-        item: Gallery,
-        action: string,
-        user_id: number | null = null
+        res: Response
     ): Promise<{
         code: number;
         data: null;
         description: string;
         status: string
     } | User> {
-        // Check if item exists only for "view", "edit" and "delete" actions
-        if (action === "view" || action === "edit" || action === "delete") {
-            if (!item) {
-                res.status(404);
-                return {
-                    status: "KO",
-                    code: 404,
-                    description: "Resource was not found",
-                    data: null
-                };
-            }
-        }
-
         const cookie = req.cookies["jwt"];
         const data = cookie ? this.jwtService.verify(cookie) : null;
 
@@ -428,26 +370,103 @@ export class GalleryController {
             };
         }
 
-        // Check if item is not visible for everyone
-        if (action === "view") {
+        return user;
+    }
+
+    async checkViewAccess(
+        item: Gallery,
+        user: User,
+        res: Response
+    ): Promise<{
+        status: string,
+        code: number;
+        description: string;
+        data: null;
+    }> {
+        if (!item) {
+            res.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description: "Gallery was not found",
+                data: null
+            }
+        }
+
+        // Admin can access everything (invisible items and blocked ones)
+        if (user.role === "admin") {
+            return null;
+        }
+
+        // Check if the user is the creator or not
+        // If it is, the creator has all rights on its items, even if they are private
+        // In case it's not, check for item visibility and creator blocked/blocking status
+        if (item.user.id !== user.id) {
+            // Check for item visibility, private ones are inaccessible
             if (!item.visibility) {
-                // Check if user is the creator
-                if (item.user_id !== user.id) {
-                    // If not, check if it's an admin
-                    if (user.role !== "admin") {
-                        res.status(403);
-                        return {
-                            status: "KO",
-                            code: 403,
-                            description:
-                                "You are not allowed to access this resource",
-                            data: null
-                        };
-                    }
+                res.status(403);
+                return {
+                    status: "KO",
+                    code: 403,
+                    description: "You are not allowed to access this gallery",
+                    data: null
                 }
             }
-        } else if (action === "edit" || action === "delete") {
-            // Check if user is the creator
+
+            // Check if the request user is blocking the item creator user
+            const isFetcherBlockingCreator = await this.blockedUsersService.checkBlockedForBlocker(user.id, item.user.id);
+            if (isFetcherBlockingCreator) {
+                res.status(403);
+                return {
+                    status: "KO",
+                    code: 403,
+                    description: "You cannot access this user's galleries because you have blocked them.",
+                    data: null
+                };
+            }
+
+            // Check if the request user is blocked by the item creator user
+            const isFetcherBlockedByCreator = await this.blockedUsersService.checkBlockedForBlocker(item.user.id, user.id);
+            if (isFetcherBlockedByCreator) {
+                res.status(403);
+                return {
+                    status: "KO",
+                    code: 403,
+                    // Same description as private items,
+                    // to not reveal the fact of being blocked
+                    description: "You are not allowed to access this gallery",
+                    data: null
+                }
+            }
+        }
+
+        return null;
+    }
+
+    checkPermissions(
+        user: User,
+        res: Response,
+        item: Gallery,
+        action: "edit" | "delete" | "user_gallery",
+        user_id: number | null = null
+    ): {
+        code: number;
+        data: null;
+        description: string;
+        status: string
+    } {
+        if (action === "edit" || action === "delete") {
+            if (!item) {
+                res.status(404);
+                return {
+                    status: "KO",
+                    code: 404,
+                    description: "Gallery was not found",
+                    data: null
+                };
+            }
+
+            // Check if the user is the creator
             if (item.user_id !== user.id) {
                 // If not, check if it's an admin
                 if (user.role !== "admin") {
@@ -474,7 +493,7 @@ export class GalleryController {
             }
         }
 
-        return user;
+        return null;
     }
 
     getSelect(req: Request): [FindOptionsSelect<Gallery>, FindOptionsRelations<Gallery>] {

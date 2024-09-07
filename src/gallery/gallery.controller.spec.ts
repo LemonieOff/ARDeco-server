@@ -180,7 +180,7 @@ describe("GalleryController", () => {
         it("should return 200 and specific gallery without user details", async () => {
             const gallery: Gallery = {} as any;
             jest.spyOn(galleryService, "findOne").mockResolvedValue(gallery);
-            jest.spyOn(galleryController, "checkAuthorization").mockResolvedValue(new User);
+            jest.spyOn(galleryController, "checkPermissions").mockResolvedValue(new User);
             const req = {
                 cookies: { jwt: "token" },
                 query: { user_details: undefined }
@@ -195,7 +195,7 @@ describe("GalleryController", () => {
         it("should return 200 and specific gallery with user details", async () => {
             const gallery: Gallery = {} as any;
             jest.spyOn(galleryService, "findOne").mockResolvedValue(gallery);
-            jest.spyOn(galleryController, "checkAuthorization").mockResolvedValue(new User);
+            jest.spyOn(galleryController, "checkPermissions").mockResolvedValue(new User);
             const req = {
                 cookies: { jwt: "token" },
                 query: { user_details: true }
@@ -210,7 +210,7 @@ describe("GalleryController", () => {
         it("should return error if checkAuthorization doesn't pass", async () => {
             const gallery: Gallery = {} as any;
             jest.spyOn(galleryService, "findOne").mockResolvedValue(gallery);
-            jest.spyOn(galleryController, "checkAuthorization").mockResolvedValue({
+            jest.spyOn(galleryController, "checkPermissions").mockResolvedValue({
                 status: "KO",
                 code: 401,
                 description: "You are not connected",
@@ -233,7 +233,7 @@ describe("GalleryController", () => {
             const user: User = new User;
             user.id = 1;
             user.role = "admin";
-            jest.spyOn(galleryController, "checkAuthorization").mockResolvedValue(user);
+            jest.spyOn(galleryController, "checkPermissions").mockResolvedValue(user);
             const galleries: Gallery[] = [{} as any, {} as any];
             jest.spyOn(galleryService, "findForUser").mockResolvedValue(galleries);
             const req = { cookies: { jwt: "token" } } as any;
@@ -248,7 +248,7 @@ describe("GalleryController", () => {
             const user: User = new User;
             user.id = 1;
             user.role = "client";
-            jest.spyOn(galleryController, "checkAuthorization").mockResolvedValue(user);
+            jest.spyOn(galleryController, "checkPermissions").mockResolvedValue(user);
             const galleries: Gallery[] = [{} as any, {} as any];
             jest.spyOn(galleryService, "findForUser").mockResolvedValue(galleries);
             const req = { cookies: { jwt: "token" } } as any;
@@ -263,7 +263,7 @@ describe("GalleryController", () => {
             const user: User = new User;
             user.id = 1;
             user.role = "client";
-            jest.spyOn(galleryController, "checkAuthorization").mockResolvedValue(user);
+            jest.spyOn(galleryController, "checkPermissions").mockResolvedValue(user);
             const galleries: Gallery[] = [{} as any, {} as any];
             jest.spyOn(galleryService, "findForUser").mockResolvedValue(galleries);
             const req = { cookies: { jwt: "token" } } as any;
@@ -275,7 +275,7 @@ describe("GalleryController", () => {
         });
 
         it("should return error 400 if user id is not a number", async () => {
-            jest.spyOn(galleryController, "checkAuthorization").mockResolvedValue({
+            jest.spyOn(galleryController, "checkPermissions").mockResolvedValue({
                 status: "KO",
                 code: 401,
                 description: "You are not connected",
@@ -290,7 +290,7 @@ describe("GalleryController", () => {
         });
 
         it("should return error if checkAuthorization doesn't pass", async () => {
-            jest.spyOn(galleryController, "checkAuthorization").mockResolvedValue({
+            jest.spyOn(galleryController, "checkPermissions").mockResolvedValue({
                 status: "KO",
                 code: 401,
                 description: "You are not connected",
@@ -355,7 +355,7 @@ describe("GalleryController", () => {
         it("should return 200 on delete", async () => {
             const gallery: Gallery = {} as any;
             jest.spyOn(galleryService, "findOne").mockResolvedValue(gallery);
-            jest.spyOn(galleryController, "checkAuthorization").mockResolvedValue(new User);
+            jest.spyOn(galleryController, "checkPermissions").mockResolvedValue(new User);
             jest.spyOn(galleryService, "delete").mockResolvedValue({} as any);
             const req = { cookies: { jwt: "token" } } as any;
             const res = { status: jest.fn().mockReturnValue(this) } as any;
@@ -368,7 +368,7 @@ describe("GalleryController", () => {
         it("should return error if checkAuthorization doesn't pass", async () => {
             const gallery: Gallery = {} as any;
             jest.spyOn(galleryService, "findOne").mockResolvedValue(gallery);
-            jest.spyOn(galleryController, "checkAuthorization").mockResolvedValue({
+            jest.spyOn(galleryController, "checkPermissions").mockResolvedValue({
                 status: "KO",
                 code: 401,
                 description: "You are not connected",
@@ -385,7 +385,7 @@ describe("GalleryController", () => {
         it("should return error 500 on server error", async () => {
             const gallery: Gallery = {} as any;
             jest.spyOn(galleryService, "findOne").mockResolvedValue(gallery);
-            jest.spyOn(galleryController, "checkAuthorization").mockResolvedValue(new User);
+            jest.spyOn(galleryController, "checkPermissions").mockResolvedValue(new User);
             jest.spyOn(galleryService, "delete").mockImplementation(() => {
                 throw new Error();
             });
@@ -418,7 +418,7 @@ describe("GalleryController", () => {
     describe("editItem", () => {
         it("should return 200 on edit", async () => {
             jest.spyOn(galleryService, "findOne").mockResolvedValue({} as any);
-            jest.spyOn(galleryController, "checkAuthorization").mockResolvedValue(new User);
+            jest.spyOn(galleryController, "checkPermissions").mockResolvedValue(new User);
             jest.spyOn(galleryService, "update").mockResolvedValue({} as any);
             const req = { cookies: { jwt: "token" } } as any;
             const res = { status: jest.fn().mockReturnValue(this) } as any;
@@ -430,7 +430,7 @@ describe("GalleryController", () => {
 
         it("should return error when checkAuthorization doesn't pass", async () => {
             jest.spyOn(galleryService, "findOne").mockResolvedValue({} as any);
-            jest.spyOn(galleryController, "checkAuthorization").mockResolvedValue({
+            jest.spyOn(galleryController, "checkPermissions").mockResolvedValue({
                 status: "KO",
                 code: 401,
                 description: "",
@@ -446,7 +446,7 @@ describe("GalleryController", () => {
 
         it("should return error 400 on error", async () => {
             jest.spyOn(galleryService, "findOne").mockResolvedValue({} as any);
-            jest.spyOn(galleryController, "checkAuthorization").mockResolvedValue(new User);
+            jest.spyOn(galleryController, "checkPermissions").mockResolvedValue(new User);
             jest.spyOn(galleryService, "update").mockImplementation(() => {
                 throw new Error();
             });
@@ -466,14 +466,14 @@ describe("GalleryController", () => {
             const req = { cookies: { jwt: "token" } } as any;
             const res = { status: jest.fn().mockReturnValue(this) } as any;
             const item: Gallery = { visibility: true } as any;
-            const result = await galleryController.checkAuthorization(req, res, item, "view");
+            const result = await galleryController.checkPermissions(req, res, item, "view");
             expect(result).toMatchObject(user);
         });
 
         it("should return error 404 if item doesn't exist for view action", async () => {
             const req = { cookies: { jwt: "token" } } as any;
             const res = { status: jest.fn().mockReturnValue(this) } as any;
-            const result = await galleryController.checkAuthorization(req, res, null, "view");
+            const result = await galleryController.checkPermissions(req, res, null, "view");
             if (result instanceof User) {
                 fail("Result should not be an instance of User");
             }
@@ -485,7 +485,7 @@ describe("GalleryController", () => {
         it("should return error 404 if item doesn't exist for edit action", async () => {
             const req = { cookies: { jwt: "token" } } as any;
             const res = { status: jest.fn().mockReturnValue(this) } as any;
-            const result = await galleryController.checkAuthorization(req, res, null, "edit");
+            const result = await galleryController.checkPermissions(req, res, null, "edit");
             if (result instanceof User) {
                 fail("Result should not be an instance of User");
             }
@@ -497,7 +497,7 @@ describe("GalleryController", () => {
         it("should return error 404 if item doesn't exist for delete action", async () => {
             const req = { cookies: { jwt: "token" } } as any;
             const res = { status: jest.fn().mockReturnValue(this) } as any;
-            const result = await galleryController.checkAuthorization(req, res, null, "delete");
+            const result = await galleryController.checkPermissions(req, res, null, "delete");
             if (result instanceof User) {
                 fail("Result should not be an instance of User");
             }
@@ -510,7 +510,7 @@ describe("GalleryController", () => {
             const req = { cookies: { jwt: undefined } } as any;
             const res = { status: jest.fn().mockReturnValue(this) } as any;
             const item: Gallery = { visibility: true } as any;
-            const result = await galleryController.checkAuthorization(req, res, item, "view");
+            const result = await galleryController.checkPermissions(req, res, item, "view");
             if (result instanceof User) {
                 fail("Result should not be an instance of User");
             }
@@ -524,7 +524,7 @@ describe("GalleryController", () => {
             const req = { cookies: { jwt: "token" } } as any;
             const res = { status: jest.fn().mockReturnValue(this) } as any;
             const item: Gallery = { visibility: true } as any;
-            const result = await galleryController.checkAuthorization(req, res, item, "view");
+            const result = await galleryController.checkPermissions(req, res, item, "view");
             if (result instanceof User) {
                 fail("Result should not be an instance of User");
             }
@@ -544,7 +544,7 @@ describe("GalleryController", () => {
                 visibility: false,
                 user_id: 4
             } as any;
-            const result = await galleryController.checkAuthorization(req, res, item, "view");
+            const result = await galleryController.checkPermissions(req, res, item, "view");
             if (result instanceof User) {
                 fail("Result should not be an instance of User");
             }
@@ -564,7 +564,7 @@ describe("GalleryController", () => {
                 visibility: false,
                 user_id: 4
             } as any;
-            const result = await galleryController.checkAuthorization(req, res, item, "view");
+            const result = await galleryController.checkPermissions(req, res, item, "view");
             expect(result).toMatchObject(user);
         });
 
@@ -579,7 +579,7 @@ describe("GalleryController", () => {
                 visibility: false,
                 user_id: 4
             } as any;
-            const result = await galleryController.checkAuthorization(req, res, item, "edit");
+            const result = await galleryController.checkPermissions(req, res, item, "edit");
             if (result instanceof User) {
                 fail("Result should not be an instance of User");
             }
@@ -599,7 +599,7 @@ describe("GalleryController", () => {
                 visibility: false,
                 user_id: 4
             } as any;
-            const result = await galleryController.checkAuthorization(req, res, item, "edit");
+            const result = await galleryController.checkPermissions(req, res, item, "edit");
             expect(result).toMatchObject(user);
         });
 
@@ -614,7 +614,7 @@ describe("GalleryController", () => {
                 visibility: false,
                 user_id: 4
             } as any;
-            const result = await galleryController.checkAuthorization(req, res, item, "delete");
+            const result = await galleryController.checkPermissions(req, res, item, "delete");
             if (result instanceof User) {
                 fail("Result should not be an instance of User");
             }
@@ -634,7 +634,7 @@ describe("GalleryController", () => {
                 visibility: false,
                 user_id: 4
             } as any;
-            const result = await galleryController.checkAuthorization(req, res, item, "delete");
+            const result = await galleryController.checkPermissions(req, res, item, "delete");
             expect(result).toMatchObject(user);
         });
 
@@ -644,7 +644,7 @@ describe("GalleryController", () => {
             const req = { cookies: { jwt: "token" } } as any;
             const res = { status: jest.fn().mockReturnValue(this) } as any;
             const item: Gallery = { visibility: true } as any;
-            const result = await galleryController.checkAuthorization(req, res, item, "user_gallery");
+            const result = await galleryController.checkPermissions(req, res, item, "user_gallery");
             if (result instanceof User) {
                 fail("Result should not be an instance of User");
             }
