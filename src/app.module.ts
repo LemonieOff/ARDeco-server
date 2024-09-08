@@ -23,6 +23,8 @@ import { GalleryReportsModule } from "./report/gallery/gallery_reports.module";
 import { ProfilePictureModule } from "./profile_picture/profile_picture.module";
 import { CreateCompanyModule } from "./create-company/create-company.module";
 import { CommentModule } from "./comment/comment.module";
+import { FeedbackModule } from "./feedback/feedback.module";
+import { ChangelogModule} from "./changelog/changelog.module";
 
 @Module({
     imports: [
@@ -40,7 +42,7 @@ import { CommentModule } from "./comment/comment.module";
             password: process.env.DB_PASSWORD,
             database: process.env.DB_NAME,
             autoLoadEntities: true,
-            synchronize: true,
+            synchronize: false,
         }),
         UserModule,
         AuthModule,
@@ -61,7 +63,9 @@ import { CommentModule } from "./comment/comment.module";
         GalleryReportsModule,
         ProfilePictureModule,
         CreateCompanyModule,
-        CommentModule
+        CommentModule,
+        FeedbackModule,
+        ChangelogModule
     ],
     controllers: [AppController],
     providers: [AppService, ConfigService]

@@ -13,8 +13,7 @@ import { CatalogModule } from "src/catalog/catalog.module";
         CatalogModule,
         TypeOrmModule.forFeature([Cart]),
         JwtModule.register({
-            secret: "secret",
-            signOptions: { expiresIn: "1d" }
+            secret: "secret"
         })
     ],
     providers: [CartService],

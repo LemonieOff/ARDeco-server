@@ -13,8 +13,7 @@ import { GalleryModule } from "../../gallery/gallery.module";
         GalleryModule,
         UserModule,
         JwtModule.register({
-            secret: "secret",
-            signOptions: { expiresIn: "1d" }
+            secret: "secret"
         })
     ],
     controllers: [GalleryReportsController],

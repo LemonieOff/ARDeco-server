@@ -40,21 +40,22 @@ export class FavoriteGalleryController {
             for (const item of items) {
                 const gallery: Gallery = await this.galleryService.findOne({
                     id: item.gallery_id
-                }, [{user: true}, []]);
-                galleryItems.push({
-                    gallery: {
-                        id: gallery.id,
-                        name: gallery.name,
-                        description: gallery.description,
-                        type: gallery.room_type,
-                        furniture: [...gallery.furniture]
-                    },
+                }, {
+                    user: true
+                }, {
+                    id: true,
+                    name: true,
+                    description: true,
+                    room_type: true,
+                    furniture: true,
                     user: {
-                        id: gallery.user.id,
-                        first_name: gallery.user.first_name,
-                        last_name: gallery.user.last_name
+                        id: true,
+                        first_name: true,
+                        last_name: true,
+                        profile_picture_id: true
                     }
                 });
+                galleryItems.push(gallery);
             }
 
             res.status(200);

@@ -1,12 +1,4 @@
-import {
-    Body,
-    Controller, Delete,
-    Get,
-    Param, ParseIntPipe,
-    Put,
-    Req,
-    Res
-} from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Put, Req, Res } from "@nestjs/common";
 import { Request, Response } from "express";
 import { JwtService } from "@nestjs/jwt";
 import { User } from "../user/models/user.entity";
@@ -28,11 +20,15 @@ export class ProfilePictureController {
         const user = await this.checkAuthorizationForUser(req, res, "get");
 
         if (user instanceof User) {
+            const id = user.profile_picture_id;
             return {
                 status: "OK",
                 code: 200,
                 description: "Profile picture id",
-                data: user.profile_picture_id
+                data: {
+                    id: id,
+                    url: `https://api.ardeco.app/profile_pictures/${id}.png`
+                }
             };
         }
 
@@ -49,11 +45,15 @@ export class ProfilePictureController {
 
         if (user instanceof User) {
             const specifiedUser = await this.userService.findOne({ id: id });
+            const profile_id = specifiedUser.profile_picture_id;
             return {
                 status: "OK",
                 code: 200,
                 description: "Profile picture id",
-                data: specifiedUser.profile_picture_id
+                data: {
+                    id: profile_id,
+                    url: `https://api.ardeco.app/profile_pictures/${profile_id}.png`
+                }
             };
         }
 
@@ -84,7 +84,10 @@ export class ProfilePictureController {
                 status: "OK",
                 code: 200,
                 description: "Profile picture id updated",
-                data: picture_id
+                data: {
+                    id: picture_id,
+                    url: `https://api.ardeco.app/profile_pictures/${picture_id}.png`
+                }
             };
         }
 
@@ -116,7 +119,10 @@ export class ProfilePictureController {
                 status: "OK",
                 code: 200,
                 description: "Profile picture id updated",
-                data: picture_id
+                data: {
+                    id: picture_id,
+                    url: `https://api.ardeco.app/profile_pictures/${picture_id}.png`
+                }
             };
         }
 
@@ -136,7 +142,10 @@ export class ProfilePictureController {
                 status: "OK",
                 code: 200,
                 description: "Profile picture reinitialized",
-                data: 0
+                data: {
+                    id: 0,
+                    url: `https://api.ardeco.app/profile_pictures/0.png`
+                }
             };
         }
 
@@ -157,11 +166,47 @@ export class ProfilePictureController {
                 status: "OK",
                 code: 200,
                 description: "Profile picture reinitialized",
-                data: 0
+                data: {
+                    id: 0,
+                    url: `https://api.ardeco.app/profile_pictures/0.png`
+                }
             };
         }
 
         return user;
+    }
+
+    @Get("picture")
+    async getAllPicturesIds(
+        @Res({ passthrough: true }) res: Response
+    ) {
+        res.status(200).json({
+            "status": "OK",
+            "code": 200,
+            "description": "All available picture ids",
+            "data": [
+                {
+                    id: 0,
+                    url: `https://api.ardeco.app/profile_pictures/0.png`
+                },
+                {
+                    id: 1,
+                    url: `https://api.ardeco.app/profile_pictures/1.png`
+                },
+                {
+                    id: 2,
+                    url: `https://api.ardeco.app/profile_pictures/2.png`
+                },
+                {
+                    id: 3,
+                    url: `https://api.ardeco.app/profile_pictures/3.png`
+                },
+                {
+                    id: 4,
+                    url: `https://api.ardeco.app/profile_pictures/4.png`
+                }
+            ]
+        });
     }
 
     @Get("picture/:id")

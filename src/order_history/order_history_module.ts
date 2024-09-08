@@ -11,8 +11,7 @@ import { UserModule } from "../user/user.module";
         UserModule,
         TypeOrmModule.forFeature([OrderHistory]),
         JwtModule.register({
-            secret: "secret",
-            signOptions: { expiresIn: "1d" }
+            secret: "secret"
         })
     ],
     controllers: [OrderHistoryController],

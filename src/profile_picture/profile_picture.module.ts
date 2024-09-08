@@ -7,8 +7,7 @@ import { UserModule } from "../user/user.module";
     imports: [
         UserModule,
         JwtModule.register({
-            secret: "secret",
-            signOptions: { expiresIn: "1d" }
+            secret: "secret"
         })
     ],
     controllers: [ProfilePictureController],

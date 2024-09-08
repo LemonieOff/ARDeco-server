@@ -22,7 +22,7 @@ export class TicketService {
                 user_init_id: userId,
                 status: Not("deleted")
             },
-            select: ["id", "title", "status"]
+            select: ["id", "title", "status", "description"]
         });
     }
 

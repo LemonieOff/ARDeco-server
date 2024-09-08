@@ -30,7 +30,7 @@ export class TicketController {
 
   //  @UseGuards(AuthGuard)
     @Get('pending')
-    async getPending(@Req() req: Request, @Res() httpRes: Response): Promise<any> {
+    async getPending(@Req() req: Request, @Res({ passthrough: true }) httpRes: Response): Promise<any> {
         // Check login
         const cookie = req.cookies["jwt"];
         const data = cookie ? this.jwtService.verify(cookie) : null;
@@ -44,9 +44,19 @@ export class TicketController {
             };
         }
 
-        const usr = await this.userService.findOne({id: data['id']})
-        console.log("User", usr);
+        const usr = await this.userService.findOne({id: data['id']});
+        if (!usr) {
+            httpRes.status(HttpStatus.FORBIDDEN);
+            return {
+                status: 'KO',
+                code: HttpStatus.FORBIDDEN,
+                description: 'You are not allowed to access this resource',
+                data: null,
+            };
+        }
+
         if (usr.role != "admin") {
+            httpRes.status(HttpStatus.BAD_REQUEST);
             return {
                 status: 'KO',
                 code: HttpStatus.BAD_REQUEST,
@@ -55,13 +65,15 @@ export class TicketController {
             };
         }
 
-        const tickets = await this.ticketService.all()
-        let res = []
+        const tickets = await this.ticketService.all();
+        let res = [];
         for (let i = 0; i < tickets.length; i++) {
             if (tickets[i].status == "pending") {
-                res.push(tickets[i])
+                res.push(tickets[i]);
             }
         }
+
+        httpRes.status(HttpStatus.OK);
         return {
             status: 'OK',
             code: HttpStatus.OK,
@@ -72,7 +84,7 @@ export class TicketController {
 
    // @UseGuards(AuthGuard)
     @Get('random')
-    async getRandom(@Req() req: Request, @Res() httpRes: Response): Promise<any> {
+    async getRandom(@Req() req: Request, @Res({ passthrough: true }) httpRes: Response): Promise<any> {
         // Check login
         const cookie = req.cookies["jwt"];
         const data = cookie ? this.jwtService.verify(cookie) : null;
@@ -85,9 +97,20 @@ export class TicketController {
                 data: null,
             };
         }
+
         const usr = await this.userService.findOne({id: data['id']});
-        console.log("User", usr);
+        if (!usr) {
+            httpRes.status(HttpStatus.FORBIDDEN);
+            return {
+                status: 'KO',
+                code: HttpStatus.FORBIDDEN,
+                description: 'You are not allowed to access this resource',
+                data: null,
+            };
+        }
+
         if (usr.role != "admin") {
+            httpRes.status(HttpStatus.BAD_REQUEST);
             return {
                 status: 'KO',
                 code: HttpStatus.BAD_REQUEST,
@@ -96,14 +119,15 @@ export class TicketController {
             };
         }
 
-        const tickets = await this.ticketService.all()
-        let res = []
+        const tickets = await this.ticketService.all();
+        let res = [];
         for (let i = 0; i < tickets.length; i++) {
             if (tickets[i].status == "pending") {
-                res.push(tickets[i])
+                res.push(tickets[i]);
             }
         }
         if (res.length == 0) {
+            httpRes.status(HttpStatus.BAD_REQUEST);
             return {
                 status: 'KO',
                 code: HttpStatus.BAD_REQUEST,
@@ -111,6 +135,8 @@ export class TicketController {
                 data: null,
             };
         }
+
+        httpRes.status(HttpStatus.OK);
         return {
             status: 'OK',
             code: HttpStatus.OK,
@@ -136,13 +162,13 @@ export class TicketController {
         }
 
         // Check user exists
-        const usr = await this.userService.findOne({id: data['id']})
+        const usr = await this.userService.findOne({id: data['id']});
         if (!usr) {
-            res.status(HttpStatus.UNAUTHORIZED);
+            res.status(HttpStatus.FORBIDDEN);
             return {
                 status: 'KO',
-                code: HttpStatus.UNAUTHORIZED,
-                description: 'User not found',
+                code: HttpStatus.FORBIDDEN,
+                description: 'You are not allowed to access this resource',
                 data: null,
             };
         }
@@ -158,21 +184,23 @@ export class TicketController {
             };
         }
 
-        const tickets = await this.ticketService.all()
-        let pending = 0
-        let closed = 0
-        let deleted = 0
+        const tickets = await this.ticketService.all();
+        let pending = 0;
+        let closed = 0;
+        let deleted = 0;
         for (let i = 0; i < tickets.length; i++) {
             if (tickets[i].status == "pending") {
-                pending++
+                pending++;
             }
             else if (tickets[i].status == "closed") {
-                closed++
+                closed++;
             }
             else if (tickets[i].status == "deleted") {
-                deleted++
+                deleted++;
             }
         }
+
+        res.status(HttpStatus.OK);
         return {
             status: 'OK',
             code: HttpStatus.OK,
@@ -187,7 +215,7 @@ export class TicketController {
 
     //@UseGuards(AuthGuard)
     @Get('stats/last7days')
-    async getStatsLast7Days(@Req() req: Request, @Res() res: Response): Promise<any> {
+    async getStatsLast7Days(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<any> {
         // Check login
         const cookie = req.cookies["jwt"];
         const data = cookie ? this.jwtService.verify(cookie) : null;
@@ -201,9 +229,17 @@ export class TicketController {
             };
         }
 
-        const usr = await this.userService.findOne({id: data['id']})
-        console.log("User", usr);
-        console.log("Role", usr.role);
+        const usr = await this.userService.findOne({id: data['id']});
+        if (!usr) {
+            res.status(HttpStatus.FORBIDDEN);
+            return {
+                status: 'KO',
+                code: HttpStatus.FORBIDDEN,
+                description: 'You are not allowed to access this resource',
+                data: null,
+            };
+        }
+
         if (usr.role != "admin") {
             return {
                 status: 'KO',
@@ -212,39 +248,42 @@ export class TicketController {
                 data: null,
             };
         }
-        const tickets = await this.ticketService.all()
-        let todayTickets = 0
-        let yesterdayTickets = 0
-        let twoDaysAgoTickets = 0
-        let threeDaysAgoTickets = 0
-        let fourDaysAgoTickets = 0
-        let fiveDaysAgoTickets = 0
-        let sixDaysAgoTickets = 0
-        let today = new Date()
+
+        const tickets = await this.ticketService.all();
+        let todayTickets = 0;
+        let yesterdayTickets = 0;
+        let twoDaysAgoTickets = 0;
+        let threeDaysAgoTickets = 0;
+        let fourDaysAgoTickets = 0;
+        let fiveDaysAgoTickets = 0;
+        let sixDaysAgoTickets = 0;
+        let today = new Date();
         for (let i = 0; i < tickets.length; i++) {
-            let ticketDate = new Date(tickets[i].date)
+            let ticketDate = new Date(tickets[i].date);
             if (ticketDate.getDate() == today.getDate()) {
-                todayTickets++
+                todayTickets++;
             }
             else if (ticketDate.getDate() == today.getDate() - 1) {
-                yesterdayTickets++
+                yesterdayTickets++;
             }
             else if (ticketDate.getDate() == today.getDate() - 2) {
-                twoDaysAgoTickets++
+                twoDaysAgoTickets++;
             }
             else if (ticketDate.getDate() == today.getDate() - 3) {
-                threeDaysAgoTickets++
+                threeDaysAgoTickets++;
             }
             else if (ticketDate.getDate() == today.getDate() - 4) {
-                fourDaysAgoTickets++
+                fourDaysAgoTickets++;
             }
             else if (ticketDate.getDate() == today.getDate() - 5) {
-                fiveDaysAgoTickets++
+                fiveDaysAgoTickets++;
             }
             else if (ticketDate.getDate() == today.getDate() - 6) {
-                sixDaysAgoTickets++
+                sixDaysAgoTickets++;
             }
         }
+
+        res.status(HttpStatus.OK);
         return {
             status: 'OK',
             code: HttpStatus.OK,
@@ -266,7 +305,7 @@ export class TicketController {
 
     @Get(':id')
     async getOne(@Param('id') id: number,
-                 @Req() req: Request, @Res() res: Response): Promise<any> {
+                 @Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<any> {
         // Check login
         const cookie = req.cookies["jwt"];
         const data = cookie ? this.jwtService.verify(cookie) : null;
@@ -281,10 +320,19 @@ export class TicketController {
         }
 
         const usr = await this.userService.findOne({id: data['id']});
-        //TODO : verify user existence
+        if (!usr) {
+            res.status(HttpStatus.FORBIDDEN);
+            return {
+                status: 'KO',
+                code: HttpStatus.FORBIDDEN,
+                description: 'You are not allowed to access this resource',
+                data: null,
+            };
+        }
 
         const requestedTicket = await this.ticketService.findOne({ id });
         if (!requestedTicket) {
+            res.status(HttpStatus.BAD_REQUEST);
             return {
                 status: 'KO',
                 code: HttpStatus.BAD_REQUEST,
@@ -293,6 +341,7 @@ export class TicketController {
             };
         }
         else if (requestedTicket.status == "deleted" && usr.role != "admin") {
+            res.status(HttpStatus.BAD_REQUEST);
             return {
                 status: 'KO',
                 code: HttpStatus.BAD_REQUEST,
@@ -301,6 +350,7 @@ export class TicketController {
             };
         }
         else if (usr.id != requestedTicket.user_init_id && usr.role != "admin") {
+            res.status(HttpStatus.BAD_REQUEST);
             return {
                 status: 'KO',
                 code: HttpStatus.BAD_REQUEST,
@@ -308,6 +358,8 @@ export class TicketController {
                 data: null,
             };
         }
+
+        res.status(HttpStatus.OK);
         return {
             status: 'OK',
             code: HttpStatus.OK,
@@ -350,13 +402,12 @@ export class TicketController {
         }
 
         const user = await this.userService.findOne({id: data['id']});
-
         if (!user) {
-            res.status(HttpStatus.UNAUTHORIZED);
+            res.status(HttpStatus.FORBIDDEN);
             return {
                 status: 'KO',
-                code: HttpStatus.UNAUTHORIZED,
-                description: 'User not found',
+                code: HttpStatus.FORBIDDEN,
+                description: 'You are not allowed to access this resource',
                 data: null,
             };
         }
@@ -374,6 +425,7 @@ export class TicketController {
         const tickets = await this.ticketService.allForUser(user_id);
         //const tickets_ids = tickets.map((ticket) => ticket.id);
 
+        res.status(HttpStatus.OK);
         return {
             status: 'OK',
             code: HttpStatus.OK,
@@ -401,6 +453,7 @@ export class TicketController {
     ): Promise<any> {
         try {
             const result = await this.ticketService.update(id, new_item);
+            res.status(HttpStatus.OK);
             return {
                 status: 'OK',
                 code: HttpStatus.OK,
@@ -408,6 +461,7 @@ export class TicketController {
                 data: result,
             };
         } catch (e) {
+            res.status(HttpStatus.BAD_REQUEST);
             return {
                 status: 'KO',
                 code: HttpStatus.BAD_REQUEST,
@@ -441,11 +495,11 @@ export class TicketController {
         // Check user exists
         const usr = await this.userService.findOne({id: data['id']});
         if (!usr) {
-            res.status(HttpStatus.UNAUTHORIZED);
+            res.status(HttpStatus.FORBIDDEN);
             return {
                 status: "KO",
-                code: HttpStatus.UNAUTHORIZED,
-                description: "User not found",
+                code: HttpStatus.FORBIDDEN,
+                description: "You are not allowed to access this resource",
                 data: null
             };
         }
@@ -524,11 +578,11 @@ export class TicketController {
 
         const usr = await this.userService.findOne({id: data['id']});
         if (!usr) {
-            res.status(HttpStatus.UNAUTHORIZED);
+            res.status(HttpStatus.FORBIDDEN);
             return {
                 status: "KO",
-                code: HttpStatus.UNAUTHORIZED,
-                description: "User not found",
+                code: HttpStatus.FORBIDDEN,
+                description: "You are not allowed to access this resource",
                 data: null
             };
         }
@@ -595,13 +649,13 @@ export class TicketController {
             };
         }
 
-        const usr = await this.userService.findOne({id: data['id']})
+        const usr = await this.userService.findOne({id: data['id']});
         if (!usr) {
-            res.status(HttpStatus.UNAUTHORIZED);
+            res.status(HttpStatus.FORBIDDEN);
             return {
                 status: 'KO',
-                code: HttpStatus.UNAUTHORIZED,
-                description: 'User not found',
+                code: HttpStatus.FORBIDDEN,
+                description: 'You are not allowed to access this resource',
                 data: null,
             };
         }
@@ -614,10 +668,10 @@ export class TicketController {
             "status": "pending",
             //QueryFailedError: Incorrect datetime value: '1697831975703' for column 'date' at row 1
             //  "date": Date.now()
-
         }
-        const ress = await this.ticketService.create(body)
-        console.log("ID", ress.id)
+
+        const ress = await this.ticketService.create(body);
+        res.status(HttpStatus.OK);
         return {
             status: 'OK',
             code: HttpStatus.OK,
@@ -648,11 +702,20 @@ export class TicketController {
         }
 
         const usr = await this.userService.findOne({id: data['id']});
-        //TODO : Check user existence
+        if (!usr) {
+            res.status(HttpStatus.FORBIDDEN);
+            return {
+                status: 'KO',
+                code: HttpStatus.FORBIDDEN,
+                description: 'You are not allowed to access this resource',
+                data: null,
+            };
+        }
 
         const ticket = await this.ticketService.findOne({id: id});
         try {
             if (!ticket) {
+                res.status(HttpStatus.BAD_REQUEST);
                 return {
                     status: 'KO',
                     code: HttpStatus.BAD_REQUEST,
@@ -661,6 +724,7 @@ export class TicketController {
                 };
             }
             else if (ticket.status == "closed") {
+                res.status(HttpStatus.BAD_REQUEST);
                 return {
                     status: 'KO',
                     code: HttpStatus.BAD_REQUEST,
@@ -669,6 +733,7 @@ export class TicketController {
                 };
             }
             else if (ticket.status == "deleted") {
+                res.status(HttpStatus.BAD_REQUEST);
                 return {
                     status: 'KO',
                     code: HttpStatus.BAD_REQUEST,
@@ -677,6 +742,7 @@ export class TicketController {
                 };
             }
             else if (usr.id != ticket.user_init_id && usr.role != "admin") {
+                res.status(HttpStatus.BAD_REQUEST);
                 return {
                     status: 'KO',
                     code: HttpStatus.BAD_REQUEST,
@@ -685,6 +751,7 @@ export class TicketController {
                 };
             }
             else if (message.length == 0) {
+                res.status(HttpStatus.BAD_REQUEST);
                 return {
                     status: 'KO',
                     code: HttpStatus.BAD_REQUEST,
@@ -693,6 +760,7 @@ export class TicketController {
                 };
             }
         } catch (e) {
+            res.status(HttpStatus.BAD_REQUEST);
             return {
                 status: 'KO',
                 code: HttpStatus.BAD_REQUEST,
@@ -710,7 +778,8 @@ export class TicketController {
         const body = {
             "messages": messages
         }
-        const ress = await this.ticketService.update(id, body)
+        const ress = await this.ticketService.update(id, body);
+        res.status(HttpStatus.OK);
         return {
             status: 'OK',
             code: HttpStatus.OK,
@@ -721,7 +790,7 @@ export class TicketController {
 
     //@UseGuards(AuthGuard)
     @Get('all')
-    async getAll(@Req() req: Request, @Res() res: Response): Promise<any> {
+    async getAll(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<any> {
         // Check login
         const cookie = req.cookies["jwt"];
         const data = cookie ? this.jwtService.verify(cookie) : null;
@@ -736,9 +805,18 @@ export class TicketController {
         }
 
         const usr = await this.userService.findOne({id: data['id']});
-        //TODO : Check user existence
+        if (!usr) {
+            res.status(HttpStatus.FORBIDDEN);
+            return {
+                status: 'KO',
+                code: HttpStatus.FORBIDDEN,
+                description: 'You are not allowed to access this resource',
+                data: null,
+            };
+        }
 
         if (usr.role != "admin") {
+            res.status(HttpStatus.BAD_REQUEST);
             return {
                 status: 'KO',
                 code: HttpStatus.BAD_REQUEST,
@@ -747,7 +825,8 @@ export class TicketController {
             };
         }
 
-        const tickets = await this.ticketService.all()
+        const tickets = await this.ticketService.all();
+        res.status(HttpStatus.OK);
         return {
             status: 'OK',
             code: HttpStatus.OK,

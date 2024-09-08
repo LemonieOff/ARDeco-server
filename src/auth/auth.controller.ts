@@ -3,7 +3,7 @@ import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Req, Res } fr
 import { UserService } from "src/user/user.service";
 import * as bcrypt from "bcryptjs";
 import { RegisterDto } from "./models/register.dto";
-import { JwtService } from "@nestjs/jwt";
+import { JwtService, JwtSignOptions } from "@nestjs/jwt";
 import { Request, Response } from "express";
 // import { AuthGuard } from "@nestjs/passport";
 import { LoginDto } from "src/auth/models/login.dto";
@@ -126,6 +126,7 @@ export class AuthController {
     @Post("register")
     async register(
         @Body() body: RegisterDto,
+        @Body("remember") remember: boolean,
         @Res({ passthrough: true }) response: Response
     ) {
         try {
@@ -166,8 +167,12 @@ export class AuthController {
             const res = await this.userService.create(user);
 
             // Create settings for the user
-            const settings = await this.userSettingsService.create({ user_id: res.id });
-            console.log("Settings created for user ", settings.user_id);
+            const settings = await this.userSettingsService.create({
+                user: {
+                    id: res.id
+                }
+            });
+            console.log("Settings created for user ", settings.user.id);
 
             // Send email
             const emailResult = this.mailService.sendWelcomeAndVerification(res.email, res.checkEmailToken);
@@ -179,24 +184,39 @@ export class AuthController {
                 await this.userService.update(res.id, { checkEmailSent: new Date() });
             }
 
+            // Create cookie options for JWT token based on remember me value
+            let cookieOptions = {
+                httpOnly: true,
+                sameSite: "none",
+                secure: true
+            };
+            let jwtOptions: JwtSignOptions = {};
+            if (remember) {
+                console.log(user.email + " : Remember me !");
+                cookieOptions["expires"] = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7 * 4); // 1 month
+                jwtOptions = { expiresIn: "28d" };
+            } else {
+                console.log(user.email + " : No remember me !");
+                jwtOptions = { expiresIn: "1d" };
+            }
+
             // Send JWT token
             const jwt = await this.jwtService.signAsync({
                 id: res.id,
                 email: res.email
-            });
-            response.cookie("jwt", jwt, {
-                httpOnly: true,
-                sameSite: "none",
-                secure: true
-            });
-            response.status(200);
+            }, jwtOptions);
+
+            response.cookie("jwt", jwt, cookieOptions as any);
+            response.status(201);
             return {
                 status: "OK",
                 description: "User was created, " + emailStatus,
-                code: 200,
+                code: 201,
                 data: {
                     id: res.id,
                     email: res.email,
+                    userID: res.id,
+                    jwt: jwt,
                     role: res.role
                 }
             };
@@ -215,6 +235,7 @@ export class AuthController {
     @Post("login")
     async login(
         @Body() body: LoginDto,
+        @Body("remember") remember: boolean,
         @Res({ passthrough: true }) response: Response
     ) {
         const requestedUserByEmail = await this.userService.findOne({
@@ -251,15 +272,29 @@ export class AuthController {
             };
         }
         try {
-            const jwt = await this.jwtService.signAsync({
-                id: requestedUserByEmail.id,
-                email: requestedUserByEmail.email
-            });
-            response.cookie("jwt", jwt, {
+            // Create cookie options for JWT token based on remember me value
+            let cookieOptions = {
                 httpOnly: true,
                 sameSite: "none",
                 secure: true
-            });
+            };
+            let jwtOptions: JwtSignOptions = {};
+            if (remember) {
+                console.log(requestedUserByEmail.email + " : Remember me !");
+                cookieOptions["expires"] = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7 * 4); // 1 month
+                jwtOptions = { expiresIn: "28d" };
+            } else {
+                console.log(requestedUserByEmail.email + " : No remember me !");
+                jwtOptions = { expiresIn: "1d" };
+            }
+
+            // Send JWT token
+            const jwt = await this.jwtService.signAsync({
+                id: requestedUserByEmail.id,
+                email: requestedUserByEmail.email
+            }, jwtOptions);
+
+            response.cookie("jwt", jwt, cookieOptions as any);
             response.status(200);
             return {
                 status: "OK",
@@ -374,7 +409,7 @@ export class AuthController {
         @Req() request: Request,
         @Body() body: DeleteAccountDto
     ) {
-        await this.deleteAccount(response, request, body);
+        return await this.deleteAccount(response, request, body);
     }
 
     @Post("close")
@@ -383,7 +418,7 @@ export class AuthController {
         @Req() request: Request,
         @Body() body: DeleteAccountDto
     ) {
-        await this.deleteAccount(response, request, body);
+        return await this.deleteAccount(response, request, body);
     }
 
     async deleteAccount(

@@ -3,6 +3,8 @@ import { Cart } from "../../cart/models/cart.entity";
 import { GalleryReport } from "../../report/gallery/models/gallery_reports.entity";
 import { Gallery } from "../../gallery/models/gallery.entity";
 import { Comment } from "../../comment/models/comment.entity";
+import { Feedback } from "../../feedback/models/feedback.entity";
+import { UserSettings } from "../../user_settings/models/user_settings.entity";
 
 @Entity("users")
 export class User {
@@ -42,13 +44,23 @@ export class User {
     company_api_key: string; // API key for company users, null for all other account types
 
     @OneToOne(() => Cart, cart => cart.user, { eager: true })
-    @JoinColumn()
+    @JoinColumn({
+        name: "cart_id",
+        referencedColumnName: "id"
+    })
     cart: Cart;
 
-    @OneToMany(type => GalleryReport, galleryReport => galleryReport.user)
+    @Column({
+        type: "int",
+        nullable: true,
+        default: null
+    })
+    cart_id: number;
+
+    @OneToMany(_ => GalleryReport, galleryReport => galleryReport.user)
     galleryReports: GalleryReport[];
 
-    @OneToMany(type => Gallery, gallery => gallery.user)
+    @OneToMany(_ => Gallery, gallery => gallery.user)
     galleries: Gallery[];
 
     @Column({ default: 0 })
@@ -72,4 +84,13 @@ export class User {
 
     @OneToMany(_ => Comment, galleryComment => galleryComment.user)
     galleryComments: Comment[];
+
+    @OneToMany(_ => Feedback, feedback => feedback.user)
+    feedbacks: Feedback[];
+
+    @OneToOne(_ => UserSettings, settings => settings.user, { eager: true, onDelete: "SET NULL" })
+    @JoinColumn({
+        name: "user_settings_id",
+    })
+    settings: UserSettings;
 }

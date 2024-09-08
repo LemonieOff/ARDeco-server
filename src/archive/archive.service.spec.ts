@@ -89,7 +89,7 @@ describe("ArchiveService", () => {
             const mockArchiveItems = [new Archive(), new Archive()];
             jest.spyOn(archiveRepository, "find").mockResolvedValue(mockArchiveItems);
 
-            const result = await service.findAllObjectsFromCompany(companyId);
+            const result = await service.findAllForCompany(companyId);
             expect(archiveRepository.find).toHaveBeenCalledWith({
                 where: { company: companyId },
             });
@@ -104,7 +104,7 @@ describe("ArchiveService", () => {
             jest.spyOn(archiveRepository, "find").mockResolvedValue(mockArchiveItems);
             jest.spyOn(archiveRepository, "delete").mockResolvedValue({ affected: 2 } as any);
 
-            const result = await service.deleteAllObjectsFromCompany(companyId);
+            const result = await service.deleteAllForCompany(companyId);
             expect(archiveRepository.find).toHaveBeenCalledWith({
                 where: { company: companyId },
             });
@@ -123,7 +123,7 @@ describe("ArchiveService", () => {
             jest.spyOn(archiveRepository, "findOne").mockResolvedValue(mockArchiveItem);
             jest.spyOn(archiveRepository, "delete").mockResolvedValue({ affected: 1 } as any);
 
-            const result = await service.deleteObjectFromCompany(companyId, objectId);
+            const result = await service.deleteObjectForCompany(companyId, objectId);
             expect(archiveRepository.findOne).toHaveBeenCalledWith({
                 where: { object_id: objectId },
             });
