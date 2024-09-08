@@ -187,7 +187,7 @@ export class GalleryController {
         const user = await this.checkLogin(req, res);
         if (!(user instanceof User)) return user;
 
-        const authError = this.checkViewUserAccess(user, user_id, res);
+        const authError = await this.checkViewUserAccess(user, user_id, res);
         if (authError) return authError;
 
         // If the user is not the creator nor an admin, can't see private items
@@ -209,7 +209,7 @@ export class GalleryController {
         return {
             status: "OK",
             code: 200,
-            description: "Gallery items",
+            description: `User ${user_id} gallery`,
             data: items
         };
     }
@@ -438,6 +438,61 @@ export class GalleryController {
 
         return null;
     }
+
+    async checkViewUserAccess(
+        fetcher: User,
+        user_id: number,
+        res: Response
+    ): Promise<{
+        status: string;
+        code: number;
+        description: string;
+        data: null
+    }> {
+        // Check if fetcher is user to fetch to avoid useless requests and computation
+        if (fetcher.id === user_id) return null;
+
+        const user = await this.userService.findOne({ id: user_id }, { id: true });
+        if (!user) {
+            res.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description: "Gallery creator user was not found",
+                data: null
+            };
+        }
+
+        // Admin can access everything (invisible items and blocked ones)
+        if (fetcher.role === "admin") return null;
+
+        // Check if the request user is blocking the item creator user
+        const isFetcherBlockingCreator = await this.blockedUsersService.checkBlockedForBlocker(fetcher.id, user.id);
+        if (isFetcherBlockingCreator) {
+            res.status(403);
+            return {
+                status: "KO",
+                code: 403,
+                description: "You cannot access this user's public galleries because you have blocked them.",
+                data: null
+            };
+        }
+
+        // Check if the request user is blocked by the item creator user
+        const isFetcherBlockedByCreator = await this.blockedUsersService.checkBlockedForBlocker(user.id, fetcher.id);
+        if (isFetcherBlockedByCreator) {
+            res.status(403);
+            return {
+                status: "KO",
+                code: 403,
+                description: "You are not allowed to access this user's public galleries",
+                data: null
+            };
+        }
+
+        return null;
+    }
+
 
     checkPermissions(
         user: User,
