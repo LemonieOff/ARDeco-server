@@ -146,7 +146,7 @@ export class GalleryController {
 
         const item = await this.galleryService.findOneById(id, relations, select);
 
-        const authError = await this.checkViewAccess(item, user, res);
+        const authError = await this.checkViewGalleryAccess(user, item, res);
         if (authError) return authError;
 
         // Response object final customization
@@ -187,7 +187,7 @@ export class GalleryController {
         const user = await this.checkLogin(req, res);
         if (!(user instanceof User)) return user;
 
-        const authError = this.checkPermissions(user, res, null, "user_gallery", user_id);
+        const authError = this.checkViewUserAccess(user, user_id, res);
         if (authError) return authError;
 
         // If the user is not the creator nor an admin, can't see private items
@@ -365,7 +365,7 @@ export class GalleryController {
                 status: "KO",
                 code: 403,
                 description:
-                    "You are not allowed to access/modify this resource",
+                    "You are not allowed to access/modify this gallery",
                 data: null
             };
         }
@@ -373,15 +373,15 @@ export class GalleryController {
         return user;
     }
 
-    async checkViewAccess(
-        item: Gallery,
+    async checkViewGalleryAccess(
         user: User,
+        item: Gallery,
         res: Response
     ): Promise<{
-        status: string,
+        status: string;
         code: number;
         description: string;
-        data: null;
+        data: null
     }> {
         if (!item) {
             res.status(404);
@@ -390,54 +390,50 @@ export class GalleryController {
                 code: 404,
                 description: "Gallery was not found",
                 data: null
-            }
+            };
         }
+
+        // Creator has all rights on its own galleries, private or not
+        if (user.id === item.user.id) return null;
 
         // Admin can access everything (invisible items and blocked ones)
-        if (user.role === "admin") {
-            return null;
+        if (user.role === "admin") return null;
+
+        // Check for item visibility, private ones are inaccessible
+        if (!item.visibility) {
+            res.status(403);
+            return {
+                status: "KO",
+                code: 403,
+                description: "You are not allowed to access this gallery",
+                data: null
+            };
         }
 
-        // Check if the user is the creator or not
-        // If it is, the creator has all rights on its items, even if they are private
-        // In case it's not, check for item visibility and creator blocked/blocking status
-        if (item.user.id !== user.id) {
-            // Check for item visibility, private ones are inaccessible
-            if (!item.visibility) {
-                res.status(403);
-                return {
-                    status: "KO",
-                    code: 403,
-                    description: "You are not allowed to access this gallery",
-                    data: null
-                }
-            }
+        // Check if the request user is blocking the item creator user
+        const isFetcherBlockingCreator = await this.blockedUsersService.checkBlockedForBlocker(user.id, item.user.id);
+        if (isFetcherBlockingCreator) {
+            res.status(403);
+            return {
+                status: "KO",
+                code: 403,
+                description: "You cannot access this gallery because you have blocked its creator.",
+                data: null
+            };
+        }
 
-            // Check if the request user is blocking the item creator user
-            const isFetcherBlockingCreator = await this.blockedUsersService.checkBlockedForBlocker(user.id, item.user.id);
-            if (isFetcherBlockingCreator) {
-                res.status(403);
-                return {
-                    status: "KO",
-                    code: 403,
-                    description: "You cannot access this user's galleries because you have blocked them.",
-                    data: null
-                };
-            }
-
-            // Check if the request user is blocked by the item creator user
-            const isFetcherBlockedByCreator = await this.blockedUsersService.checkBlockedForBlocker(item.user.id, user.id);
-            if (isFetcherBlockedByCreator) {
-                res.status(403);
-                return {
-                    status: "KO",
-                    code: 403,
-                    // Same description as private items,
-                    // to not reveal the fact of being blocked
-                    description: "You are not allowed to access this gallery",
-                    data: null
-                }
-            }
+        // Check if the request user is blocked by the item creator user
+        const isFetcherBlockedByCreator = await this.blockedUsersService.checkBlockedForBlocker(item.user.id, user.id);
+        if (isFetcherBlockedByCreator) {
+            res.status(403);
+            return {
+                status: "KO",
+                code: 403,
+                // Same description as private items,
+                // to not reveal the fact of being blocked
+                description: "You are not allowed to access this gallery",
+                data: null
+            };
         }
 
         return null;
@@ -447,47 +443,33 @@ export class GalleryController {
         user: User,
         res: Response,
         item: Gallery,
-        action: "edit" | "delete" | "user_gallery",
-        user_id: number | null = null
+        action: "edit" | "delete"
     ): {
         code: number;
         data: null;
         description: string;
         status: string
     } {
-        if (action === "edit" || action === "delete") {
-            if (!item) {
-                res.status(404);
-                return {
-                    status: "KO",
-                    code: 404,
-                    description: "Gallery was not found",
-                    data: null
-                };
-            }
+        if (!item) {
+            res.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description: "Gallery was not found",
+                data: null
+            };
+        }
 
-            // Check if the user is the creator
-            if (item.user_id !== user.id) {
-                // If not, check if it's an admin
-                if (user.role !== "admin") {
-                    res.status(403);
-                    return {
-                        status: "KO",
-                        code: 403,
-                        description:
-                            "You are not allowed to modify/delete this resource",
-                        data: null
-                    };
-                }
-            }
-        } else if (action === "user_gallery") {
-            if (user_id === null) {
-                console.error("User gallery fetch check auth : gallery_id is null");
-                res.status(501);
+        // Check if the user is the creator
+        if (item.user_id !== user.id) {
+            // If not, check if it's an admin
+            if (user.role !== "admin") {
+                res.status(403);
                 return {
                     status: "KO",
-                    code: 501,
-                    description: "Server internal error",
+                    code: 403,
+                    description:
+                        `You are not allowed to ${action} this gallery`,
                     data: null
                 };
             }
