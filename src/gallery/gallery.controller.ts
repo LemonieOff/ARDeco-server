@@ -256,13 +256,13 @@ export class GalleryController {
 
         const item = await this.galleryService.findOne({ id: id });
 
-        const authorizedUser = this.checkPermissions(
+        const authError = this.checkPermissions(
             user,
             res,
             item,
             "delete"
         );
-        if (!(authorizedUser instanceof User)) return authorizedUser;
+        if (authError) return authError;
 
         try {
             const result = await this.galleryService.delete(id);
@@ -306,13 +306,13 @@ export class GalleryController {
 
             const item = await this.galleryService.findOne({ id: id });
 
-            const authorizedUser = this.checkPermissions(
+            const authError = this.checkPermissions(
                 user,
                 res,
                 item,
-                "edit"
+                "modify"
             );
-            if (!(authorizedUser instanceof User)) return authorizedUser;
+            if (authError) return authError;
 
             const result = await this.galleryService.update(id, new_item);
             res.status(200);
@@ -498,7 +498,7 @@ export class GalleryController {
         user: User,
         res: Response,
         item: Gallery,
-        action: "edit" | "delete"
+        action: "modify" | "delete"
     ): {
         code: number;
         data: null;
