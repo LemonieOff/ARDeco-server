@@ -1,10 +1,11 @@
-import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Cart } from "../../cart/models/cart.entity";
 import { GalleryReport } from "../../report/gallery/models/gallery_reports.entity";
 import { Gallery } from "../../gallery/models/gallery.entity";
 import { Comment } from "../../comment/models/comment.entity";
 import { Feedback } from "../../feedback/models/feedback.entity";
 import { UserSettings } from "../../user_settings/models/user_settings.entity";
+import { ProfilePicture } from "../../profile_picture/profile_picture.entity";
 
 @Entity("users")
 export class User {
@@ -63,7 +64,15 @@ export class User {
     @OneToMany(_ => Gallery, gallery => gallery.user)
     galleries: Gallery[];
 
-    @Column({ default: 0 })
+    // TODO : Many to One with ProfilePicture
+    /*@ManyToOne(type => ProfilePicture, (profile_picture) => profile_picture.users)
+    @JoinColumn({
+        name: "profile_picture_id",
+        referencedColumnName: "id"
+    })
+    profile_picture: ProfilePicture*/
+
+    @Column({ type: "int", default: 0 })
     profile_picture_id: number;
 
     @Column({ nullable: true })
