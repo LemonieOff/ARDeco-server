@@ -299,7 +299,12 @@ export class GalleryController {
         id: number,
         new_item: QueryPartialEntity<Gallery>,
         res: Response
-    ) {
+    ): Promise<{
+        code: number;
+        data: Gallery | null;
+        description: string;
+        status: "OK" | "KO"
+    }> {
         try {
             const user = await this.checkLogin(req, res);
             if (!(user instanceof User)) return user;
@@ -328,8 +333,7 @@ export class GalleryController {
                 status: "KO",
                 code: 400,
                 description: "Gallery item was not updated because of an error",
-                error: e,
-                data: null
+                data: e
             };
         }
     }
@@ -341,7 +345,7 @@ export class GalleryController {
         code: number;
         data: null;
         description: string;
-        status: string
+        status: "OK" | "KO"
     } | User> {
         const cookie = req.cookies["jwt"];
         const data = cookie ? this.jwtService.verify(cookie) : null;
@@ -503,7 +507,7 @@ export class GalleryController {
         code: number;
         data: null;
         description: string;
-        status: string
+        status: "OK" | "KO"
     } {
         if (!item) {
             res.status(404);
