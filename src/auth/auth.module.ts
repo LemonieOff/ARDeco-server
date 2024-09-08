@@ -18,7 +18,6 @@ import { UserSettingsModule } from "../user_settings/user_settings_module";
         UserSettingsModule,
         JwtModule.register({
             secret: "secret",
-            signOptions: { expiresIn: "1d" }
         })
     ],
     controllers: [

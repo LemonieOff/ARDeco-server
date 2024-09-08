@@ -4,6 +4,7 @@ import { GalleryReport } from "../../report/gallery/models/gallery_reports.entit
 import { Gallery } from "../../gallery/models/gallery.entity";
 import { Comment } from "../../comment/models/comment.entity";
 import { Feedback } from "../../feedback/models/feedback.entity";
+import { UserSettings } from "../../user_settings/models/user_settings.entity";
 
 @Entity("users")
 export class User {
@@ -86,4 +87,10 @@ export class User {
 
     @OneToMany(_ => Feedback, feedback => feedback.user)
     feedbacks: Feedback[];
+
+    @OneToOne(_ => UserSettings, settings => settings.user, { eager: true, onDelete: "SET NULL" })
+    @JoinColumn({
+        name: "user_settings_id",
+    })
+    settings: UserSettings;
 }

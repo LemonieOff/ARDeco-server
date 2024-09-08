@@ -11,8 +11,7 @@ import { UserModule } from "../user/user.module";
         UserModule,
         TypeOrmModule.forFeature([UserSettings]),
         JwtModule.register({
-            secret: "secret",
-            signOptions: { expiresIn: "1d" }
+            secret: "secret"
         })
     ],
     controllers: [UserSettingsController],

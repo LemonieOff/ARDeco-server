@@ -12,8 +12,7 @@ import { GalleryModule } from "../gallery/gallery.module";
         UserModule,
         TypeOrmModule.forFeature([FavoriteGallery]),
         JwtModule.register({
-            secret: "secret",
-            signOptions: { expiresIn: "1d" }
+            secret: "secret"
         }),
         GalleryModule
     ],

@@ -11,8 +11,7 @@ import { UserModule } from "../user/user.module";
         TypeOrmModule.forFeature([BlockedUser]),
         UserModule,
         JwtModule.register({
-            secret: "secret",
-            signOptions: { expiresIn: "1d" }
+            secret: "secret"
         })
     ],
     controllers: [BlockedUsersController],

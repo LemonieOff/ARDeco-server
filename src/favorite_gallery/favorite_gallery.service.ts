@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import {  FindManyOptions, FindOptionsWhere, Repository  } from "typeorm";
+import { FindManyOptions, FindOptionsWhere, Repository } from "typeorm";
 import { FavoriteGallery } from "./models/favorite_gallery.entity";
 
 @Injectable()
@@ -8,7 +8,8 @@ export class FavoriteGalleryService {
     constructor(
         @InjectRepository(FavoriteGallery)
         private readonly favoriteGalleryRepository: Repository<FavoriteGallery>
-    ) {}
+    ) {
+    }
 
     async create(data): Promise<FavoriteGallery> {
         const item = await this.favoriteGalleryRepository.save(data);
@@ -16,11 +17,9 @@ export class FavoriteGalleryService {
         return item;
     }
 
-
+    // TODO : Include relations/select as from gallery entity/service/controller (make true entity database relations)
     async findAll(
-        user_id: number | null = null,
-        limit: number | null = null,
-        begin_pos: number | null = null
+        user_id: number | null = null
     ): Promise<FavoriteGallery[]> {
         let where: FindOptionsWhere<FavoriteGallery> = { /*visibility: true*/ }; // Public items only
         if (user_id) {
@@ -31,20 +30,10 @@ export class FavoriteGalleryService {
         }
 
         let options: FindManyOptions<FavoriteGallery> = { where: where };
-        if (limit) {
-            options = {
-                ...options,
-                take: limit
-            };
-        }
-        if (begin_pos && limit) {
-            options = {
-                ...options,
-                skip: begin_pos
-            };
-        }
+
         return this.favoriteGalleryRepository.find(options);
     }
+
     async findOne(where: FindOptionsWhere<FavoriteGallery>): Promise<FavoriteGallery> {
         return this.favoriteGalleryRepository.findOne({ where: where });
     }

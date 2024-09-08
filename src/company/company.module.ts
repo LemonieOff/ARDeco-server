@@ -9,8 +9,7 @@ import { User } from "../user/models/user.entity";
     imports: [
         TypeOrmModule.forFeature([User]),
         JwtModule.register({
-            secret: "secret",
-            signOptions: { expiresIn: "1d" }
+            secret: "secret"
         })
     ],
     controllers: [CompanyController],

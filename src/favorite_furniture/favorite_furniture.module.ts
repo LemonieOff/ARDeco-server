@@ -12,8 +12,7 @@ import { CatalogModule } from "../catalog/catalog.module";
         UserModule,
         TypeOrmModule.forFeature([FavoriteFurniture]),
         JwtModule.register({
-            secret: "secret",
-            signOptions: { expiresIn: "1d" }
+            secret: "secret"
         }),
         CatalogModule
     ],
