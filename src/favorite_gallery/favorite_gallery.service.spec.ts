@@ -81,11 +81,9 @@ describe("FavoriteGalleryService", () => {
             const mockGalleryItems = [new FavoriteGallery(), new FavoriteGallery()];
             jest.spyOn(favoriteGalleryRepository, "find").mockResolvedValue(mockGalleryItems);
 
-            const result = await service.findAll(userId, limit, beginPos);
+            const result = await service.findAll(userId);
             expect(favoriteGalleryRepository.find).toHaveBeenCalledWith({
-                where: { user_id: userId },
-                take: limit,
-                skip: beginPos,
+                where: { user_id: userId }
             });
             expect(result).toEqual(mockGalleryItems);
         });
