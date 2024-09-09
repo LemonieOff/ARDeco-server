@@ -1,14 +1,13 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { Archive } from "./models/archive.entity";
 import { Catalog } from "../catalog/models/catalog.entity";
 import { ArchiveService } from "./archive.service";
 import { CatalogService } from "../catalog/catalog.service";
 
 describe("ArchiveService", () => {
     let service: ArchiveService;
-    let archiveRepository: Repository<Archive>;
+    let archiveRepository: Repository<Catalog>;
     let catalogService: CatalogService; // Mock CatalogService
 
     beforeEach(async () => {
@@ -16,7 +15,7 @@ describe("ArchiveService", () => {
             providers: [
                 ArchiveService,
                 {
-                    provide: getRepositoryToken(Archive),
+                    provide: getRepositoryToken(Catalog),
                     useValue: {
                         save: jest.fn(),
                         findOne: jest.fn(),
@@ -34,8 +33,8 @@ describe("ArchiveService", () => {
         }).compile();
 
         service = module.get<ArchiveService>(ArchiveService);
-        archiveRepository = module.get<Repository<Archive>>(
-            getRepositoryToken(Archive)
+        archiveRepository = module.get<Repository<Catalog>>(
+            getRepositoryToken(Catalog)
         );
         catalogService = module.get<CatalogService>(CatalogService); // Get the mock CatalogService
     });
@@ -47,12 +46,12 @@ describe("ArchiveService", () => {
                 company: 1,
                 data: {}
             };
-            const createdItem = new Archive();
+            const createdItem = new Catalog();
             Object.assign(createdItem, data, { id: 1 });
 
             jest.spyOn(archiveRepository, "save").mockResolvedValue(createdItem);
 
-            const result = await service.create(data);
+            const result = await service.archive(createdItem);
             expect(result).toEqual(createdItem);
         });
     });
@@ -60,7 +59,7 @@ describe("ArchiveService", () => {
     describe("findById", () => {
         it("should find an archive item by ID", async () => {
             const id = 1;
-            const mockArchiveItem = new Archive();
+            const mockArchiveItem = new Catalog();
             jest.spyOn(archiveRepository, "findOne").mockResolvedValue(mockArchiveItem);
 
             const result = await service.findById(id);
@@ -72,7 +71,7 @@ describe("ArchiveService", () => {
     describe("findByObjectId", () => {
         it("should find an archive item by object ID", async () => {
             const objectId = "OBJ_ID";
-            const mockArchiveItem = new Archive();
+            const mockArchiveItem = new Catalog();
             jest.spyOn(archiveRepository, "findOne").mockResolvedValue(mockArchiveItem);
 
             const result = await service.findByObjectId(objectId);
@@ -86,7 +85,7 @@ describe("ArchiveService", () => {
     describe("findAllObjectsFromCompany", () => {
         it("should find all archive items for a company", async () => {
             const companyId = 1;
-            const mockArchiveItems = [new Archive(), new Archive()];
+            const mockArchiveItems = [new Catalog(), new Catalog()];
             jest.spyOn(archiveRepository, "find").mockResolvedValue(mockArchiveItems);
 
             const result = await service.findAllForCompany(companyId);
@@ -100,7 +99,7 @@ describe("ArchiveService", () => {
     describe("deleteAllObjectsFromCompany", () => {
         it("should delete all archive items for a company and return a backup", async () => {
             const companyId = 1;
-            const mockArchiveItems = [new Archive(), new Archive()];
+            const mockArchiveItems = [new Catalog(), new Catalog()];
             jest.spyOn(archiveRepository, "find").mockResolvedValue(mockArchiveItems);
             jest.spyOn(archiveRepository, "delete").mockResolvedValue({ affected: 2 } as any);
 
@@ -117,19 +116,19 @@ describe("ArchiveService", () => {
 
     describe("deleteObjectFromCompany", () => {
         it("should delete a specific archive item for a company and return a backup", async () => {
-            const companyId = 1;
-            const objectId = "OBJ_ID";
-            const mockArchiveItem = new Archive();
+            const companyId = 4;
+            const id = 1;
+            const mockArchiveItem = new Catalog();
             jest.spyOn(archiveRepository, "findOne").mockResolvedValue(mockArchiveItem);
             jest.spyOn(archiveRepository, "delete").mockResolvedValue({ affected: 1 } as any);
 
-            const result = await service.deleteObjectForCompany(companyId, objectId);
+            const result = await service.deleteObjectForCompany(companyId, id);
             expect(archiveRepository.findOne).toHaveBeenCalledWith({
-                where: { object_id: objectId },
+                where: { id: id },
             });
             expect(archiveRepository.delete).toHaveBeenCalledWith({
                 company: companyId,
-                object_id: objectId,
+                id: id,
             });
             expect(result).toEqual(mockArchiveItem); // Backup returned
         });
@@ -137,8 +136,8 @@ describe("ArchiveService", () => {
 
     describe("restore", () => {
         it("should restore an object from the archive", async () => {
-            const objectId = "OBJ_ID";
-            const mockArchiveItem = new Archive();
+            const objectId = 1;
+            const mockArchiveItem = new Catalog();
             mockArchiveItem.id = 1;
             mockArchiveItem.depth = 5;
             mockArchiveItem.height = 2;
@@ -148,9 +147,9 @@ describe("ArchiveService", () => {
             jest.spyOn(archiveRepository, "delete").mockResolvedValue({ affected: 1 } as any);
             jest.spyOn(catalogService, "create").mockResolvedValue(mockCatalogItem);
 
-            const result = await service.restore(objectId);
+            const result = await service.restore(mockArchiveItem);
             expect(archiveRepository.findOne).toHaveBeenCalledWith({
-                where: { object_id: objectId }
+                where: { id: objectId }
             });
             expect(archiveRepository.delete).toHaveBeenCalledWith(mockArchiveItem.id);
             expect(catalogService.create).toHaveBeenCalledWith(mockArchiveItem);

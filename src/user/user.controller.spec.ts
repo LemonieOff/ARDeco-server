@@ -61,6 +61,10 @@ describe("UserController", () => {
     describe("whoami", () => {
         it("should return the current user", async () => {
             const user: User = {
+                cart_id: 0,
+                feedbacks: [],
+                galleryComments: [],
+                settings: undefined,
                 city: "",
                 phone: "",
                 id: 1,
@@ -88,6 +92,10 @@ describe("UserController", () => {
     describe("getOne", () => {
         it("should return a user by id", async () => {
             const user: User = {
+                cart_id: 0,
+                feedbacks: [],
+                galleryComments: [],
+                settings: undefined,
                 city: "",
                 phone: "",
                 id: 1,
@@ -130,6 +138,10 @@ describe("UserController", () => {
     describe("editViaQuery", () => {
         it("should update a user", async () => {
             const oldUser: User = {
+                cart_id: 0,
+                feedbacks: [],
+                galleryComments: [],
+                settings: undefined,
                 city: "",
                 phone: "",
                 id: 1,
@@ -184,6 +196,10 @@ describe("UserController", () => {
     describe("editViaParam", () => {
         it("should update a user", async () => {
             const oldUser: User = {
+                cart_id: 0,
+                feedbacks: [],
+                galleryComments: [],
+                settings: undefined,
                 city: "",
                 phone: "",
                 id: 1,
@@ -220,6 +236,10 @@ describe("UserController", () => {
     describe("editUser", () => {
         it("should return error 401 when updating another user without being admin", async () => {
             const oldUser: User = {
+                cart_id: 0,
+                feedbacks: [],
+                galleryComments: [],
+                settings: undefined,
                 city: "",
                 phone: "",
                 id: 40,
@@ -251,6 +271,10 @@ describe("UserController", () => {
 
         it("should return error 401 when updating self role without being admin", async () => {
             const oldUser: User = {
+                cart_id: 0,
+                feedbacks: [],
+                galleryComments: [],
+                settings: undefined,
                 city: "",
                 phone: "",
                 id: 1,
@@ -282,6 +306,10 @@ describe("UserController", () => {
 
         it("should update when editing self password", async () => {
             const oldUser: User = {
+                cart_id: 0,
+                feedbacks: [],
+                galleryComments: [],
+                settings: undefined,
                 city: "",
                 phone: "",
                 id: 1,
