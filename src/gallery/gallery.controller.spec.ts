@@ -221,9 +221,16 @@ describe("GalleryController", () => {
         });
 
         it("should return 200 and specific gallery without user details", async () => {
-            const gallery: Gallery = {} as any;
+            const gallery: Gallery = {
+                user: {
+                    last_name: "Hidden last name",
+                    settings: {
+                        display_lastname_on_public: false
+                    }
+                }
+            } as Gallery;
             jest.spyOn(galleryService, "findOne").mockResolvedValue(gallery);
-            jest.spyOn(galleryController, "checkPermissions").mockReturnValue(null);
+            jest.spyOn(galleryController, "checkViewGalleryAccess").mockResolvedValue(null);
             const req = {
                 cookies: { jwt: "token" },
                 query: { user_details: undefined }
@@ -236,9 +243,16 @@ describe("GalleryController", () => {
         });
 
         it("should return 200 and specific gallery with user details", async () => {
-            const gallery: Gallery = {} as any;
+            const gallery: Gallery = {
+                user: {
+                    last_name: "Hidden last name",
+                    settings: {
+                        display_lastname_on_public: false
+                    }
+                }
+            } as Gallery;
             jest.spyOn(galleryService, "findOne").mockResolvedValue(gallery);
-            jest.spyOn(galleryController, "checkPermissions").mockReturnValue(null);
+            jest.spyOn(galleryController, "checkViewGalleryAccess").mockResolvedValue(null);
             const req = {
                 cookies: { jwt: "token" },
                 query: { user_details: true }
@@ -250,10 +264,10 @@ describe("GalleryController", () => {
             expect(result.data).toEqual(gallery);
         });
 
-        it("should return error if checkAuthorization doesn't pass", async () => {
+        it("should return error if checkViewGalleryAccess doesn't pass", async () => {
             const gallery: Gallery = {} as any;
             jest.spyOn(galleryService, "findOne").mockResolvedValue(gallery);
-            jest.spyOn(galleryController, "checkPermissions").mockReturnValue({
+            jest.spyOn(galleryController, "checkViewGalleryAccess").mockResolvedValue({
                 status: "KO",
                 code: 401,
                 description: "You are not connected",
@@ -272,12 +286,32 @@ describe("GalleryController", () => {
     });
 
     describe("getFromUser", () => {
+        it("should return error 401 if not connected", async () => {
+            const req = { cookies: { jwt: undefined } } as any;
+            const res = { status: jest.fn().mockReturnValue(this) } as any;
+            const result = await galleryController.getFromUser(req, 1, res);
+            expect(result.status).toEqual("KO");
+            expect(result.code).toEqual(401);
+            expect(result.data).toBeNull();
+        });
+
         it("should return 200 and gallery items as an admin", async () => {
             const user: User = new User;
             user.id = 1;
             user.role = "admin";
-            jest.spyOn(galleryController, "checkPermissions").mockReturnValue(null);
-            const galleries: Gallery[] = [{} as any, {} as any];
+            jest.spyOn(galleryController, "checkViewUserAccess").mockResolvedValue(null);
+            const galleries: Gallery[] = [{
+                user: {
+                    settings: undefined
+                }
+            } as Gallery, {
+                user: {
+                    last_name: "Hidden last name",
+                    settings: {
+                        display_lastname_on_public: false
+                    }
+                }
+            } as Gallery];
             jest.spyOn(galleryService, "findForUser").mockResolvedValue(galleries);
             const req = { cookies: { jwt: "token" } } as any;
             const res = { status: jest.fn().mockReturnValue(this) } as any;
@@ -291,8 +325,19 @@ describe("GalleryController", () => {
             const user: User = new User;
             user.id = 1;
             user.role = "client";
-            jest.spyOn(galleryController, "checkPermissions").mockReturnValue(null);
-            const galleries: Gallery[] = [{} as any, {} as any];
+            jest.spyOn(galleryController, "checkViewUserAccess").mockResolvedValue(null);
+            const galleries: Gallery[] = [{
+                user: {
+                    settings: undefined
+                }
+            } as Gallery, {
+                user: {
+                    last_name: "Hidden last name",
+                    settings: {
+                        display_lastname_on_public: false
+                    }
+                }
+            } as Gallery];
             jest.spyOn(galleryService, "findForUser").mockResolvedValue(galleries);
             const req = { cookies: { jwt: "token" } } as any;
             const res = { status: jest.fn().mockReturnValue(this) } as any;
@@ -306,8 +351,19 @@ describe("GalleryController", () => {
             const user: User = new User;
             user.id = 1;
             user.role = "client";
-            jest.spyOn(galleryController, "checkPermissions").mockReturnValue(null);
-            const galleries: Gallery[] = [{} as any, {} as any];
+            jest.spyOn(galleryController, "checkViewUserAccess").mockResolvedValue(null);
+            const galleries: Gallery[] = [{
+                user: {
+                    settings: undefined
+                }
+            } as Gallery, {
+                user: {
+                    last_name: "Hidden last name",
+                    settings: {
+                        display_lastname_on_public: false
+                    }
+                }
+            } as Gallery];
             jest.spyOn(galleryService, "findForUser").mockResolvedValue(galleries);
             const req = { cookies: { jwt: "token" } } as any;
             const res = { status: jest.fn().mockReturnValue(this) } as any;
@@ -318,7 +374,7 @@ describe("GalleryController", () => {
         });
 
         it("should return error 400 if user id is not a number", async () => {
-            jest.spyOn(galleryController, "checkPermissions").mockReturnValue({
+            jest.spyOn(galleryController, "checkViewUserAccess").mockResolvedValue({
                 status: "KO",
                 code: 401,
                 description: "You are not connected",
@@ -332,8 +388,8 @@ describe("GalleryController", () => {
             expect(result.data).toEqual(null);
         });
 
-        it("should return error if checkAuthorization doesn't pass", async () => {
-            jest.spyOn(galleryController, "checkPermissions").mockReturnValue({
+        it("should return error if checkViewUserAccess doesn't pass", async () => {
+            jest.spyOn(galleryController, "checkViewUserAccess").mockResolvedValue({
                 status: "KO",
                 code: 401,
                 description: "You are not connected",
@@ -372,6 +428,7 @@ describe("GalleryController", () => {
         });
 
         it("should return error 403 if user is not allowed", async () => {
+            (userService.findOne as jest.Mock).mockRestore();
             jest.spyOn(userService, "findOne").mockResolvedValue(null);
             const gallery: Gallery = {} as any;
             const req = { cookies: { jwt: "token" } } as any;
@@ -395,6 +452,15 @@ describe("GalleryController", () => {
     });
 
     describe("delete", () => {
+        it("should return error 401 if not connected", async () => {
+            const req = { cookies: { jwt: undefined } } as any;
+            const res = { status: jest.fn().mockReturnValue(this) } as any;
+            const result = await galleryController.deleteItem(req, 1, res);
+            expect(result.status).toEqual("KO");
+            expect(result.code).toEqual(401);
+            expect(result.data).toBeNull();
+        });
+
         it("should return 200 on delete", async () => {
             const gallery: Gallery = {} as any;
             jest.spyOn(galleryService, "findOne").mockResolvedValue(gallery);
@@ -459,6 +525,22 @@ describe("GalleryController", () => {
     });
 
     describe("editItem", () => {
+        it('should return a 401 error if the user is not authenticated', async () => {
+            const notAuthenticatedError = {
+                status: 'KO',
+                code: 401,
+                description: 'You are not connected',
+                data: null
+            };
+            const req = { cookies: { jwt: undefined } } as any;
+            const res = { status: jest.fn().mockReturnThis() } as any;
+            const newItem = { name: 'Updated Gallery' };
+
+            const result = await galleryController.editItem(req, 1, newItem, res);
+
+            expect(result).toEqual(notAuthenticatedError);
+        });
+
         it("should return 200 on edit", async () => {
             jest.spyOn(galleryService, "findOne").mockResolvedValue({} as any);
             jest.spyOn(galleryController, "checkPermissions").mockReturnValue(null);
@@ -504,6 +586,7 @@ describe("GalleryController", () => {
 
     describe("checkLogin", () => {
         it("should return user when everything is correct", async () => {
+            (userService.findOne as jest.Mock).mockRestore();
             const user = new User();
             jest.spyOn(userService, "findOne").mockResolvedValue(user);
             const req = { cookies: { jwt: "token" } } as any;
@@ -530,6 +613,7 @@ describe("GalleryController", () => {
         });
 
         it("should return error 403 if user does not exist", async () => {
+            (userService.findOne as jest.Mock).mockRestore();
             jest.spyOn(userService, "findOne").mockResolvedValue(null);
             const req = { cookies: { jwt: "token" } } as any;
             const res = { status: jest.fn().mockReturnThis() } as any;
@@ -658,6 +742,20 @@ describe("GalleryController", () => {
                 data: null
             });
         });
+
+        it('should return null if the gallery is public and there are no blocks', async () => {
+            const user = new User();
+            user.id = 1;
+            user.role = 'client'; // Not an admin
+            const item: Gallery = { visibility: true, user_id: 2, user: { id: 2 } } as Gallery;
+            const res = { status: jest.fn().mockReturnThis() } as any;
+
+            jest.spyOn(blockedUserService, "checkBlockedForBlocker").mockResolvedValue(false);
+
+            const result = await galleryController.checkViewGalleryAccess(user, item, res);
+
+            expect(result).toBeNull(); // Successful access
+        });
     });
 
     describe("checkViewUserAccess", () => {
@@ -686,6 +784,7 @@ describe("GalleryController", () => {
         });
 
         it("should return an error if the user to fetch is not found", async () => {
+            (userService.findOne as jest.Mock).mockRestore();
             const fetcher = new User();
             fetcher.id = 1;
             const userId = 2;
@@ -743,6 +842,21 @@ describe("GalleryController", () => {
                 description: "You are not allowed to access this user's public galleries",
                 data: null
             });
+        });
+
+        it('should return null if neither fetcher is blocking the user to fetch nor is blocked by them', async () => {
+            const fetcher = new User();
+            fetcher.id = 1;
+            fetcher.role = 'client'; // Not an admin
+            const userId = 2;
+            const res = { status: jest.fn().mockReturnThis() } as any;
+
+            jest.spyOn(userService, 'findOne').mockResolvedValue({ id: userId } as User);
+            jest.spyOn(blockedUserService, "checkBlockedForBlocker").mockResolvedValue(false);
+
+            const result = await galleryController.checkViewUserAccess(fetcher, userId, res);
+
+            expect(result).toBeNull(); // Successful access
         });
     });
 
@@ -821,5 +935,70 @@ describe("GalleryController", () => {
             });
         });
     });
-    ;
+
+    describe('getSelect', () => {
+        it('should return default select and relations when no query parameters are provided', () => {
+            const req = { query: {} } as any;
+
+            const [select, relations] = galleryController.getSelect(req);
+
+            expect(select).toEqual({
+                id: true,
+                visibility: true,
+                description: true,
+                furniture: true,
+                name: true,
+                room_type: true,
+                comments: {
+                    id: true
+                },
+                user: {
+                    id: true
+                }
+            });
+            expect(relations).toEqual({
+                comments: true,
+                user: true
+            });
+        });
+
+        it('should include user details when user_details query parameter is provided', () => {
+            const req = { query: { user_details: 'true' } } as any;
+
+            const [select, relations] = galleryController.getSelect(req);
+
+            expect(select).toMatchObject({
+                user: {
+                    id: true,
+                    role: true,
+                    first_name: true,
+                    last_name: true,
+                    profile_picture_id: true,
+                    settings: {
+                        display_lastname_on_public: true
+                    }
+                }
+            });
+            expect(relations).toMatchObject({
+                user: {
+                    settings: true
+                }
+            });
+        });
+
+        it('should include all comment details when comments_details query parameter is provided', () => {
+            const req = { query: { comments_details: 'true' } } as any;
+
+            const [select, relations] = galleryController.getSelect(req);
+
+            // We expect the select object to include all comment details
+            expect(select.comments).toBe(true);
+
+            // Relations should remain unchanged
+            expect(relations).toEqual({
+                comments: true,
+                user: true
+            });
+        });
+    });
 });
