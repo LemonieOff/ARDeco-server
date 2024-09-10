@@ -20,7 +20,7 @@ export class BlockedUsersController {
         const user = await this.checkAuthGet(req, res);
         if (!(user instanceof User)) return user;
 
-        const blockedUsers = await this.blockedUsersService.findAll(user.id);
+        const blockedUsers = await this.blockedUsersService.findByBlocker(user.id);
         const blockedUserIds = blockedUsers.map((blockedUser) => blockedUser.blocked_user_id);
         res.status(200).json({
             status: "OK",
@@ -35,7 +35,7 @@ export class BlockedUsersController {
         const user = await this.checkAuthGet(req, res, user_id);
         if (!(user instanceof User)) return user;
 
-        const blockedUsers = await this.blockedUsersService.findAll(user_id);
+        const blockedUsers = await this.blockedUsersService.findByBlocker(user_id);
         const blockedUserIds = blockedUsers.map((blockedUser) => blockedUser.blocked_user_id);
 
         res.status(200).json({

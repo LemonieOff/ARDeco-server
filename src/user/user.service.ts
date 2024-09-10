@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { FindOptionsWhere, Repository, UpdateResult } from "typeorm";
+import { FindOptionsSelect, FindOptionsWhere, Repository, UpdateResult } from "typeorm";
 import { User } from "./models/user.entity";
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
@@ -9,7 +9,8 @@ export class UserService {
     constructor(
         @InjectRepository(User)
         private readonly userRepository: Repository<User>
-    ) {}
+    ) {
+    }
 
     async all(): Promise<User[]> {
         return this.userRepository.find();
@@ -21,19 +22,25 @@ export class UserService {
         return user;
     }
 
-    async findOne(condit: FindOptionsWhere<User>): Promise<User> {
-        return this.userRepository.findOne({ where: condit });
+    async findOne(where: FindOptionsWhere<User>, select: FindOptionsSelect<User> = {}): Promise<User> {
+        return this.userRepository.findOne({
+            where: where,
+            select: select
+        });
     }
 
     async findById(id: number): Promise<User> {
-        return this.userRepository.findOne({ where: { id: id }, relations: ["galleryReports"] });
+        return this.userRepository.findOne({
+            where: { id: id },
+            relations: ["galleryReports"]
+        });
     }
 
     async update(
         id: number,
         data: QueryPartialEntity<User>
     ): Promise<UpdateResult> {
-        console.log("ID : ", id, ", DATA : ", data)
+        console.log("ID : ", id, ", DATA : ", data);
         return this.userRepository.update(id, data);
     }
 
