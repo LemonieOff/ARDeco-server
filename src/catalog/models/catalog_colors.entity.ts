@@ -20,6 +20,12 @@ export class CatalogColors {
     })
     furniture_id: number;
 
+    @Column({
+        type: "int",
+        default: 0
+    })
+    model_id: number;
+
     @Column()
     color: string;
 }
