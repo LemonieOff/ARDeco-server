@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { FindManyOptions, FindOptionsWhere, In, LessThanOrEqual, Any, Repository } from "typeorm";
+import { FindManyOptions, FindOptionsWhere, In, LessThanOrEqual, Repository } from "typeorm";
 import { Catalog } from "./models/catalog.entity";
 import { ArchiveService } from "../archive/archive.service";
 import { CatalogFilterDto } from "./dtos/catalog-filter.dto";
@@ -29,7 +29,8 @@ const selectRelations: FindManyOptions<Catalog> = {
         depth: true,
         active: true,
         colors: {
-            color: true
+            color: true,
+            model_id: true
         },
         styles: {
             style: true
@@ -64,7 +65,10 @@ export class CatalogService {
 
         return catalog.map(catalog => ({
             ...catalog,
-            colors: catalog.colors.map(color => color.color),
+            colors: catalog.colors.map(color => ({
+                color: color.color,
+                model_id: color.model_id
+            })),
             styles: catalog.styles.map(style => style.style),
             rooms: catalog.rooms.map(room => room.room)
         }));
@@ -98,13 +102,20 @@ export class CatalogService {
         console.log("");
 
         const catalog = await this.catalogRepository.find({
-            where: { ...where, archived: false, active: true },
+            where: {
+                ...where,
+                archived: false,
+                active: true
+            },
             ...selectRelations
         });
 
         return catalog.map(catalog => ({
             ...catalog,
-            colors: catalog.colors.map(color => color.color),
+            colors: catalog.colors.map(color => ({
+                color: color.color,
+                model_id: color.model_id
+            })),
             styles: catalog.styles.map(style => style.style),
             rooms: catalog.rooms.map(room => room.room)
         }));
@@ -180,7 +191,10 @@ export class CatalogService {
 
         return catalog.map(catalog => ({
             ...catalog,
-            colors: catalog.colors.map(color => color.color),
+            colors: catalog.colors.map(color => ({
+                color: color.color,
+                model_id: color.model_id
+            })),
             styles: catalog.styles.map(style => style.style),
             rooms: catalog.rooms.map(room => room.room)
         }));
@@ -219,7 +233,7 @@ export class CatalogService {
             const itemsToAdd = newItems.filter(item => !existingItems.includes(item));
             const newEntities = itemsToAdd.map(item => {
                 const catalog = new CatalogColors();
-                catalog.furniture_id = object.id
+                catalog.furniture_id = object.id;
                 catalog.color = item;
                 return catalog;
             });
@@ -243,7 +257,7 @@ export class CatalogService {
             const itemsToAdd = newItems.filter(item => !existingItems.includes(item));
             const newEntities = itemsToAdd.map(item => {
                 const catalog = new CatalogStyles();
-                catalog.furniture_id = object.id
+                catalog.furniture_id = object.id;
                 catalog.style = item;
                 return catalog;
             });
@@ -267,7 +281,7 @@ export class CatalogService {
             const itemsToAdd = newItems.filter(item => !existingItems.includes(item));
             const newEntities = itemsToAdd.map(item => {
                 const catalog = new CatalogRooms();
-                catalog.furniture_id = object.id
+                catalog.furniture_id = object.id;
                 catalog.room = item;
                 return catalog;
             });
@@ -280,7 +294,10 @@ export class CatalogService {
 
         return {
             ...result,
-            colors: result.colors.map(color => color.color),
+            colors: result.colors.map(color => ({
+                color: color.color,
+                model_id: color.model_id
+            })),
             styles: result.styles.map(style => style.style),
             rooms: result.rooms.map(room => room.room)
         };
