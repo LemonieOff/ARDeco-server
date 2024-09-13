@@ -11,6 +11,7 @@ import {
 } from "@nestjs/class-validator";
 import { rooms, styles } from "../values";
 import { CatalogColorValidator } from "../validators/catalog_color.validator";
+import { ColorWithModelDto } from "./catalog-color-model.dto";
 
 export class CatalogUpdateDto {
     @IsOptional()
@@ -49,7 +50,7 @@ export class CatalogUpdateDto {
     @IsArray()
     @ArrayNotEmpty()
     @Validate(CatalogColorValidator)
-    colors: string[];
+    colors: (string | ColorWithModelDto)[];
 
     @IsOptional()
     @IsArray()

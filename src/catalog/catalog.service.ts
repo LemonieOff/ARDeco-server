@@ -10,6 +10,7 @@ import { CatalogRooms } from "./models/catalog_rooms.entity";
 import { CatalogStyles } from "./models/catalog_styles.entity";
 import { CatalogResponseDto } from "./dtos/catalog-response.dto";
 import { CatalogUpdateDto } from "./dtos/catalog-update.dto";
+import { ColorWithModelDto } from "./dtos/catalog-color-model.dto";
 
 const selectRelations: FindManyOptions<Catalog> = {
     relations: {
@@ -223,7 +224,9 @@ export class CatalogService {
 
         if (data.colors && data.colors.length > 0) {
             const oldItems = object.colors;
-            const newItems = data.colors;
+            const newItems: string[] = typeof data.colors[0] === "string"
+                ? (data.colors as string[])
+                : (data.colors as ColorWithModelDto[]).map(it => it.color);
             const existingItems = oldItems.map(item => item.color);
 
             const itemsToPreserve = oldItems.filter(item => newItems.includes(item.color));
