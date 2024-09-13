@@ -6,9 +6,11 @@ import {
     IsLowercase,
     IsNumber,
     IsOptional,
-    IsString
+    IsString,
+    Validate
 } from "@nestjs/class-validator";
-import { colors, rooms, styles } from "../values";
+import { rooms, styles } from "../values";
+import { CatalogColorValidator } from "../validators/catalog_color.validator";
 
 export class CatalogUpdateDto {
     @IsOptional()
@@ -46,8 +48,7 @@ export class CatalogUpdateDto {
     @IsOptional()
     @IsArray()
     @ArrayNotEmpty()
-    @IsLowercase({ each: true })
-    @IsIn(colors, { each: true })
+    @Validate(CatalogColorValidator)
     colors: string[];
 
     @IsOptional()
