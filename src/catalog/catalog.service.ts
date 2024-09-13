@@ -241,6 +241,9 @@ export class CatalogService {
                 const catalog = new CatalogColors();
                 catalog.furniture_id = object.id;
                 catalog.color = item;
+                if (typeof data.colors[0] === "object") {
+                    catalog.model_id = (data.colors as ColorWithModelDto[]).find(it => it.color === item).model_id;
+                }
                 return catalog;
             });
             await this.catalogColorsRepository.save(newEntities);
