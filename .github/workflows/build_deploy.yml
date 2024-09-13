@@ -54,8 +54,6 @@ jobs:
             .prettierrc
             .eslintrc.js
             README.md
-            tsconfig.json
-            tsconfig.build.json
             Gulpfile.js
             nest-cli.json
             package-lock.json
