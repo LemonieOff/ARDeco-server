@@ -35,12 +35,6 @@ export class Catalog {
     @Column()
     object_id: string; // Partner object ID
 
-    @Column({
-        type: "int",
-        default: 0
-    }) // Default is used when no model is available
-    model_id: number; // 3D model ID in the model database
-
     @Column({ default: true })
     active: boolean; // true if the product is active, false if it is not active
 

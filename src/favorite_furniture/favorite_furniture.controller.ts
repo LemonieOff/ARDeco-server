@@ -15,7 +15,8 @@ export class FavoriteFurnitureController {
         private jwtService: JwtService,
         private userService: UserService,
         private catalogService: CatalogService
-    ) {}
+    ) {
+    }
 
     @Get()
     async all(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
@@ -36,14 +37,16 @@ export class FavoriteFurnitureController {
                     id: furniture.object_id,
                     name: furniture.name,
                     price: furniture.price,
-                    styles: furniture.styles,
-                    colors: furniture.colors,
-                    rooms: furniture.rooms,
+                    styles: furniture.styles.map(style => style.style),
+                    colors: furniture.colors.map(color => ({
+                        color: color.color,
+                        model_id: color.model_id
+                    })),
+                    rooms: furniture.rooms.map(room => room.room),
                     height: furniture.height,
                     width: furniture.width,
                     depth: furniture.depth,
-                    company: furniture.company_name,
-                    model_id: furniture.model_id,
+                    company: furniture.company_name
                 },
                 favorite_furniture: item
             });
