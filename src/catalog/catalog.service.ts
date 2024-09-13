@@ -230,6 +230,12 @@ export class CatalogService {
             const existingItems = oldItems.map(item => item.color);
 
             const itemsToPreserve = oldItems.filter(item => newItems.includes(item.color));
+            if (typeof data.colors[0] === "object") {
+                itemsToPreserve.forEach(item => {
+                    item.model_id = (data.colors as ColorWithModelDto[]).find(it => it.color === item.color).model_id;
+                });
+            }
+
             const itemsToRemove = existingItems.filter(item => !newItems.includes(item));
             await this.catalogColorsRepository.delete({
                 color: In(itemsToRemove),
