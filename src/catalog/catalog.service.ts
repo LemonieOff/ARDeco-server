@@ -135,8 +135,11 @@ export class CatalogService {
         let colors: CatalogColors[] = [];
         for (const colorString of data.colors) {
             const color: CatalogColors = new CatalogColors();
-            color.color = colorString;
+            color.color = typeof colorString === "string" ? colorString : colorString.color;
             color.furniture = object;
+            if (typeof colorString === "object") {
+                color.model_id = colorString.model_id;
+            }
             colors.push(color);
         }
         object.colors = colors;
