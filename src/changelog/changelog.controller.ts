@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpStatus, Param, Post, Put, Req, Res } from "@nestjs/common";
+import { Body, Controller, Get, HttpStatus, Param, Post, Put, Req, Res, Delete } from "@nestjs/common";
 import { ChangelogService } from "./changelog.service";
 import { UserService } from "src/user/user.service";
 import { Request, Response } from "express";
@@ -165,6 +165,62 @@ export class ChangelogController {
             description: `Changelog ${changelog.id} updated`,
             data: changelog,
         });
+    }
+
+    @Delete(":id")
+    async delete(@Param("id") id: number, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+        const cookie = req.cookies["jwt"];
+        const token = cookie ? this.jwtService.verify(cookie) : null;
+
+        if (!cookie) {
+            res.status(401);
+            return {
+                status: "KO",
+                code: 401,
+                description: "Vous n'êtes pas connecté",
+                data: null,
+            };
+        }
+
+        const user = await this.userService.findOne({ id: token["id"] });
+        if (!user) {
+            res.status(401);
+            return {
+                status: "KO",
+                code: 401,
+                description: "Vous n'êtes pas connecté",
+                data: null,
+            };
+        }
+
+        if (user.role !== "admin") {
+            res.status(403);
+            return {
+                status: "KO",
+                code: 403,
+                description: "Vous n'êtes pas autorisé à supprimer une version du changelog",
+                data: null,
+            };
+        }
+
+        const result = await this.changelogService.delete(id);
+        if (result.affected === 0) {
+            res.status(HttpStatus.NOT_FOUND);
+            return {
+                status: "KO",
+                code: HttpStatus.NOT_FOUND,
+                description: "Changelog non trouvé",
+                data: null,
+            };
+        }
+
+        res.status(HttpStatus.OK);
+        return {
+            status: "OK",
+            code: HttpStatus.OK,
+            description: `Changelog ${id} supprimé`,
+            data: null,
+        };
     }
 }
 
