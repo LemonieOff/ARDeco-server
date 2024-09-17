@@ -217,14 +217,16 @@ export class GalleryController {
     @Post()
     async post(
         @Req() req: Request,
-        @Body() item: QueryPartialEntity<Gallery>,
+        @Body() item: Object,
         @Res({ passthrough: true }) res: Response
     ) {
         const user = await this.checkLogin(req, res);
         if (!(user instanceof User)) return user;
 
         try {
-            item.user = user;
+            console.log("REQUEST", req)
+            console.log("RAW : ", item)
+            item["user_id"] = user;
             const result = await this.galleryService.create(item);
             res.status(201);
             return {
