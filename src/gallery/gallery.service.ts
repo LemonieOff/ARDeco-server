@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import {
     And,
+    DeepPartial,
     FindManyOptions,
     FindOptionsRelations,
     FindOptionsSelect,
@@ -23,19 +24,19 @@ export class GalleryService {
     ) {
     }
 
-    async create(data): Promise<Gallery> {
+    async create(data: QueryPartialEntity<Gallery>): Promise<(DeepPartial<Gallery>)[]> {
         try {
-            JSON.parse(data.furniture);
+            JSON.parse(String(data.model_data));
         } catch (e) {
             return await new Promise((_, reject) => {
                 reject({
                     error: "JsonError",
                     message: "Furniture is not a valid JSON object",
-                    furniture: data.furniture
+                    furniture: data.model_data
                 });
             });
         }
-        return await this.galleryRepository.save(data);
+        return await this.galleryRepository.save(data as any);
     }
 
     async findOne(
@@ -153,9 +154,10 @@ export class GalleryService {
                 id: true,
                 visibility: true,
                 description: true,
-                furniture: true,
+                model_data: true,
                 name: true,
-                room_type: true,
+                room: true,
+                style: true,
                 comments: true,
                 user: {
                     id: true,

@@ -546,9 +546,10 @@ export class GalleryController {
             id: true,
             visibility: true,
             description: true,
-            furniture: true,
+            model_data: true,
             name: true,
-            room_type: true,
+            room: true,
+            style: true,
             comments: {
                 id: true
             },
