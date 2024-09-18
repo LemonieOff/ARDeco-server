@@ -46,8 +46,9 @@ export class FavoriteGalleryController {
                     id: true,
                     name: true,
                     description: true,
-                    room_type: true,
-                    furniture: true,
+                    room: true,
+                    style: true,
+                    model_data: true,
                     user: {
                         id: true,
                         first_name: true,

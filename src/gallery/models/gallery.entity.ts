@@ -21,20 +21,23 @@ export class Gallery {
     })
     user_id: number;
 
-    @Column({ type: "boolean" })
+    @Column({ type: "boolean", default: false })
     visibility: boolean;
 
     @Column({ type: "json" })
-    furniture: string;
+    model_data: string;
 
     @Column({ type: "varchar" })
     name: string;
 
-    @Column({ type: "longtext" })
+    @Column({ type: "varchar", default: "" })
     description: string;
 
     @Column({ type: "varchar" })
-    room_type: string;
+    room: string;
+
+    @Column({ type: "varchar" })
+    style: string;
 
     @OneToMany(type => GalleryReport, galleryReport => galleryReport.gallery)
     galleryReports: GalleryReport[];

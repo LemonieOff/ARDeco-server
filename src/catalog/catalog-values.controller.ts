@@ -80,7 +80,7 @@ export class CatalogValuesController {
         return {
             "status": "OK",
             "code": 200,
-            "description": "Furniture available styles",
+            "description": "Furniture available rooms",
             "data": FurnitureValues.rooms
         };
     }

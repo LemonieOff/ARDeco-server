@@ -84,7 +84,7 @@ describe("BlockedUsersController", () => {
                 user_id: 1,
                 blocked_user_id: 4
             }];
-            jest.spyOn(blockedUsersService, "findAll").mockResolvedValue(blockedUsers);
+            jest.spyOn(blockedUsersService, "findByBlocker").mockResolvedValue(blockedUsers);
             const req = { cookies: { jwt: "token" } } as any;
             const res = {
                 status: jest.fn().mockReturnThis(),
@@ -149,7 +149,7 @@ describe("BlockedUsersController", () => {
                 user_id: 1,
                 blocked_user_id: 4
             }];
-            jest.spyOn(blockedUsersService, "findAll").mockResolvedValue(blockedUsers);
+            jest.spyOn(blockedUsersService, "findByBlocker").mockResolvedValue(blockedUsers);
             const req = { cookies: { jwt: "token" } } as any;
             const res = {
                 status: jest.fn().mockReturnThis(),

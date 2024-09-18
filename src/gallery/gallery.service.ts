@@ -1,33 +1,47 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { FindManyOptions, FindOptionsRelations, FindOptionsSelect, FindOptionsWhere, Repository } from "typeorm";
+import {
+    And,
+    DeepPartial,
+    FindManyOptions,
+    FindOptionsRelations,
+    FindOptionsSelect,
+    FindOptionsWhere,
+    In,
+    Not,
+    Repository
+} from "typeorm";
 import { Gallery } from "./models/gallery.entity";
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
+import { BlockedUsersService } from "../blocked_users/blocked_users.service";
 
 @Injectable()
 export class GalleryService {
     constructor(
         @InjectRepository(Gallery)
-        private readonly galleryRepository: Repository<Gallery>
+        private readonly galleryRepository: Repository<Gallery>,
+        private blockedUsersService: BlockedUsersService
     ) {
     }
 
-    async create(data): Promise<Gallery> {
+    async create(data: QueryPartialEntity<Gallery>): Promise<(DeepPartial<Gallery>)[]> {
         try {
-            JSON.parse(data.furniture);
+            // JSON.parse(String(data.model_data));
+            console.log("Gallery");
+            console.log(data);
+            console.log(data.model_data);
         } catch (e) {
             return await new Promise((_, reject) => {
                 reject({
                     error: "JsonError",
                     message: "Furniture is not a valid JSON object",
-                    furniture: data.furniture
+                    furniture: data.model_data
                 });
             });
         }
-        return await this.galleryRepository.save(data);
+        return await this.galleryRepository.save(data as any);
     }
 
-    // TODO : Blocked users restriction (gallery + comments)
     async findOne(
         where: FindOptionsWhere<Gallery>,
         relations: FindOptionsRelations<Gallery> = {},
@@ -43,8 +57,40 @@ export class GalleryService {
         });
     }
 
-    // TODO : Blocked users restriction (galleries + comments)
+    async findOneById(
+        id: number,
+        relations: FindOptionsRelations<Gallery>,
+        select: FindOptionsSelect<Gallery> = {}
+    ) {
+        return this.findOne({ id: id }, relations, select);
+    }
+
+    // TODO : Blocked users restriction (comments)
+    async findOneRestricted(
+        fetcher_id: number,
+        id: number,
+        relations: FindOptionsRelations<Gallery> = {},
+        select: FindOptionsSelect<Gallery> = {},
+        loadIds: boolean = false
+    ): Promise<Gallery> {
+        const [blocked, blocking] = await this.blockedUsersService.findByBlockedAndBlocking(fetcher_id);
+
+        return this.galleryRepository.findOne({
+            where: {
+                id: id,
+                visibility: true,
+                user_id: And(Not(In(blocked)), Not(In(blocking)))
+            },
+            relations: relations,
+            loadRelationIds: loadIds,
+            loadEagerRelations: false,
+            select: select
+        });
+    }
+
+    // TODO : Blocked users restriction (comments)
     async findAll(
+        fetcher_id: number,
         user_id: number | null,
         limit: number | null,
         begin_pos: number | null,
@@ -52,11 +98,19 @@ export class GalleryService {
         select: FindOptionsSelect<Gallery> = {},
         loadIds: boolean = false
     ): Promise<Gallery[]> {
+        const [blocked, blocking] = await this.blockedUsersService.findByBlockedAndBlocking(fetcher_id);
+
         let where: FindOptionsWhere<Gallery> = { visibility: true }; // Public items only
         if (user_id) {
+            if (blocked.includes(user_id) || blocking.includes(user_id)) return [];
             where = {
                 ...where,
                 user_id: user_id
+            };
+        } else {
+            where = {
+                ...where,
+                user_id: And(Not(In(blocked)), Not(In(blocking)))
             };
         }
 
@@ -103,9 +157,10 @@ export class GalleryService {
                 id: true,
                 visibility: true,
                 description: true,
-                furniture: true,
+                model_data: true,
                 name: true,
-                room_type: true,
+                room: true,
+                style: true,
                 comments: true,
                 user: {
                     id: true,
