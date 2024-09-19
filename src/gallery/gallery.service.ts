@@ -24,9 +24,9 @@ export class GalleryService {
     ) {
     }
 
-    async create(data: QueryPartialEntity<Gallery>): Promise<(DeepPartial<Gallery>)[]> {
+    async create(data: QueryPartialEntity<Gallery>): Promise<(DeepPartial<Gallery>)> {
         try {
-            // JSON.parse(String(data.model_data));
+            JSON.parse(String(data.model_data));
             console.log("Gallery");
             console.log(data);
             console.log(data.model_data);

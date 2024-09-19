@@ -7,6 +7,8 @@ import { GalleryService } from "./gallery.service";
 import { GalleryController } from "./gallery.controller";
 import { Gallery } from "./models/gallery.entity";
 import { BlockedUsersService } from "../blocked_users/blocked_users.service";
+import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
+import { DeepPartial } from "typeorm";
 
 describe("GalleryController", () => {
     let galleryController: GalleryController;
@@ -407,8 +409,8 @@ describe("GalleryController", () => {
     describe("post", () => {
         it("should return 201 on created", async () => {
             jest.spyOn(userService, "findOne").mockReturnValue(null);
-            const gallery: Gallery = {} as any;
-            jest.spyOn(galleryService, "create").mockResolvedValue(gallery);
+            const gallery: QueryPartialEntity<Gallery> = {} as any;
+            jest.spyOn(galleryService, "create").mockResolvedValue(gallery as DeepPartial<Gallery>);
             const req = { cookies: { jwt: "token" } } as any;
             const res = { status: jest.fn().mockReturnValue(this) } as any;
             const result = await galleryController.post(req, gallery, res);
@@ -946,9 +948,10 @@ describe("GalleryController", () => {
                 id: true,
                 visibility: true,
                 description: true,
-                furniture: true,
+                model_data: true,
                 name: true,
-                room_type: true,
+                room: true,
+                style: true,
                 comments: {
                     id: true
                 },

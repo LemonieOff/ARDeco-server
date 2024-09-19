@@ -236,17 +236,6 @@ export class FeedbackController {
             }
             const [_, feedback] = auth;
 
-            // Check feedback presence
-            if (!feedback) {
-                response.status(404);
-                return {
-                    code: 404,
-                    data: null,
-                    description: "Feedback not found",
-                    status: "KO"
-                };
-            }
-
             if (feedback.processed) {
                 response.status(409);
                 return {
@@ -305,17 +294,6 @@ export class FeedbackController {
                 return auth;
             }
             const [_, feedback] = auth;
-
-            // Check feedback presence
-            if (!feedback) {
-                response.status(404);
-                return {
-                    code: 404,
-                    data: null,
-                    description: "Feedback not found",
-                    status: "KO"
-                };
-            }
 
             if (!feedback.processed) {
                 response.status(409);
@@ -376,16 +354,6 @@ export class FeedbackController {
             }
             const [_, feedback] = auth;
 
-            // Check feedback presence
-            if (!feedback) {
-                response.status(404);
-                return {
-                    code: 404,
-                    data: null,
-                    description: "Feedback not found",
-                    status: "KO"
-                };
-            }
             delete feedback.user;
 
             // Delete the feedback
