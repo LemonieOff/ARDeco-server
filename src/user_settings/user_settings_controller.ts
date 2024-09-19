@@ -242,9 +242,7 @@ export class UserSettingsController {
         @Body() item: QueryPartialEntity<UserSettings>, // TODO : DTO, validate DTO
         @Res({ passthrough: true }) res: Response
     ) {
-        try {
-            user_id = Number(user_id);
-        } catch (e) {
+        if (Number.isNaN(user_id)) {
             res.status(400);
             return {
                 status: "KO",
