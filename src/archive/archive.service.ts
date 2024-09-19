@@ -22,7 +22,8 @@ const selectRelations: FindManyOptions<Catalog> = {
         depth: true,
         active: true,
         colors: {
-            color: true
+            color: true,
+            model_id: true
         },
         styles: {
             style: true
@@ -47,7 +48,10 @@ export class ArchiveService {
 
         return {
             ...archive,
-            colors: archive.colors.map(color => color.color),
+            colors: archive.colors.map(color => ({
+                color: color.color,
+                model_id: color.model_id
+            })),
             styles: archive.styles.map(style => style.style),
             rooms: archive.rooms.map(room => room.room)
         };
@@ -90,7 +94,10 @@ export class ArchiveService {
 
         return {
             ...archive,
-            colors: archive.colors.map(color => color.color),
+            colors: archive.colors.map(color => ({
+                color: color.color,
+                model_id: color.model_id
+            })),
             styles: archive.styles.map(style => style.style),
             rooms: archive.rooms.map(room => room.room)
         };
@@ -107,7 +114,10 @@ export class ArchiveService {
 
         return archive.map(catalog => ({
             ...catalog,
-            colors: catalog.colors.map(color => color.color),
+            colors: catalog.colors.map(color => ({
+                color: color.color,
+                model_id: color.model_id
+            })),
             styles: catalog.styles.map(style => style.style),
             rooms: catalog.rooms.map(room => room.room)
         }));
@@ -137,7 +147,10 @@ export class ArchiveService {
         const restoredItem = await this.archiveRepository.save(item);
         return {
             ...restoredItem,
-            colors: restoredItem.colors.map(color => color.color),
+            colors: restoredItem.colors.map(color => ({
+                color: color.color,
+                model_id: color.model_id
+            })),
             styles: restoredItem.styles.map(style => style.style),
             rooms: restoredItem.rooms.map(room => room.room)
         };

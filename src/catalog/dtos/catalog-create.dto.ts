@@ -7,9 +7,12 @@ import {
     IsNotEmpty,
     IsNumber,
     IsOptional,
-    IsString
+    IsString,
+    Validate
 } from "@nestjs/class-validator";
-import { colors, rooms, styles } from "../values";
+import { rooms, styles } from "../values";
+import { ColorWithModelDto } from "./catalog-color-model.dto";
+import { CatalogColorValidator } from "../validators/catalog_color.validator";
 
 export class CatalogCreateDto {
     @IsEmpty()
@@ -44,9 +47,8 @@ export class CatalogCreateDto {
 
     @IsArray()
     @ArrayNotEmpty()
-    @IsLowercase({ each: true })
-    @IsIn(colors, { each: true })
-    colors: string[];
+    @Validate(CatalogColorValidator)
+    colors: (string | ColorWithModelDto)[];
 
     @IsArray()
     @ArrayNotEmpty()
@@ -59,6 +61,4 @@ export class CatalogCreateDto {
     @IsLowercase({ each: true })
     @IsIn(styles, { each: true })
     styles: string[];
-
-    // TODO : models
 }

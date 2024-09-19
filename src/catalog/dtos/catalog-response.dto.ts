@@ -8,7 +8,10 @@ export class CatalogResponseDto {
     width: number;
     height: number;
     depth: number;
-    colors: string[];
+    colors: {
+        color: string;
+        model_id: number;
+    }[];
     rooms: string[];
     styles: string[];
     active: boolean;

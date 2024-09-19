@@ -43,10 +43,6 @@ export class ChangelogService {
 
     async delete(id: number): Promise<any> {
         console.log("Deleting Changelog item", id);
-        return this.ChangelogRepository.createQueryBuilder("changelog")
-            .delete()
-            .from(Changelog)
-            .where("id = id", { id: id })
-            .execute();
+        return this.ChangelogRepository.delete(id);
     }
 }

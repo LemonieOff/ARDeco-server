@@ -50,7 +50,7 @@ describe("BlockedUsersService", () => {
         });
     });
 
-    describe("findAll", () => {
+    describe("findByBlocker", () => {
         it("should return a list of blocked users for a specific user", async () => {
             const blockedUsers: BlockedUser[] = [
                 {
@@ -65,7 +65,7 @@ describe("BlockedUsersService", () => {
                 }
             ];
             jest.spyOn(blockedUserRepository, "find").mockResolvedValue(blockedUsers);
-            const result = await blockedUsersService.findAll(1);
+            const result = await blockedUsersService.findByBlocker(1);
             expect(result).toMatchObject(blockedUsers);
         });
     });

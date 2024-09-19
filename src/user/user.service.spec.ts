@@ -3,6 +3,7 @@ import { UserService } from "./user.service";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import { Repository, UpdateResult } from "typeorm";
 import { User } from "./models/user.entity";
+import { UserSettings } from "../user_settings/models/user_settings.entity";
 
 describe("UserService", () => {
     let userService: UserService;
@@ -63,7 +64,10 @@ describe("UserService", () => {
                     checkEmailToken: "",
                     checkEmailSent: undefined,
                     hasCheckedEmail: false,
-                    galleryComments: []
+                    galleryComments: [],
+                    cart_id: 0,
+                    feedbacks: [],
+                    settings: {} as UserSettings
                 }
             ];
             jest.spyOn(userRepository, "find").mockResolvedValue(users);
@@ -74,6 +78,9 @@ describe("UserService", () => {
     describe("create", () => {
         it("should create a new user", async () => {
             const user: User = {
+                cart_id: 0,
+                feedbacks: [],
+                settings: undefined,
                 city: "",
                 phone: "",
                 id: 1,
@@ -101,6 +108,9 @@ describe("UserService", () => {
     describe("findOne", () => {
         it("should return a user by email", async () => {
             const user: User = {
+                cart_id: 0,
+                feedbacks: [],
+                settings: undefined,
                 city: "",
                 phone: "",
                 id: 1,
@@ -128,6 +138,9 @@ describe("UserService", () => {
     describe("findById", () => {
         it("should return a user by id", async () => {
             const user: User = {
+                cart_id: 0,
+                feedbacks: [],
+                settings: undefined,
                 city: "",
                 phone: "",
                 id: 1,
@@ -155,6 +168,9 @@ describe("UserService", () => {
     describe("update", () => {
         it("should update a user", async () => {
             const user: User = {
+                cart_id: 0,
+                feedbacks: [],
+                settings: undefined,
                 city: "",
                 phone: "",
                 id: 1,

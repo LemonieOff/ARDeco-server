@@ -52,12 +52,14 @@ describe("TicketService", () => {
                 {
                     id: 1,
                     title: "Ticket 1",
-                    status: "open"
+                    status: "open",
+                    description: "description 1"
                 },
                 {
                     id: 2,
                     title: "Ticket 2",
-                    status: "closed"
+                    status: "closed",
+                    description: "description 2"
                 }
             ];
             jest.spyOn(ticketRepository, "find").mockResolvedValue(mockTickets as any);
@@ -68,7 +70,7 @@ describe("TicketService", () => {
                     user_init_id: userId,
                     status: Not("deleted")
                 },
-                select: ["id", "title", "status"]
+                select: ["id", "title", "status", "description"]
             });
             expect(result).toEqual(mockTickets);
         });
