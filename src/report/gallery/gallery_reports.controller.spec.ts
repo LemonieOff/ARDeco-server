@@ -605,9 +605,8 @@ describe("GalleryReportsController", () => {
         });
 
         it("should close the report and return 200", async () => {
-            const gallery: Gallery = { id: 10 } as Gallery;
             const mockReport: GalleryReport = {
-                id: 1, gallery: gallery, status: "open",
+                id: 1, gallery: 10 as unknown as Gallery, status: "open",
                 user: mockUser,
                 report_text: "",
                 datetime: undefined
@@ -628,9 +627,8 @@ describe("GalleryReportsController", () => {
         });
 
         it("should return 501 if there's an error closing the report", async () => {
-            const gallery: Gallery = { id: 10 } as Gallery;
             const mockReport: GalleryReport = {
-                id: 1, gallery: gallery, status: "open",
+                id: 1, gallery: 10 as unknown as Gallery, status: "open",
                 user: mockUser,
                 report_text: "",
                 datetime: undefined
