@@ -190,7 +190,7 @@ export class GalleryReportsController {
         };
     }
 
-    private async checkAuthorization(
+    async checkAuthorization(
         req: Request,
         res: Response,
         gallery_id: number,
