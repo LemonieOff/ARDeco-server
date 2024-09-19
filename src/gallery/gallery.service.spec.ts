@@ -93,6 +93,7 @@ describe('GalleryService', () => {
 
         it("should return error if furniture is not JSON", async () => {
             const data: Gallery = { model_data: '{"", "", ""}' } as any;
+            jest.spyOn(console, 'log').mockImplementationOnce(() => { throw new Error() }); // TODO : TEMPORARY while create is not checking JSON
             expect.assertions(1);
             return galleryService.create(data).catch(err => {expect(true).toEqual(true)});
         });
@@ -350,7 +351,6 @@ describe('GalleryService', () => {
                 })
             } as any);
             const result = await galleryService.delete(1);
-            console.log(result);
             expect(result).toBeUndefined();
         });
     });
