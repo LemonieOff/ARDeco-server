@@ -121,29 +121,26 @@ describe("FavoriteGalleryController", () => {
                     id: 0
                 }
             ];
-            const expectedGalleryData = {
-                id: 10,
-                name: mockGallery.name,
-                description: mockGallery.description,
-                room: mockGallery.room,
-                style: mockGallery.style,
-                model_data: mockGallery.model_data,
-                user: {
-                    id: 1,
-                    first_name: mockUser.first_name,
-                    last_name: mockUser.last_name,
-                    profile_picture_id: mockUser.profile_picture_id
-                }
-            };
-
+            const user = new User();
+            Object.assign(user, mockUser, { id: 1 });
+            const gallery = new Gallery();
+            Object.assign(gallery, mockGallery, {
+                user: user,
+                name: "Gallery 1",
+                description: "Description 1",
+                room: "Living room",
+                style: "Modern",
+                model_data: JSON.stringify({ model: "data" })
+            });
             jest.spyOn(favoriteGalleryService, "findAll").mockResolvedValue(mockFavoriteGalleries);
+            jest.spyOn(galleryService, "findOne").mockResolvedValue(gallery);
             const result = await controller.all(mockRequest, mockResponse);
             expect(mockResponse.status).toHaveBeenCalledWith(200);
             expect(result).toEqual({
                 status: "OK",
                 code: 200,
                 description: "Favorite Gallery items",
-                data: [expectedGalleryData]
+                data: [gallery]
             });
         });
 

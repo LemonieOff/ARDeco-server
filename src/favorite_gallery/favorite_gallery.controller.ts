@@ -88,9 +88,7 @@ export class FavoriteGalleryController {
         const user = await this.checkAuthorization(req, res);
         if (!(user instanceof User)) return user;
 
-        try {
-            gallery_id = Number(gallery_id);
-        } catch (e) {
+        if (isNaN(gallery_id)) {
             res.status(400);
             return {
                 status: "KO",
