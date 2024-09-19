@@ -224,8 +224,7 @@ export class GalleryController {
         if (!(user instanceof User)) return user;
 
         try {
-            console.log("REQUEST", req)
-            console.log("RAW : ", item)
+            console.log("RAW GALLERY : ", item)
             item["user_id"] = user;
             const result = await this.galleryService.create(item);
             res.status(201);

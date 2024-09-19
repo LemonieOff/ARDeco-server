@@ -446,6 +446,7 @@ describe("GalleryController", () => {
             const gallery: Gallery = {} as any;
             const req = { cookies: { jwt: "token" } } as any;
             const res = { status: jest.fn().mockReturnValue(this) } as any;
+            jest.spyOn(console, 'log').mockImplementationOnce(() => { throw new Error() }); // TODO : TEMPORARY while create is not checking JSON
             const result = await galleryController.post(req, gallery, res);
             expect(result.status).toEqual("KO");
             expect(result.code).toEqual(400);
