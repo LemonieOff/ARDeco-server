@@ -29,7 +29,7 @@ export class AuthController {
     ) {
     }
 
-    private generateToken(size: number = 64, encoding: BufferEncoding = "hex") {
+    generateToken(size: number = 64, encoding: BufferEncoding = "hex") {
         return randomBytes(size).toString(encoding);
     }
 

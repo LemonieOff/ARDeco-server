@@ -94,6 +94,7 @@ export class ChangelogController {
                 description: "Changelog not found",
                 data: null,
             });
+            return;
         }
         res.status(HttpStatus.OK).json({
             status: "OK",
@@ -146,7 +147,8 @@ export class ChangelogController {
                 code: 404,
                 description: "Changelog not found",
                 data: null,
-            })
+            });
+            return;
         }
 
         const changelog = await this.changelogService.update(id, data);
@@ -157,6 +159,7 @@ export class ChangelogController {
                 description: "Changelog not found",
                 data: null,
             });
+            return;
         }
 
         res.status(HttpStatus.OK).json({

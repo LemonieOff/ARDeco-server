@@ -32,7 +32,7 @@ enum Type {
 }
 
 type QueryMode = {
-    mode: string | [string];
+    mode: string | string[];
 };
 
 @Controller(["order", "order_history"])
