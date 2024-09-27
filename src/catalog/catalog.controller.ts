@@ -584,4 +584,127 @@ export class CatalogController {
 
         return company;
     }
+
+
+    @Post("ai")
+    async getValuesFromImage(@Body() body: { image: string }, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+        const user = await this.checkAuthorizationUser(req, res);
+        if (!(user instanceof User)) return user;
+
+        const imageBase64 = body.image;
+        let fullCatalog = await this.catalogService.all(true);
+        let parsedCatalog = fullCatalog.map(item => ({
+            id: item.id,
+            rooms: item.rooms,
+            color: item.colors,
+            styles: item.styles
+        }));
+
+        const openaiResponse = await this.callGPT4Vision(imageBase64, parsedCatalog);
+
+        const furnitureIds = await this.processChatGPTResponse(openaiResponse);
+
+        res.status(200);
+        return {
+            status: "OK",
+            code: 200,
+            description: "AI Suggestions",
+            data: furnitureIds
+        };
+    }
+
+    private async callGPT4Vision(imageBase64: string, catalog: any): Promise<string> {
+        const apiKey = process.env.OPENAI_API_KEY;
+        const url = 'https://api.openai.com/v1/chat/completions';
+
+        const payload = {
+            model: "gpt-4o",
+            messages: [
+                {
+                    role: "system",
+                    content: "I send you an image of a room, determine the type of room (dining room, living room, bedroom, kitchen, bathroom) the style, colors, etc. and with this information choose from a json catalog that is sent with the image the furniture to add to the room, only respond by id separated by ; there can be several times the same for example for a multiples of chairs, try to have minimum 3 suggestion but no text only ids "
+                },
+                {
+                    role: "user",
+                    content: [
+                        {
+                            type: "image_url",
+                            image_url: {
+                                url: `data:image/jpeg;base64,${imageBase64}`
+                            }
+                        },
+                        {
+                            type: "text",
+                            text: JSON.stringify(catalog)
+                        }
+                    ]
+                }
+            ],
+            max_tokens: 900
+        };
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erreur HTTP: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.choices[0].message.content;
+        } catch (error) {
+            console.error('Error calling GPT-4 Vision API:', error);
+        }
+    }
+
+    private processChatGPTResponse(response: string): string {
+        return response;
+    }
+
+    async checkAuthorizationUser(
+        req: Request,
+        res: Response
+    ): Promise<Promise<User> | {
+        status: string,
+        code: number,
+        description: string,
+        data: null
+    }> {
+        const cookie = req.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+
+        // Cookie or JWT not valid
+        if (!cookie || !data) {
+            res.status(401);
+            return {
+                status: "KO",
+                code: 401,
+                description: "You are not connected",
+                data: null
+            };
+        }
+
+        const user = await this.userService.findOne({ id: data["id"] });
+
+        if (!user) {
+            res.status(403);
+            return {
+                status: "KO",
+                code: 403,
+                description:
+                    "You are not allowed to access/modify this resource",
+                data: null
+            };
+        }
+
+        return user;
+    }
+
 }
