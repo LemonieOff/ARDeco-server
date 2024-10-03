@@ -15,11 +15,6 @@ export class User {
     @Column({ unique: true })
     email: string;
 
-    /* TODO : Implement pseudo
-        @Column({ unique: true })
-        pseudo: string;
-    */
-
     @Column()
     first_name: string; // First name for users, company name for companies
 
