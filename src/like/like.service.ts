@@ -12,11 +12,20 @@ export class LikeService {
     ) {
     }
 
-    async create(user: number, gallery: number) {
+    async like(user: number, gallery: number): Promise<Like> {
         const like = new Like();
         like.user_id = user;
         like.gallery_id = gallery;
-        return await this.likeRepository.save(like);
+        return this.likeRepository.save(like);
+    }
+
+    async unlike(user: number, gallery: number) {
+        return this.likeRepository.delete({ user_id: user, gallery_id: gallery });
+    }
+
+    async isLiked(user: number, gallery: number): Promise<boolean> {
+        const like = await this.likeRepository.findOne({ where: { user_id: user, gallery_id: gallery } });
+        return !(!like);
     }
 
     async findOne(
@@ -91,11 +100,11 @@ export class LikeService {
     }
 
     async numberForUser(user_id: number): Promise<number> {
-        return (await this.likeRepository.find({ where: { user_id: user_id } })).length;
+        return (await this.likeRepository.find({ where: { user_id: user_id }, select: { id: true } })).length;
     }
 
     async numberForGallery(gallery_id: number): Promise<number> {
-        return (await this.likeRepository.find({ where: { gallery_id: gallery_id } })).length;
+        return (await this.likeRepository.find({ where: { gallery_id: gallery_id }, select: { id: true } })).length;
     }
 
     async update(
@@ -106,7 +115,7 @@ export class LikeService {
         return await this.findOne({ id: id });
     }
 
-    async delete(id: number): Promise<any> {
+    async delete(id: number) {
         return this.likeRepository.delete(id);
     }
 }

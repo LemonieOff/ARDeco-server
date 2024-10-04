@@ -5,6 +5,8 @@ import { UserModule } from "../user/user.module";
 import { Like } from "./models/like.entity";
 import { GalleryModule } from "../gallery/gallery.module";
 import { LikeService } from "./like.service";
+import { LikeController } from "./like.controller";
+import { BlockedUsersModule } from "../blocked_users/blocked_users.module";
 
 @Module({
     imports: [
@@ -13,7 +15,8 @@ import { LikeService } from "./like.service";
         JwtModule.register({
             secret: "secret"
         }),
-        GalleryModule
+        GalleryModule,
+        BlockedUsersModule
     ],
     controllers: [LikeController],
     providers: [LikeService],

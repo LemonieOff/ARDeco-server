@@ -24,7 +24,8 @@ import { ProfilePictureModule } from "./profile_picture/profile_picture.module";
 import { CreateCompanyModule } from "./create-company/create-company.module";
 import { CommentModule } from "./comment/comment.module";
 import { FeedbackModule } from "./feedback/feedback.module";
-import { ChangelogModule} from "./changelog/changelog.module";
+import { ChangelogModule } from "./changelog/changelog.module";
+import { LikeModule } from "./like/like.module";
 
 @Module({
     imports: [
@@ -42,7 +43,7 @@ import { ChangelogModule} from "./changelog/changelog.module";
             password: process.env.DB_PASSWORD,
             database: process.env.DB_NAME,
             autoLoadEntities: true,
-            synchronize: false,
+            synchronize: false
         }),
         UserModule,
         AuthModule,
@@ -65,7 +66,8 @@ import { ChangelogModule} from "./changelog/changelog.module";
         CreateCompanyModule,
         CommentModule,
         FeedbackModule,
-        ChangelogModule
+        ChangelogModule,
+        LikeModule
     ],
     controllers: [AppController],
     providers: [AppService, ConfigService]
