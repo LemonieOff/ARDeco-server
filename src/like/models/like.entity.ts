@@ -2,7 +2,7 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "t
 import { User } from "../../user/models/user.entity";
 import { Gallery } from "../../gallery/models/gallery.entity";
 
-@Entity("like")
+@Entity("likes")
 export class Like {
     @PrimaryGeneratedColumn()
     id: number;
