@@ -185,8 +185,23 @@ export class LikeController {
                 data: null
             };
         }
+        id = Number(id);
+        if (isNaN(id)) {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+            return {
+                status: "KO",
+                code: HttpStatus.INTERNAL_SERVER_ERROR,
+                description: "Provided id is not a number",
+                data: id
+            };
+        }
+
+        console.log("TEST");
 
         if (mode === "user") {
+            console.log("TEST");
+            console.log(user.id);
+            console.log(id);
             if (user.id === id) return user; // User to fetch is actually the requesting user, ignoring useless user fetch and checks
 
             const userToFetch = await this.userService.findOne({ id: id });
@@ -255,10 +270,10 @@ export class LikeController {
             }
 
             // Admin can access everything (invisible items and blocked ones)
-            if (user.role === "admin") return null;
+            if (user.role === "admin") return user;
 
             // Creator has all rights on its own galleries, private or not
-            if (user.id === gallery.user.id) return null;
+            if (user.id === gallery.user.id) return user;
 
             // Check for item visibility, private ones are inaccessible
             if (!gallery.visibility) {
