@@ -14,10 +14,7 @@ export class Comment {
     })
     gallery: Gallery;
 
-    @Column({
-        type: "int",
-        update: false,
-    })
+    @Column({ type: "int" })
     gallery_id: number;
 
     @ManyToOne(_ => User, user => user.galleryComments, { onDelete: "CASCADE" })

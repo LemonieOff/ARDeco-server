@@ -2,13 +2,14 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColum
 import { GalleryReport } from "../../report/gallery/models/gallery_reports.entity";
 import { User } from "../../user/models/user.entity";
 import { Comment } from "../../comment/models/comment.entity";
+import { Like } from "../../like/models/like.entity";
 
 @Entity("gallery")
 export class Gallery {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(type => User, user => user.galleries, { onDelete: "CASCADE" })
+    @ManyToOne(_ => User, user => user.galleries, { onDelete: "CASCADE" })
     @JoinColumn({
         name: "user_id",
         referencedColumnName: "id"
@@ -39,9 +40,12 @@ export class Gallery {
     @Column({ type: "varchar" })
     style: string;
 
-    @OneToMany(type => GalleryReport, galleryReport => galleryReport.gallery)
+    @OneToMany(_ => GalleryReport, galleryReport => galleryReport.gallery)
     galleryReports: GalleryReport[];
 
-    @OneToMany(type => Comment, comment => comment.gallery)
+    @OneToMany(_ => Comment, comment => comment.gallery)
     comments: Comment[];
+
+    @OneToMany(_ => Like, like => like.gallery)
+    likes: Like[];
 }
