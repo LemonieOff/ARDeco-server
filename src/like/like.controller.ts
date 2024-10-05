@@ -52,6 +52,23 @@ export class LikeController {
         return this.getLikes(req, res, "user", id);
     }
 
+    @Get("/user/:user_id/gallery/:gallery_id")
+    async isUserLikingGallery(
+        @Req() req: Request,
+        @Res({ passthrough: true }) res: Response,
+        @Param("user_id") user_id: number,
+        @Param("gallery_id") gallery_id: number) {
+        // TODO : Check login
+        const isLiked = await this.likeService.isLiked(user_id, gallery_id);
+        res.status(HttpStatus.OK);
+        return {
+            status: "OK",
+            code: HttpStatus.OK,
+            description: `User ${user_id} is${isLiked ? " " : " not "}liking gallery ${gallery_id}`,
+            data: isLiked
+        };
+    }
+
     // TODO : Details mode
     async getLikes(req: Request, res: Response, mode: "user" | "gallery", id: number) {
         const fetcher = await this.checkLogin(req, res, mode, id);
