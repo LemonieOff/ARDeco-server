@@ -588,23 +588,51 @@ export class CatalogController {
 
     @Post("ai")
     async getValuesFromImage(@Body() body: { image: string }, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+        console.log("Début AI");
         const user = await this.checkAuthorizationUser(req, res);
-        if (!(user instanceof User)) return user;
+        if (!(user instanceof User)) {
+            console.log("Échec de l'autorisation utilisateur");
+            return user;
+        }
+        console.log("Utilisateur autorisé:", user.id);
+
+        //check if image is valid
+        if (!body.image) {
+            console.log("Image non fournie");
+            return {
+                status: "KO",
+                code: 400,
+                description: "Image non fournie",
+                data: null
+            };
+        }
+
 
         const imageBase64 = body.image;
+        console.log("Image reçue, longueur base64:", imageBase64.length);
+        console.log("Image :", imageBase64);
+        console.log("Récupération du catalogue complet");
         let fullCatalog = await this.catalogService.all(true);
+        console.log("Nombre d'éléments dans le catalogue complet:", fullCatalog.length);
+        console.log("Parsing du catalogue");
         let parsedCatalog = fullCatalog.map(item => ({
             id: item.id,
             rooms: item.rooms,
             color: item.colors,
             styles: item.styles
         }));
+        console.log("Nombre d'éléments dans le catalogue parsé:", parsedCatalog.length);
 
+        console.log("Appel à l'API GPT-4 Vision");
         const openaiResponse = await this.callGPT4Vision(imageBase64, parsedCatalog);
+        console.log("Réponse reçue de GPT-4 Vision:", openaiResponse);
 
+        console.log("Traitement de la réponse GPT-4");
         const furnitureIds = await this.processChatGPTResponse(openaiResponse);
+        console.log("IDs de meubles suggérés:", furnitureIds);
 
         res.status(200);
+        console.log("Fin de getValuesFromImage");
         return {
             status: "OK",
             code: 200,
@@ -616,6 +644,11 @@ export class CatalogController {
     private async callGPT4Vision(imageBase64: string, catalog: any): Promise<string> {
         const apiKey = process.env.OPENAI_API_KEY;
         const url = 'https://api.openai.com/v1/chat/completions';
+
+        console.log("API Key:", apiKey);
+        console.log("URL:", url);
+        console.log("Image Base64:", imageBase64);
+        console.log("Catalog:", catalog);
 
         const payload = {
             model: "gpt-4o",
