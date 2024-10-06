@@ -589,6 +589,8 @@ export class CatalogController {
     @Post("ai")
     async getValuesFromImage(@Body() body: { image: string }, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
         console.log("Début AI");
+        console.log("Body :", body);
+        console.log("Image :", body.image);
         const user = await this.checkAuthorizationUser(req, res);
         if (!(user instanceof User)) {
             console.log("Échec de l'autorisation utilisateur");
