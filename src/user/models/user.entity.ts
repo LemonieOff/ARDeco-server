@@ -86,9 +86,6 @@ export class User {
     feedbacks: Feedback[];
 
     @OneToOne(_ => UserSettings, settings => settings.user, { eager: true, onDelete: "SET NULL" })
-    @JoinColumn({
-        name: "user_settings_id"
-    })
     settings: UserSettings;
 
     @OneToMany(_ => Like, like => like.user)
