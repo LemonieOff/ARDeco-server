@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseArrayPipe, Post, Put, Req, Res } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpStatus, Param, ParseArrayPipe, Post, Put, Req, Res } from "@nestjs/common";
 import { CatalogService } from "./catalog.service";
 import { UserService } from "../user/user.service";
 import { Request, Response } from "express";
@@ -74,6 +74,106 @@ export class CatalogController {
         };
     }
 
+    @Get(":id")
+    async getSpecificFurniture(
+        @Req() req: Request,
+        @Res({ passthrough: true }) res: Response,
+        @Param("id") id: number
+    ): Promise<{
+        status: string;
+        code: number;
+        description: string;
+        data: null | CatalogResponseDto;
+    }> {
+        // 1. Check requesting user
+        const cookie = req.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+
+        // Cookie or JWT not valid
+        if (!cookie || !data) {
+            res.status(401);
+            return {
+                status: "KO",
+                code: 401,
+                description: "You are not connected",
+                data: null
+            };
+        }
+
+        const user = await this.userService.findOne({ id: data["id"] });
+
+        if (!user) {
+            res.status(403);
+            return {
+                status: "KO",
+                code: 403,
+                description:
+                    "Your user doesn't exists ant can't access this resource",
+                data: null
+            };
+        }
+
+        // 2. Check furniture
+        try {
+            const furniture = await this.catalogService.findOneById(id);
+            if (!furniture) {
+                res.status(404);
+                return {
+                    status: "KO",
+                    code: 404,
+                    description: "This furniture doesn't exist in the catalog",
+                    data: null
+                };
+            }
+
+            // 3. Check furniture activation (and user role)
+            if (!furniture.active) {
+                // There's not any scenario where a user have access to an inactive furniture
+                if (user.role === "user") {
+                    res.status(HttpStatus.FORBIDDEN);
+                    return {
+                        status: "OK",
+                        code: HttpStatus.FORBIDDEN,
+                        description: "You don't have access to this furniture",
+                        data: null
+                    };
+                }
+
+                // If it's a company, check if it's the owner
+                if (user.role === "company") {
+                    console.log(furniture.company);
+                    console.log(user.id);
+                    if (furniture.company !== user.id) {
+                        res.status(HttpStatus.FORBIDDEN);
+                        return {
+                            status: "OK",
+                            code: HttpStatus.FORBIDDEN,
+                            description: "You don't have access to this furniture",
+                            data: null
+                        };
+                    }
+                }
+            }
+
+            res.status(200);
+            return {
+                status: "OK",
+                code: 200,
+                description: `Furniture ${furniture.id}`,
+                data: furniture
+            };
+        } catch (e) {
+            console.error(e);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+            return {
+                status: "KO",
+                code: HttpStatus.INTERNAL_SERVER_ERROR,
+                description: "Internal server error occurring on furniture fetch",
+                data: e
+            };
+        }
+    }
+
     @Get("company/:company_id")
     async getCompanyCatalog(
         @Req() req: Request,
@@ -140,6 +240,7 @@ export class CatalogController {
             data: activeItems
         };
     }
+
 
     @Post(":id/add")
     /*
@@ -591,7 +692,9 @@ export class CatalogController {
 
 
     @Post("ai")
-    async getValuesFromImage(@Body() body: { image: string }, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    async getValuesFromImage(@Body() body: {
+        image: string
+    }, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
         console.log("Début AI");
         console.log("Body :", body);
         console.log("Image :", body.image);

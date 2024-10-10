@@ -184,6 +184,38 @@ export class CatalogService {
         });
     }
 
+    async findOneById(id: number): Promise<CatalogResponseDto> {
+        const catalog = await this.catalogRepository.findOne({
+            where: {
+                id: id,
+                archived: false
+            },
+            ...selectRelations,
+            // Fix a bug where if only a specific field is required (as it is in the constant),
+            // only the first related record of each type will be returned
+            // instead of all related entities
+            select: {
+                colors: true,
+                styles: true,
+                rooms: true
+            }
+        });
+
+        if (!catalog) {
+            return null;
+        }
+
+        return {
+            ...catalog,
+            colors: catalog.colors.map(color => ({
+                color: color.color,
+                model_id: color.model_id
+            })),
+            styles: catalog.styles.map(style => style.style),
+            rooms: catalog.rooms.map(room => room.room)
+        };
+    }
+
     async findByCompany(company_id: number): Promise<CatalogResponseDto[]> {
         const catalog = await this.catalogRepository.find({
             where: {
