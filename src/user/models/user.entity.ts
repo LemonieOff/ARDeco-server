@@ -6,6 +6,7 @@ import { Comment } from "../../comment/models/comment.entity";
 import { Feedback } from "../../feedback/models/feedback.entity";
 import { UserSettings } from "../../user_settings/models/user_settings.entity";
 import { Like } from "../../like/models/like.entity";
+import { BlockedUser } from "../../blocked_users/entities/blocked_user.entity";
 
 @Entity("users")
 export class User {
@@ -92,4 +93,12 @@ export class User {
 
     @OneToMany(_ => Like, like => like.user)
     galleryLikes: Like[];
+
+    // Users blocked by current user
+    @OneToMany(_ => BlockedUser, blocked => blocked.user)
+    blocking: BlockedUser[];
+
+    // Users blocking current user
+    @OneToMany(_ => BlockedUser, blocked => blocked.blocked_user)
+    blocked_by: BlockedUser[];
 }
