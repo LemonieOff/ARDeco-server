@@ -25,7 +25,7 @@ import { CatalogValuesController } from "./catalog-values.controller";
         forwardRef(() => UserModule),
         forwardRef(() => ArchiveModule)
     ],
-    controllers: [CatalogController, CatalogValuesController],
+    controllers: [CatalogValuesController, CatalogController],
     providers: [CatalogService],
     exports: [CatalogService]
 })
