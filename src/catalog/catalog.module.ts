@@ -22,7 +22,7 @@ import { CatalogValuesController } from "./catalog-values.controller";
         JwtModule.register({
             secret: "secret"
         }),
-        UserModule,
+        forwardRef(() => UserModule),
         forwardRef(() => ArchiveModule)
     ],
     controllers: [CatalogController, CatalogValuesController],

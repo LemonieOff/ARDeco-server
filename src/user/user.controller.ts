@@ -1,13 +1,4 @@
-import {
-    Body,
-    Controller,
-    Get,
-    Param,
-    Put,
-    Req,
-    Res,
-    UseGuards
-} from "@nestjs/common";
+import { Body, Controller, Get, Param, Put, Req, Res, UseGuards } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { Request, Response } from "express";
 import * as bcrypt from "bcryptjs";
@@ -15,12 +6,14 @@ import { AuthGuard } from "../auth/auth.guard";
 import { JwtService } from "@nestjs/jwt";
 import { User } from "./models/user.entity";
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
+import { MailService } from "../mail/mail.service";
 
 @Controller("user")
 export class UserController {
     constructor(
         private userService: UserService,
-        private jwtService: JwtService
+        private jwtService: JwtService,
+        private mailService: MailService
     ) {
     }
 
@@ -35,7 +28,7 @@ export class UserController {
         try {
             const cookie = req.cookies["jwt"];
             const data = this.jwtService.verify(cookie);
-            const usr = await this.userService.findOne({id: data['id']})
+            const usr = await this.userService.findOne({ id: data["id"] });
 
             if (usr["role"] != "admin") {
                 return {
@@ -96,7 +89,7 @@ export class UserController {
         try {
             const cookie = req.cookies["jwt"];
             const data = this.jwtService.verify(cookie);
-            const usr = await this.userService.findOne({id: data['id']})
+            const usr = await this.userService.findOne({ id: data["id"] });
 
             if (usr["role"] != "admin") {
                 return {
@@ -136,7 +129,7 @@ export class UserController {
         try {
             const cookie = req.cookies["jwt"];
             const data = this.jwtService.verify(cookie);
-            const usr = await this.userService.findOne({id: data['id']})
+            const usr = await this.userService.findOne({ id: data["id"] });
 
             if (usr["role"] != "admin") {
                 return {
@@ -264,6 +257,19 @@ export class UserController {
                 };
             }
 
+            const requested_user = await this.userService.findOne({
+                id: id
+            });
+            if (!requested_user) {
+                res.status(404);
+                return {
+                    status: "KO",
+                    code: 404,
+                    description: "User was not found",
+                    data: null
+                };
+            }
+
             // Change role only if requester is an admin
             if (
                 user["role"] !== undefined &&
@@ -286,6 +292,9 @@ export class UserController {
             }
 
             const result = await this.userService.update(id, user);
+            if (user["password"] !== undefined) {
+                this.mailService.sendPasswordChanged(request_user_id.email, requested_user.first_name);
+            }
             res.status(200);
             return {
                 status: "OK",
