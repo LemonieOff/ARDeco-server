@@ -21,11 +21,12 @@ import { CatalogColors } from "../catalog/models/catalog_colors.entity";
         JwtModule.register({
             secret: "secret"
         }),
-        UserModule,
+        forwardRef(() => UserModule),
         forwardRef(() => CatalogModule)
     ],
     controllers: [ArchiveController],
     providers: [ArchiveService],
     exports: [ArchiveService]
 })
-export class ArchiveModule {}
+export class ArchiveModule {
+}

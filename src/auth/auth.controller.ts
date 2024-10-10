@@ -441,7 +441,7 @@ export class AuthController {
         }
 
         const usr = await this.userService.findOne({ id: data["id"] });
-//        const cart = await this.cartService.findOne({id: usr.cart.id})
+
         if (!usr) {
             response.status(404);
             return {
@@ -493,7 +493,7 @@ export class AuthController {
         }
 
         // Close account
-        const res = await this.userService.update(usr.id, { deleted: true });
+        await this.userService.delete(usr.id);
         response.cookie("jwt", "", {
             expires: new Date(0),
             httpOnly: true,

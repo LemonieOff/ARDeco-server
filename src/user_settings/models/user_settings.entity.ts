@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "../../user/models/user.entity";
 
 @Entity("user_settings")
@@ -8,19 +8,14 @@ export class UserSettings {
     id: number;
 
     @OneToOne(() => User, user => user.settings, { onDelete: "CASCADE" })
+    @JoinColumn({
+        name: "user_id",
+        referencedColumnName: "id"
+    })
     user: User;
 
-    @Column({ type: "varchar", default: "fr" })
-    language: string;
-
-    @Column({ type: "boolean", default: true })
-    notifications_enabled: boolean;
-
-    @Column({ type: "boolean", default: true })
-    sounds_enabled: boolean;
-
-    @Column({ type: "boolean", default: false })
-    dark_mode: boolean;
+    @Column({ type: "int" })
+    user_id: number;
 
     @Column({ type: "boolean", default: false })
     automatic_new_gallery_share: boolean;
