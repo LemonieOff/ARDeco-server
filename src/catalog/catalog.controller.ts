@@ -8,6 +8,7 @@ import { CatalogFilterDto } from "./dtos/catalog-filter.dto";
 import { CatalogCreateDto } from "./dtos/catalog-create.dto";
 import { CatalogResponseDto } from "./dtos/catalog-response.dto";
 import { CatalogUpdateDto } from "./dtos/catalog-update.dto";
+import { exceptionFactory } from "../exception_filters/all-exceptions.filter";
 
 @Controller("catalog")
 export class CatalogController {
@@ -148,7 +149,10 @@ export class CatalogController {
     async add(
         @Req() req: Request,
         @Param("id") id: number,
-        @Body(new ParseArrayPipe({ items: CatalogCreateDto })) catalog: CatalogCreateDto[],
+        @Body(new ParseArrayPipe({
+            items: CatalogCreateDto,
+            exceptionFactory: exceptionFactory
+        })) catalog: CatalogCreateDto[],
         @Res({ passthrough: true }) res: Response
     ) {
         const authorizedCompany = await this.checkAuthorization(req, res, id);
@@ -643,66 +647,6 @@ export class CatalogController {
         };
     }
 
-    private async callGPT4Vision(imageBase64: string, catalog: any): Promise<string> {
-        const apiKey = process.env.OPENAI_API_KEY;
-        const url = 'https://api.openai.com/v1/chat/completions';
-
-        console.log("API Key:", apiKey);
-        console.log("URL:", url);
-        console.log("Image Base64:", imageBase64);
-        console.log("Catalog:", catalog);
-
-        const payload = {
-            model: "gpt-4o",
-            messages: [
-                {
-                    role: "system",
-                    content: "I send you an image of a room, determine the type of room (dining room, living room, bedroom, kitchen, bathroom) the style, colors, etc. and with this information choose from a json catalog that is sent with the image the furniture to add to the room, only respond by id separated by ; there can be several times the same for example for a multiples of chairs, try to have minimum 3 suggestion but no text only ids "
-                },
-                {
-                    role: "user",
-                    content: [
-                        {
-                            type: "image_url",
-                            image_url: {
-                                url: `data:image/jpeg;base64,${imageBase64}`
-                            }
-                        },
-                        {
-                            type: "text",
-                            text: JSON.stringify(catalog)
-                        }
-                    ]
-                }
-            ],
-            max_tokens: 900
-        };
-
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                throw new Error(`Erreur HTTP: ${response.status}`);
-            }
-
-            const data = await response.json();
-            return data.choices[0].message.content;
-        } catch (error) {
-            console.error('Error calling GPT-4 Vision API:', error);
-        }
-    }
-
-    private processChatGPTResponse(response: string): string {
-        return response;
-    }
-
     async checkAuthorizationUser(
         req: Request,
         res: Response
@@ -740,6 +684,66 @@ export class CatalogController {
         }
 
         return user;
+    }
+
+    private async callGPT4Vision(imageBase64: string, catalog: any): Promise<string> {
+        const apiKey = process.env.OPENAI_API_KEY;
+        const url = "https://api.openai.com/v1/chat/completions";
+
+        console.log("API Key:", apiKey);
+        console.log("URL:", url);
+        console.log("Image Base64:", imageBase64);
+        console.log("Catalog:", catalog);
+
+        const payload = {
+            model: "gpt-4o",
+            messages: [
+                {
+                    role: "system",
+                    content: "I send you an image of a room, determine the type of room (dining room, living room, bedroom, kitchen, bathroom) the style, colors, etc. and with this information choose from a json catalog that is sent with the image the furniture to add to the room, only respond by id separated by ; there can be several times the same for example for a multiples of chairs, try to have minimum 3 suggestion but no text only ids "
+                },
+                {
+                    role: "user",
+                    content: [
+                        {
+                            type: "image_url",
+                            image_url: {
+                                url: `data:image/jpeg;base64,${imageBase64}`
+                            }
+                        },
+                        {
+                            type: "text",
+                            text: JSON.stringify(catalog)
+                        }
+                    ]
+                }
+            ],
+            max_tokens: 900
+        };
+
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${apiKey}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erreur HTTP: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.choices[0].message.content;
+        } catch (error) {
+            console.error("Error calling GPT-4 Vision API:", error);
+        }
+    }
+
+    private processChatGPTResponse(response: string): string {
+        return response;
     }
 
 }
