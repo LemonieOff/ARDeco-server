@@ -21,14 +21,20 @@ export class CatalogController {
 
     @Get()
     async getCatalog(
+        @Req() req: Request,
         @Res({ passthrough: true }) res: Response
     ) {
+        const user = await this.checkAuthorizationUser(req, res);
+        if (!(user instanceof User)) return user;
+
+        const includeInactive = user.role === 'admin';
+        
         res.status(200);
         return {
             status: "OK",
             code: 200,
             description: "All objects from catalog",
-            data: await this.catalogService.all(true)
+            data: await this.catalogService.all(!includeInactive)
         };
     }
 
