@@ -1,7 +1,6 @@
 import { forwardRef, Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PaymentsService } from "src/payments/payments.service";
-import * as fs from "fs";
 import * as nodemailer from "nodemailer";
 import SMTPTransport from "nodemailer/lib/smtp-transport";
 import { loopWhile } from "deasync";
@@ -23,6 +22,28 @@ export class MailService {
         @Inject(forwardRef(() => PaymentsService))
         private paymentService: PaymentsService
     ) {
+    }
+
+    public sendWelcomeAndVerification(email: string, token: string) {
+        const subject = "Bienvenue sur ARDeco !";
+        const checkLink = "https://ardeco.app/checkEmail?token=" + token;
+        const body = `<body><h1>Bienvenue sur ARDeco !</h1>
+<p>Nous vous souhaitons la bienvenue sur ARDeco !<br /><br />
+Pour vous connecter depuis le site ou l'application mobile, il vous suffit de renseigner cette adresse email accompagnée du mot de passe que vous avez défini.<br />
+Nous vous invitons également à vérifier votre adresse email en cliquant sur le lien suivant : <a href="${checkLink}">${checkLink}</a><br />
+Si le lien ne fonctionne pas, veuillez le copier-coller dans votre navigateur.</p></body>`;
+        return this.sendEmail(email, subject, body);
+    }
+
+    public sendPasswordChanged(email: string, first_name: string) {
+        const subject = "ARDeco - Alerte de sécurité !";
+        const body = `<body><h1>ARDeco - Alerte de sécurité !</h1>
+<p>Bonjour ${first_name},<br /><br />
+Nous vous informons que votre mot de passe vient d'être changé.<br/><br/>
+Si vous n'êtes pas à l'origine de ce changement, veuillez répondre à cet email et notre équipe se chargera de vous aider à sécuriser votre compte !<br/><br/>
+Sinon, vous pouvez simplement ignorer ce message.<br/><br/>
+Nous vous souhaitons une bonne journée, et à bientôt sur ARDeco !</p></body>`;
+        return this.sendEmail(email, subject, body);
     }
 
     private sendEmail(address: string, subject: string, body: string, from: EmailSender = ARDeco_sender) {
@@ -55,20 +76,11 @@ export class MailService {
             finished = true;
         });
         console.log("Waiting for email to be sent");
-        loopWhile(function(){return !finished;});
+        loopWhile(function() {
+            return !finished;
+        });
         console.log("Email sent");
         return result;
-    }
-
-    public sendWelcomeAndVerification(email: string, token: string) {
-        const subject = "Bienvenue sur ARDeco !";
-        const checkLink = "https://ardeco.app/checkEmail?token=" + token;
-        const body = `<body><h1>Bienvenue sur ARDeco !</h1>
-<p>Nous vous souhaitons la bienvenue sur ARDeco !<br /><br />
-Pour vous connecter depuis le site ou l'application mobile, il vous suffit de renseigner cette adresse email accompagnée du mot de passe que vous avez défini.<br />
-Nous vous invitons également à vérifier votre adresse email en cliquant sur le lien suivant : <a href="${checkLink}">${checkLink}</a><br />
-Si le lien ne fonctionne pas, veuillez le copier-coller dans votre navigateur.</p></body>`;
-        return this.sendEmail(email, subject, body);
     }
 
     /*  public async sendMailPassword(content : sendMailPasswordDTO) {
