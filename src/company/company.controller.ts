@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Req, Res } from "@nestjs/common";
+import { Controller, Get, Req, Res } from "@nestjs/common";
 import { Request, Response } from "express";
 import { JwtService } from "@nestjs/jwt";
 import { User } from "../user/models/user.entity";
@@ -10,7 +10,8 @@ export class CompanyController {
     constructor(
         private userService: UserService,
         private jwtService: JwtService
-    ) {}
+    ) {
+    }
 
     async generateToken(
         company: User,
@@ -41,7 +42,6 @@ export class CompanyController {
     @Get("requestToken")
     async requestToken(
         @Req() req: Request,
-        @Body() user: User,
         @Res({ passthrough: true }) res: Response
     ) {
         try {
@@ -59,7 +59,7 @@ export class CompanyController {
             }
 
             const company = await this.userService.findOne({ id: data["id"] });
-            if (company["role"] != "company") {
+            if (company.role !== "company") {
                 res.status(403);
                 return {
                     status: "KO",
@@ -71,8 +71,7 @@ export class CompanyController {
             }
 
             const encryptedText = await this.generateToken(company);
-            company["company_api_key"] = encryptedText;
-            await this.userService.update(company["id"], company);
+            await this.userService.updateToken(company.id, encryptedText);
 
             res.status(200);
             return {
@@ -98,7 +97,6 @@ export class CompanyController {
     @Get("resetToken")
     async resetToken(
         @Req() req: Request,
-        @Body() user: User,
         @Res({ passthrough: true }) res: Response
     ) {
         try {
@@ -132,8 +130,7 @@ export class CompanyController {
                 id: company_id
             });
             const encryptedText = await this.generateToken(company_to_reset);
-            company_to_reset["company_api_key"] = encryptedText;
-            await this.userService.update(company_to_reset["id"], company_to_reset);
+            await this.userService.updateToken(company_to_reset["id"], encryptedText);
 
             res.status(200);
             return {
