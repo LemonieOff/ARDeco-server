@@ -44,6 +44,10 @@ export class UserService {
         return this.userRepository.update(id, data);
     }
 
+    async updateToken(id: number, token: string): Promise<UpdateResult> {
+        return this.userRepository.update({ id: id }, { company_api_key: token });
+    }
+
     async delete(id: number): Promise<any> {
         console.log("Deleting user ", id);
         return this.userRepository.delete({ id: id });
