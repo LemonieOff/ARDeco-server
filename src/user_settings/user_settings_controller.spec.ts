@@ -6,7 +6,7 @@ import { UserService } from "../user/user.service";
 import { User } from "../user/models/user.entity";
 import { UserSettings } from "./models/user_settings.entity";
 import { Request, Response } from "express";
-import { UserSettingsCreateDto } from "./models/user_settings_create.dto";
+import { UserSettingsDto } from "./models/user_settings.dto";
 
 describe("UserSettingsController", () => {
     let controller: UserSettingsController;
@@ -210,7 +210,7 @@ describe("UserSettingsController", () => {
     describe("post", () => {
         it("should return 401 if user is not connected", async () => {
             const req = { cookies: {} } as Request;
-            const dto = new UserSettingsCreateDto();
+            const dto = new UserSettingsDto();
             const result = await controller.post(req, dto, mockResponse);
             expect(mockResponse.status).toHaveBeenCalledWith(401);
             expect(result).toEqual({
@@ -223,7 +223,7 @@ describe("UserSettingsController", () => {
 
         it("should return 403 if user is not found", async () => {
             jest.spyOn(userService, "findOne").mockResolvedValueOnce(null);
-            const dto = new UserSettingsCreateDto();
+            const dto = new UserSettingsDto();
             const result = await controller.post(mockRequest, dto, mockResponse);
             expect(mockResponse.status).toHaveBeenCalledWith(403);
             expect(result).toEqual({
@@ -236,7 +236,7 @@ describe("UserSettingsController", () => {
 
         it("should return 400 if user settings already exist", async () => {
             jest.spyOn(userSettingsService, "findOne").mockResolvedValueOnce(mockUserSettings);
-            const dto = new UserSettingsCreateDto();
+            const dto = new UserSettingsDto();
             const result = await controller.post(mockRequest, dto, mockResponse);
             expect(mockResponse.status).toHaveBeenCalledWith(400);
             expect(result).toEqual({
@@ -251,7 +251,7 @@ describe("UserSettingsController", () => {
             const settingsToCreate: any = { ...mockUserSettings, user: { id: 1 }, dark_mode: true };
             jest.spyOn(userSettingsService, "findOne").mockResolvedValueOnce(null);
             jest.spyOn(userSettingsService, "create").mockResolvedValue(settingsToCreate);
-            const dto = new UserSettingsCreateDto();
+            const dto = new UserSettingsDto();
             dto.dark_mode = true;
             const result = await controller.post(mockRequest, dto, mockResponse);
             expect(mockResponse.status).toHaveBeenCalledWith(201);
@@ -266,7 +266,7 @@ describe("UserSettingsController", () => {
         it("should return 400 if there's an error during creation", async () => {
             jest.spyOn(userSettingsService, "findOne").mockResolvedValueOnce(null);
             jest.spyOn(userSettingsService, "create").mockRejectedValue(new Error("Database error"));
-            const dto = new UserSettingsCreateDto();
+            const dto = new UserSettingsDto();
             dto.dark_mode = true;
             const result = await controller.post(mockRequest, dto, mockResponse);
             expect(mockResponse.status).toHaveBeenCalledWith(400);

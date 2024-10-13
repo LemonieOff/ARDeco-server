@@ -4,9 +4,8 @@ import { Request, Response } from "express";
 import { JwtService } from "@nestjs/jwt";
 import { UserSettings } from "./models/user_settings.entity";
 import { User } from "../user/models/user.entity";
-import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 import { UserService } from "../user/user.service";
-import { UserSettingsCreateDto } from "./models/user_settings_create.dto";
+import { UserSettingsDto } from "./models/user_settings.dto";
 
 @Controller("settings")
 export class UserSettingsController {
@@ -87,7 +86,7 @@ export class UserSettingsController {
     @Post()
     async post(
         @Req() req: Request,
-        @Body() settings: UserSettingsCreateDto, // TODO : Validate DTO
+        @Body() settings: UserSettingsDto,
         @Res({ passthrough: true }) res: Response
     ) {
         const cookie = req.cookies["jwt"];
@@ -196,7 +195,7 @@ export class UserSettingsController {
     async editViaParam(
         @Req() req: Request,
         @Param("id") id: number,
-        @Body() item: QueryPartialEntity<UserSettings>, // TODO : DTO, validate DTO
+        @Body() item: UserSettingsDto,
         @Res({ passthrough: true }) res: Response
     ) {
         return await this.editItem(req, id, item, res);
@@ -206,7 +205,7 @@ export class UserSettingsController {
     @Put()
     async editOwnSettings(
         @Req() req: Request,
-        @Body() item: QueryPartialEntity<UserSettings>, // TODO : DTO, validate DTO
+        @Body() item: UserSettingsDto,
         @Res({ passthrough: true }) res: Response
     ) {
         const user = await this.checkAuthorization(req, res, false, null);
@@ -239,7 +238,7 @@ export class UserSettingsController {
     async editSpecificUserSettings(
         @Req() req: Request,
         @Param("user_id") user_id: number,
-        @Body() item: QueryPartialEntity<UserSettings>, // TODO : DTO, validate DTO
+        @Body() item: UserSettingsDto,
         @Res({ passthrough: true }) res: Response
     ) {
         if (Number.isNaN(user_id)) {
@@ -253,8 +252,8 @@ export class UserSettingsController {
         }
 
         const existingSettings = await this.userSettingsService.findOne(
-          { user: { id: user_id } },
-          { id: true, user: { id: true } }
+            { user: { id: user_id } },
+            { id: true, user: { id: true } }
         );
 
         if (!existingSettings) {
@@ -273,7 +272,7 @@ export class UserSettingsController {
     async editItem(
         req: Request,
         id: number,
-        new_item: QueryPartialEntity<UserSettings>,
+        new_item: UserSettingsDto,
         res: Response
     ) {
         try {
@@ -292,6 +291,9 @@ export class UserSettingsController {
                 item
             );
             if (!(authorizedUser instanceof User)) return authorizedUser;
+
+            console.log(item);
+            console.log(new_item);
 
             const result = await this.userSettingsService.update(id, new_item);
             res.status(200);

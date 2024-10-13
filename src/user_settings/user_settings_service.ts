@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DeepPartial, FindOneOptions, FindOptionsSelect, FindOptionsWhere, Repository } from "typeorm";
 import { UserSettings } from "./models/user_settings.entity";
-import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
+import { UserSettingsDto } from "./models/user_settings.dto";
 
 @Injectable()
 export class UserSettingsService {
@@ -40,7 +40,7 @@ export class UserSettingsService {
 
     async update(
         id: number,
-        data: QueryPartialEntity<UserSettings>
+        data: UserSettingsDto
     ): Promise<UserSettings> {
         await this.userRepository.update(id, data);
         return await this.findOne({ id: id });
