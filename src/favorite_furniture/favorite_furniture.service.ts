@@ -8,7 +8,8 @@ export class FavoriteFurnitureService {
     constructor(
         @InjectRepository(FavoriteFurniture)
         private readonly favoriteFurnitureRepository: Repository<FavoriteFurniture>
-    ) {}
+    ) {
+    }
 
     async create(data): Promise<FavoriteFurniture> {
         const item = await this.favoriteFurnitureRepository.save(data);
@@ -51,7 +52,7 @@ export class FavoriteFurnitureService {
         return this.favoriteFurnitureRepository.findOne({ where: where });
     }
 
-    async delete(furniture_id: string): Promise<any> {
+    async delete(furniture_id: number): Promise<any> {
         return this.favoriteFurnitureRepository.delete({ furniture_id: furniture_id });
     }
 }

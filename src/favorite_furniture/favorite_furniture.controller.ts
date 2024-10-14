@@ -29,7 +29,7 @@ export class FavoriteFurnitureController {
 
         for (const item of items) {
             const furniture: Catalog = await this.catalogService.findOne({
-                object_id: item.furniture_id
+                id: item.furniture_id
             });
             if (!furniture) continue;
             furnitureItems.push({
@@ -86,14 +86,14 @@ export class FavoriteFurnitureController {
     @Post("/:furniture_id")
     async post(
         @Req() req: Request,
-        @Param("furniture_id") furniture_id: string,
+        @Param("furniture_id") furniture_id: number,
         @Res({ passthrough: true }) res: Response
     ) {
         const user = await this.checkAuthorization(req, res);
         if (!(user instanceof User)) return user;
 
         const furniture = await this.catalogService.findOne({
-            object_id: furniture_id
+            id: furniture_id
         });
         if (!furniture) {
             res.status(404);
@@ -151,7 +151,7 @@ export class FavoriteFurnitureController {
     @Delete("/:furniture_id")
     async deleteItem(
         @Req() req: Request,
-        @Param("furniture_id") furniture_id: string,
+        @Param("furniture_id") furniture_id: number,
         @Res({ passthrough: true }) res: Response
     ) {
         const authorizedUser = await this.checkAuthorization(
@@ -191,7 +191,7 @@ export class FavoriteFurnitureController {
     async checkAuthorization(
         req: Request,
         res: Response,
-        furniture_id: string | null = null,
+        furniture_id: number | null = null,
         type: String | null = null
     ) {
         const cookie = req.cookies["jwt"];
