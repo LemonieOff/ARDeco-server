@@ -7,6 +7,8 @@ import { Feedback } from "../../feedback/models/feedback.entity";
 import { UserSettings } from "../../user_settings/models/user_settings.entity";
 import { Like } from "../../like/models/like.entity";
 import { BlockedUser } from "../../blocked_users/entities/blocked_user.entity";
+import { FavoriteGallery } from "../../favorite_gallery/models/favorite_gallery.entity";
+import { FavoriteFurniture } from "../../favorite_furniture/models/favorite_furniture.entity";
 
 @Entity("users")
 export class User {
@@ -98,4 +100,10 @@ export class User {
     // Users blocking current user
     @OneToMany(_ => BlockedUser, blocked => blocked.blocked_user)
     blocked_by: BlockedUser[];
+
+    @OneToMany(_ => FavoriteGallery, favorite => favorite.user)
+    favorite_galleries: FavoriteGallery[];
+
+    @OneToMany(_ => FavoriteFurniture, favorite => favorite.user)
+    favorite_furniture: FavoriteFurniture[];
 }

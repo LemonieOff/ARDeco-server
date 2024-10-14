@@ -7,7 +7,7 @@ export class CatalogColors {
     id: number;
 
     @ManyToOne(_ => Catalog, catalog => catalog.colors, {
-        onDelete: "CASCADE"
+        onDelete: "CASCADE", onUpdate: "CASCADE"
     })
     @JoinColumn({
         name: "furniture_id",

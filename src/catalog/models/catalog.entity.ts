@@ -2,6 +2,7 @@ import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { CatalogColors } from "./catalog_colors.entity";
 import { CatalogRooms } from "./catalog_rooms.entity";
 import { CatalogStyles } from "./catalog_styles.entity";
+import { FavoriteFurniture } from "../../favorite_furniture/models/favorite_furniture.entity";
 
 @Entity("catalog")
 export class Catalog {
@@ -46,4 +47,7 @@ export class Catalog {
 
     @Column()
     company_name: string; // Company name
+
+    @OneToMany(_ => FavoriteFurniture, favorite => favorite.furniture)
+    favorites: FavoriteFurniture[];
 }

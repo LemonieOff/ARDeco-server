@@ -3,6 +3,7 @@ import { GalleryReport } from "../../report/gallery/models/gallery_reports.entit
 import { User } from "../../user/models/user.entity";
 import { Comment } from "../../comment/models/comment.entity";
 import { Like } from "../../like/models/like.entity";
+import { FavoriteGallery } from "../../favorite_gallery/models/favorite_gallery.entity";
 
 @Entity("gallery")
 export class Gallery {
@@ -17,8 +18,7 @@ export class Gallery {
     user: User;
 
     @Column({
-        type: "int",
-        update: false
+        type: "int"
     })
     user_id: number;
 
@@ -48,4 +48,7 @@ export class Gallery {
 
     @OneToMany(_ => Like, like => like.gallery)
     likes: Like[];
+
+    @OneToMany(_ => FavoriteGallery, favorite => favorite.gallery)
+    favorites: FavoriteGallery[];
 }
