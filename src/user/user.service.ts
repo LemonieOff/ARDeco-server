@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { FindOptionsSelect, FindOptionsWhere, Repository, UpdateResult } from "typeorm";
+import { FindOptionsRelations, FindOptionsSelect, FindOptionsWhere, Repository, UpdateResult } from "typeorm";
 import { User } from "./models/user.entity";
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 
@@ -22,10 +22,15 @@ export class UserService {
         return user;
     }
 
-    async findOne(where: FindOptionsWhere<User>, select: FindOptionsSelect<User> = {}): Promise<User> {
+    async findOne(
+        where: FindOptionsWhere<User>,
+        select: FindOptionsSelect<User> = {},
+        relations: FindOptionsRelations<User> = {}
+    ): Promise<User> {
         return this.userRepository.findOne({
             where: where,
-            select: select
+            select: select,
+            relations: relations
         });
     }
 

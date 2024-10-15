@@ -391,4 +391,63 @@ export class CatalogService {
 
         return archivedList;
     }
+
+    /**
+     * Find a row in the {@link CatalogColors} table.
+     *
+     * @param furniture_id - The main id of a {@link Catalog} entity
+     * @param model_id - The model id associated to {@link furniture_id} in a {@link CatalogColors} entity
+     * @param includeInactive - Also search in inactive objects
+     * @param includeArchive - Also search in archived objects
+     *  * When {@link includeInactive} is set to false, it will only search for archived objects with the "activated" state
+     *  * To search in all archived objects, both parameters needs to be set to true
+     *
+     */
+    async findColor(
+        furniture_id: number,
+        model_id: number,
+        includeInactive: boolean = false,
+        includeArchive: boolean = false
+    ): Promise<CatalogColors> {
+        const where: FindOptionsWhere<CatalogColors> = {
+            furniture_id: furniture_id,
+            model_id: model_id,
+            furniture: {
+                active: true,
+                archived: false
+            }
+        };
+
+        if (includeInactive) {
+            delete (where.furniture as FindOptionsWhere<Catalog>).active;
+        }
+
+        if (includeArchive) {
+            delete (where.furniture as FindOptionsWhere<Catalog>).archived;
+        }
+
+        return await this.catalogColorsRepository.findOne({
+            relations: {
+                furniture: true
+            },
+            select: {
+                id: true,
+                furniture_id: true,
+                model_id: true,
+                color: true,
+                furniture: {
+                    id: true,
+                    archived: true,
+                    company: true,
+                    active: true,
+                    price: true
+                }
+            },
+            where: where
+        });
+    }
+
+    async isExistingModelForFurniture(furniture_id: number, model_id: number): Promise<boolean> {
+        return await this.findColor(furniture_id, model_id) !== null;
+    }
 }
