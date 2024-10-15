@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Put, Req, Res } from "@nestjs/common";
+import { Controller, Get, HttpStatus, Param, Put, Req, Res } from "@nestjs/common";
 import { BlockedUsersService } from "./blocked_users.service";
 import { CreateBlockedUserDto } from "./dto/create-blocked_user.dto";
 import { User } from "../user/models/user.entity";
@@ -20,14 +20,26 @@ export class BlockedUsersController {
         const user = await this.checkAuthGet(req, res);
         if (!(user instanceof User)) return user;
 
-        const blockedUsers = await this.blockedUsersService.findByBlocker(user.id);
-        const blockedUserIds = blockedUsers.map((blockedUser) => blockedUser.blocked_user_id);
-        res.status(200).json({
-            status: "OK",
-            code: 200,
-            description: "Blocked users retrieved successfully",
-            data: blockedUserIds
-        });
+        try {
+            const blockedUsers = await this.blockedUsersService.findByBlocker(user.id);
+            const blockedUserIds = blockedUsers.map((blockedUser) => blockedUser.blocked_user_id);
+            res.status(200);
+            return {
+                status: "OK",
+                code: 200,
+                description: "Blocked users retrieved successfully",
+                data: blockedUserIds
+            };
+        } catch (e) {
+            console.error(e);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+            return {
+                status: "KO",
+                code: HttpStatus.INTERNAL_SERVER_ERROR,
+                description: "Internal server error occurring on blocked users fetch",
+                data: e
+            };
+        }
     }
 
     @Get("/blocked_users/:user_id")
@@ -35,15 +47,27 @@ export class BlockedUsersController {
         const user = await this.checkAuthGet(req, res, user_id);
         if (!(user instanceof User)) return user;
 
-        const blockedUsers = await this.blockedUsersService.findByBlocker(user_id);
-        const blockedUserIds = blockedUsers.map((blockedUser) => blockedUser.blocked_user_id);
+        try {
+            const blockedUsers = await this.blockedUsersService.findByBlocker(user_id);
+            const blockedUserIds = blockedUsers.map((blockedUser) => blockedUser.blocked_user_id);
 
-        res.status(200).json({
-            status: "OK",
-            code: 200,
-            description: "Blocked user retrieved successfully",
-            data: blockedUserIds
-        });
+            res.status(200);
+            return {
+                status: "OK",
+                code: 200,
+                description: "Blocked user retrieved successfully",
+                data: blockedUserIds
+            };
+        } catch (e) {
+            console.error(e);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+            return {
+                status: "KO",
+                code: HttpStatus.INTERNAL_SERVER_ERROR,
+                description: "Internal server error occurring on blocked users fetch",
+                data: e
+            };
+        }
     }
 
     @Put("/block/:user_id")
@@ -95,7 +119,7 @@ export class BlockedUsersController {
                 description:
                     "User has not been blocked because of an error",
                 error: e,
-                data: null
+                data: e
             };
         }
 
@@ -138,7 +162,7 @@ export class BlockedUsersController {
                 description:
                     "User has not been unblocked because of an error",
                 error: e,
-                data: null
+                data: e
             };
         }
     }
