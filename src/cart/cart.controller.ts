@@ -7,6 +7,7 @@ import { CatalogService } from "src/catalog/catalog.service";
 import { AddItemToCartDTO } from "./dtos/addToCart.dto";
 import { CartService } from "./cart.service";
 import { CartResponseDto } from "./dtos/CartResponse.dto";
+import { User } from "../user/models/user.entity";
 
 @Controller("cart")
 export class CartController {
@@ -24,6 +25,54 @@ export class CartController {
         @Req() req: Request,
         @Res({ passthrough: true }) res: Response
     ) {
+        const user = await this.checkAuthorization(req, res);
+        if (!(user instanceof User)) return user;
+
+        try {
+            // Check existence for all items
+            const colorItems: number[] = [];
+            const ignoredItems: AddItemToCartDTO[] = [];
+            for (const item of items) {
+                const catalog = await this.catalogService.findColor(item.furniture_id, item.model_id);
+
+                if (catalog) {
+                    colorItems.push(catalog.id);
+                } else {
+                    ignoredItems.push(item);
+                }
+            }
+
+            if (ignoredItems.length > 0) {
+                console.debug(`Ignored items :`, ignoredItems);
+            }
+
+            let cart: CartResponseDto;
+            if (!user.cart) {
+                cart = await this.cartService.create(user.id, colorItems);
+            } else {
+                cart = await this.cartService.addItems(user.cart, colorItems);
+            }
+
+            res.status(HttpStatus.CREATED);
+            return {
+                status: "OK",
+                code: HttpStatus.CREATED,
+                description: "Items added to cart",
+                data: cart
+            };
+        } catch (error) {
+            console.log(error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+            return {
+                status: "KO",
+                code: HttpStatus.INTERNAL_SERVER_ERROR,
+                description: "Internal server error has occurred while trying to add items to the cart",
+                data: error
+            };
+        }
+    }
+
+    async checkAuthorization(req: Request, res: Response) {
         // Check for connection
         const cookie = req.cookies["jwt"];
         const data = cookie ? this.jwtService.verify(cookie) : null;
@@ -62,47 +111,6 @@ export class CartController {
             };
         }
 
-        try {
-            // Check existence for all items
-            const colorItems: number[] = [];
-            const ignoredItems: AddItemToCartDTO[] = [];
-            for (const item of items) {
-                const catalog = await this.catalogService.findColor(item.furniture_id, item.model_id);
-
-                if (catalog) {
-                    colorItems.push(catalog.id);
-                } else {
-                    ignoredItems.push(item);
-                }
-            }
-
-            console.debug(`Ignored items : ${ignoredItems}`);
-
-            let cart: CartResponseDto;
-            if (!usr.cart) {
-                cart = await this.cartService.create(usr.id, colorItems);
-            } else {
-                cart = await this.cartService.addItems(usr.cart, colorItems);
-            }
-
-            console.log(cart);
-
-            res.status(HttpStatus.CREATED);
-            return {
-                status: "OK",
-                code: HttpStatus.CREATED,
-                description: "Items added to cart",
-                data: cart
-            };
-        } catch (error) {
-            console.log(error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR);
-            return {
-                status: "KO",
-                code: HttpStatus.INTERNAL_SERVER_ERROR,
-                description: "Internal server error has occurred while trying to add items to the cart",
-                data: error
-            };
-        }
+        return usr;
     }
 }
