@@ -12,16 +12,16 @@ export class Catalog {
     @Column()
     name: string; // Product name
 
-    @Column()
+    @Column({ type: "float" })
     price: number; // in euro cents
 
-    @Column()
+    @Column({ type: "int" })
     width: number; // in cm
 
-    @Column()
+    @Column({ type: "int" })
     height: number; // in cm
 
-    @Column()
+    @Column({ type: "int" })
     depth: number; // in cm
 
     @OneToMany(_ => CatalogStyles, catalogStyles => catalogStyles.furniture, { cascade: true })
