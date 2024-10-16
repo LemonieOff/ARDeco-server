@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Cart } from "../../cart/models/cart.entity";
 import { GalleryReport } from "../../report/gallery/models/gallery_reports.entity";
 import { Gallery } from "../../gallery/models/gallery.entity";
@@ -42,19 +42,8 @@ export class User {
     @Column({ nullable: true })
     company_api_key: string; // API key for company users, null for all other account types
 
-    @OneToOne(() => Cart, cart => cart.user, { eager: true })
-    @JoinColumn({
-        name: "cart_id",
-        referencedColumnName: "id"
-    })
+    @OneToOne(() => Cart, cart => cart.user, { onDelete: "SET NULL", onUpdate: "CASCADE", nullable: true })
     cart: Cart;
-
-    @Column({
-        type: "int",
-        nullable: true,
-        default: null
-    })
-    cart_id: number;
 
     @OneToMany(_ => GalleryReport, galleryReport => galleryReport.user)
     galleryReports: GalleryReport[];

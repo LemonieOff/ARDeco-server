@@ -1,12 +1,13 @@
 /* eslint-disable prettier/prettier */
-import { Body, Controller, Delete, Get, Post, Req, Res, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpStatus, Param, ParseArrayPipe, Post, Req, Res } from "@nestjs/common";
 import { Request, Response } from "express";
-import { AuthGuard } from "src/auth/auth.guard";
 import { UserService } from "../user/user.service";
 import { JwtService } from "@nestjs/jwt";
 import { CatalogService } from "src/catalog/catalog.service";
-import { AddItemToCartDTO } from "./models/addToCart.dto";
+import { AddItemToCartDTO } from "./dtos/addToCart.dto";
 import { CartService } from "./cart.service";
+import { CartResponseDto } from "./dtos/CartResponse.dto";
+import { User } from "../user/models/user.entity";
 
 @Controller("cart")
 export class CartController {
@@ -15,183 +16,213 @@ export class CartController {
         private jwtService: JwtService,
         private catalogService: CatalogService,
         private cartService: CartService
-    ) {}
-
-    @Post()
-    @UseGuards(AuthGuard)
-    async addItemToCart(
-        @Body() addItemToCartDTO: AddItemToCartDTO,
-        @Req() request: Request
     ) {
-        const cookie = request.cookies["jwt"];
-        const data = await this.jwtService.verifyAsync(cookie);
-        const usr = await this.userService.findOne({ id: data["id"] });
-        const item: number = addItemToCartDTO.id;
-        console.log(item);
-        if (!(await this.catalogService.findOne({ id: item }))) {
+    }
+
+    @Post(["", "/addItem"])
+    async addItems(
+        @Body(new ParseArrayPipe({ items: AddItemToCartDTO })) items: AddItemToCartDTO[],
+        @Req() req: Request,
+        @Res({ passthrough: true }) res: Response
+    ) {
+        const user = await this.checkAuthorization(req, res);
+        if (!(user instanceof User)) return user;
+
+        try {
+            // Check existence for all items
+            const colorItems: number[] = [];
+            const ignoredItems: AddItemToCartDTO[] = [];
+            for (const item of items) {
+                const catalog = await this.catalogService.findColor(item.furniture_id, item.model_id);
+
+                if (catalog) {
+                    colorItems.push(catalog.id);
+                } else {
+                    ignoredItems.push(item);
+                }
+            }
+
+            if (ignoredItems.length > 0) {
+                console.debug(`Ignored items :`, ignoredItems);
+            }
+
+            let cart: CartResponseDto;
+            if (!user.cart) {
+                cart = await this.cartService.create(user.id, colorItems);
+            } else {
+                cart = await this.cartService.addItems(user.cart, colorItems);
+            }
+
+            res.status(HttpStatus.CREATED);
+            return {
+                status: "OK",
+                code: HttpStatus.CREATED,
+                description: "Items have successfully been added to cart",
+                data: cart
+            };
+        } catch (error) {
+            console.log(error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR);
             return {
                 status: "KO",
-                code: 600,
-                description: "No catalog item with this id",
-                data: null
+                code: HttpStatus.INTERNAL_SERVER_ERROR,
+                description: "Internal server error has occurred while trying to add items to the cart",
+                data: error
             };
         }
-        if (!usr.cart) {
-            const obj = {
-                capacity: 101,
-                catalogItems: "",
-                user: usr
-            };
-            const cart = await this.cartService.create(obj);
-            this.userService.update(usr.id, { cart: cart });
-        }
-        console.log(
-            "User : ",
-            await this.userService.findOne({ id: data["id"] })
-        );
-        let carta = await this.cartService.findOne(usr.cart);
-        let catalogItem = (await this.cartService.findOne({ user: usr }))
-            .catalogItems;
-        catalogItem += `${item},`;
-        carta.catalogItems = catalogItem;
-        await this.cartService.update(usr.cart.id, { catalogItems: carta });
-        return {
-            status: "OK",
-            code: 200,
-            description: "Item added to cart",
-            data: await this.cartService.findOne({ id: usr.cart.id })
-        };
     }
 
     @Get()
-    @UseGuards(AuthGuard)
-    async getCurrentCart(
-        @Req() request: Request,
-        @Res({ passthrough: true }) resp: Response
+    async getCart(
+        @Req() req: Request,
+        @Res({ passthrough: true }) res: Response
     ) {
-        const cookie = request.cookies["jwt"];
-        const data = await this.jwtService.verifyAsync(cookie);
-        const usr = await this.userService.findOne({ id: data["id"] });
-        
-        if (!usr.cart) {
-            resp.status(404)
+        const user = await this.checkAuthorization(req, res);
+        if (!(user instanceof User)) return user;
+
+        try {
+            let cart: CartResponseDto | null;
+            if (user.cart) {
+                cart = await this.cartService.getCart(user.cart.id);
+            } else {
+                cart = null;
+            }
+
+            res.status(HttpStatus.OK);
+            return {
+                status: "OK",
+                code: HttpStatus.OK,
+                description: "Cart items",
+                data: cart
+            };
+        } catch (error) {
+            console.log(error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR);
             return {
                 status: "KO",
-                code: 404,
-                description: "No cart found",
-                data: null
-            };        
+                code: HttpStatus.INTERNAL_SERVER_ERROR,
+                description: "Internal server error has occurred while trying to retrieve the cart",
+                data: error
+            };
         }
-        console.log(
-            "Getting cart of user : ",
-            await this.userService.findOne({ id: data["id"] }) // On trouve le panier
-        );
-        await this.cartService.findOne({ id: usr.cart.id })
-        let catalogItem = (await this.cartService.findOne({ user: usr }))
-        .catalogItems;
-        const values = catalogItem.split(",");
-        let itemsInCart = []
-        for (let i = 0; i != values.length; i++) { // Fonction pour convertir les id des meubles en json de meuble / A pour fonction de convertir les id des meubles en json de meuble
-            const parsedId = parseInt(values[i]);
-            if (isNaN(parsedId)) {
-                console.error(`Invalid id: ${values[i]}`);
-            } else {
-                itemsInCart.push(await this.catalogService.findOne({ id: parsedId }));
-            }
-        }
-        console.log(itemsInCart)
-        return {
-            status: "OK",
-            code: 200,
-            description: "Current cart",
-            data: {
-                ids: (await this.cartService.findOne({ id: usr.cart.id })).catalogItems, // On return les meubles
-                catalogInfo: itemsInCart
-            }
-        };
     }
-
 
     @Delete()
-    @UseGuards(AuthGuard)
-    async delete(
-        @Body() addItemToCartDTO: AddItemToCartDTO,
-        @Req() request: Request
+    async emptyCart(
+        @Req() req: Request,
+        @Res({ passthrough: true }) res: Response
     ) {
-        const cookie = request.cookies["jwt"];
-        const data = await this.jwtService.verifyAsync(cookie);
-        const usr = await this.userService.findOne({ id: data["id"] });
-        const item: number = addItemToCartDTO.id;
-        console.log(item);
-        if (!(await this.catalogService.findOne({ id: item }))) {
+        const user = await this.checkAuthorization(req, res);
+        if (!(user instanceof User)) return user;
+
+        try {
+            if (user.cart) await this.cartService.delete(user.cart.id);
+
+            res.status(HttpStatus.OK);
+            return {
+                status: "OK",
+                code: HttpStatus.OK,
+                description: "Cart has successfully been emptied",
+                data: null
+            };
+        } catch (error) {
+            console.log(error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR);
             return {
                 status: "KO",
-                code: 600,
-                description: "No catalog item with this id",
+                code: HttpStatus.INTERNAL_SERVER_ERROR,
+                description: "Internal server error has occurred while trying to empty the cart",
+                data: error
+            };
+        }
+    }
+
+    @Delete(":color_id")
+    async removeItem(
+        @Req() req: Request,
+        @Param("color_id") color_id: number,
+        @Res({ passthrough: true }) res: Response
+    ) {
+        color_id = Number(color_id);
+        if (!color_id || isNaN(color_id)) {
+            res.status(HttpStatus.BAD_REQUEST);
+            return {
+                status: "KO",
+                code: HttpStatus.BAD_REQUEST,
+                description: "The color_id parameter must be a number",
                 data: null
             };
         }
-        if (!usr.cart) {
-            const obj = {
-                capacity: 101,
-                catalogItems: "",
-                user: usr
+
+        const user = await this.checkAuthorization(req, res);
+        if (!(user instanceof User)) return user;
+
+        try {
+            let cart: CartResponseDto | null;
+            if (user.cart) {
+                cart = await this.cartService.removeItem(user.cart, color_id);
+            } else {
+                cart = null;
+            }
+
+            res.status(HttpStatus.OK);
+            return {
+                status: "OK",
+                code: HttpStatus.OK,
+                description: "Item has successfully been removed from cart",
+                data: cart
             };
-            const cart = await this.cartService.create(obj);
-            this.userService.update(usr.id, { cart: cart });
-        }
-        console.log(
-            "User : ",
-            await this.userService.findOne({ id: data["id"] })
-        );
-        let carta = await this.cartService.findOne(usr.cart);
-        let catalogItem = (await this.cartService.findOne({ user: usr }))
-            .catalogItems;
-        const values = catalogItem.split(",");
-        const numberAsString = item.toString(); // Convert the number to a string for comparison
-        const indexToRemove = values.indexOf(numberAsString);
-        if (indexToRemove !== -1) {
-            values.splice(indexToRemove, 1); // Remove the element at the found index
-        } else {
+        } catch (error) {
+            console.log(error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR);
             return {
                 status: "KO",
-                code: 601,
-                description: "No catalog item within this cart",
+                code: HttpStatus.INTERNAL_SERVER_ERROR,
+                description: "Internal server error has occurred while trying to empty the cart",
+                data: error
+            };
+        }
+    }
+
+    async checkAuthorization(req: Request, res: Response) {
+        // Check for connection
+        const cookie = req.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+
+        if (!data) {
+            res.status(HttpStatus.UNAUTHORIZED);
+            return {
+                status: "KO",
+                code: HttpStatus.UNAUTHORIZED,
+                description: "You are not logged in",
                 data: null
             };
         }
-        carta.catalogItems = values.join(",");
-        await this.cartService.update(usr.cart.id, { catalogItems: carta });
-        return {
-            status: "OK",
-            code: 200,
-            description: "Item removed from cart",
-            data: await this.cartService.findOne({ id: usr.cart.id })
-        };
-    }
 
-    @Delete("All")
-    @UseGuards(AuthGuard)
-    async deleteAll(
-        @Req() request: Request
-    ) {
-        const cookie = request.cookies["jwt"];
-        const data = await this.jwtService.verifyAsync(cookie);
-        const usr = await this.userService.findOne({ id: data["id"] });
+        // Check for user
+        const usr = await this.userService.findOne({ id: data["id"] }, {
+            id: true,
+            role: true,
+            cart: {
+                id: true,
+                items: true
+            }
+        }, {
+            cart: {
+                items: true
+            }
+        });
 
-        if (!usr.cart) { // Verification si il y a un panier
-            return
+        if (!usr) {
+            res.status(HttpStatus.FORBIDDEN);
+            return {
+                status: "KO",
+                code: HttpStatus.FORBIDDEN,
+                description: "This user doesn't exist",
+                data: null
+            };
         }
-        console.log(
-            await this.userService.findOne({ id: data["id"] }) // On cherche la panier de l'user
-        );
-        await this.cartService.update(usr.cart.id, { catalogItems: "" }); // On delete tout
-        return {
-            status: "OK",
-            code: 200,
-            description: "Cart fully cleared",
-            data: await this.cartService.findOne({ id: usr.cart.id })
-        };
-    }
 
+        return usr;
+    }
 }
