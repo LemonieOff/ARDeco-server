@@ -34,7 +34,7 @@ export class FavoriteFurnitureController {
             if (!furniture) continue;
             furnitureItems.push({
                 furniture: {
-                    id: furniture.object_id,
+                    id: furniture.id,
                     name: furniture.name,
                     price: furniture.price,
                     styles: furniture.styles.map(style => style.style),
