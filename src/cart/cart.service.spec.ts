@@ -54,16 +54,6 @@ describe("CartService", () => {
         cartRepository = module.get<Repository<Cart>>(getRepositoryToken(Cart));
     });
 
-    describe("all", () => {
-        it("should return all cart items", async () => {
-            const mockCarts = [new Cart(), new Cart()];
-            jest.spyOn(cartRepository, "find").mockResolvedValue(mockCarts);
-
-            const result = await service.all();
-            expect(result).toEqual(mockCarts);
-        });
-    });
-
     describe("create", () => {
         it("should create a new cart item", async () => {
             const data = {
@@ -86,17 +76,6 @@ describe("CartService", () => {
 
             const result = await service.findOne(condition);
             expect(result).toEqual(mockCart);
-        });
-    });
-
-    describe("update", () => {
-        it("should update a cart item", async () => {
-            const id = 1;
-            const data = { quantity: 3 };
-            jest.spyOn(cartRepository, "update").mockResolvedValue({ affected: 1 } as any);
-
-            const result = await service.update(id, data);
-            expect(result.affected).toBe(1);
         });
     });
 

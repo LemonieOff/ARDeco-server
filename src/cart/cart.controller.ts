@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Body, Controller, HttpStatus, ParseArrayPipe, Post, Req, Res } from "@nestjs/common";
+import { Body, Controller, Get, HttpStatus, ParseArrayPipe, Post, Req, Res } from "@nestjs/common";
 import { Request, Response } from "express";
 import { UserService } from "../user/user.service";
 import { JwtService } from "@nestjs/jwt";
@@ -58,6 +58,36 @@ export class CartController {
                 status: "OK",
                 code: HttpStatus.CREATED,
                 description: "Items added to cart",
+                data: cart
+            };
+        } catch (error) {
+            console.log(error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+            return {
+                status: "KO",
+                code: HttpStatus.INTERNAL_SERVER_ERROR,
+                description: "Internal server error has occurred while trying to add items to the cart",
+                data: error
+            };
+        }
+    }
+
+    @Get()
+    async getCart(
+        @Req() req: Request,
+        @Res({ passthrough: true }) res: Response
+    ) {
+        const user = await this.checkAuthorization(req, res);
+        if (!(user instanceof User)) return user;
+
+        try {
+            let cart: CartResponseDto = await this.cartService.getCart(user.cart.id);
+
+            res.status(HttpStatus.OK);
+            return {
+                status: "OK",
+                code: HttpStatus.OK,
+                description: "Cart items",
                 data: cart
             };
         } catch (error) {

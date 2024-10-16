@@ -36,7 +36,11 @@ export class CartService {
         const newCart = await this.cartRepository.save(cart);
         console.log("Items added to cart " + newCart.id);
 
-        const loadCart = await this.findOne({ id: newCart.id }, {
+        return this.getCart(newCart.id);
+    }
+
+    async getCart(cart_id: number): Promise<CartResponseDto> {
+        const cart = await this.findOne({ id: cart_id }, {
             items: {
                 id: true,
                 quantity: true,
@@ -45,6 +49,7 @@ export class CartService {
                     id: true,
                     furniture_id: true,
                     color: true,
+                    model_id: true,
                     furniture: {
                         name: true,
                         price: true,
@@ -61,17 +66,16 @@ export class CartService {
             }
         });
 
-        console.log("LOAD CART : ", loadCart);
-
         return {
-            id: newCart.id,
-            items: loadCart.items.map(item => ({
-                color_id: item.color_id,
+            id: cart.id,
+            items: cart.items.map(item => ({
                 quantity: item.quantity,
                 furniture: {
                     id: item.color.furniture.id,
                     name: item.color.furniture.name,
                     color: item.color.color,
+                    color_id: item.color_id,
+                    model_id: item.color.model_id,
                     price: item.color.furniture.price
                 }
             }))
