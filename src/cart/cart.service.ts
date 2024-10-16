@@ -10,10 +10,6 @@ export class CartService {
     constructor(@InjectRepository(Cart) private readonly cartRepository: Repository<Cart>) {
     }
 
-    async all(): Promise<Cart[]> {
-        return this.cartRepository.find();
-    }
-
     async create(user_id: number, colorIds: number[]): Promise<CartResponseDto> {
         const tmpCart = new Cart();
         tmpCart.user_id = user_id;
@@ -84,10 +80,6 @@ export class CartService {
 
     async findOne(where: FindOptionsWhere<Cart>, select: FindOptionsSelect<Cart> = {}, relations: FindOptionsRelations<Cart> = {}): Promise<Cart> {
         return await this.cartRepository.findOne({ where: where, select: select, relations: relations });
-    }
-
-    async update(id: number, data): Promise<any> {
-        return this.cartRepository.update(id, data);
     }
 
     async delete(id: number): Promise<any> {
