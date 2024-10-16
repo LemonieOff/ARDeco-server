@@ -39,7 +39,7 @@ export class CartService {
         return this.getCart(newCart.id);
     }
 
-    async getCart(cart_id: number): Promise<CartResponseDto> {
+    async getCart(cart_id: number): Promise<CartResponseDto | null> {
         const cart = await this.findOne({ id: cart_id }, {
             items: {
                 id: true,
@@ -66,24 +66,51 @@ export class CartService {
             }
         });
 
-        return {
-            id: cart.id,
-            items: cart.items.map(item => ({
-                quantity: item.quantity,
-                furniture: {
-                    id: item.color.furniture.id,
-                    name: item.color.furniture.name,
-                    color: item.color.color,
-                    color_id: item.color_id,
-                    model_id: item.color.model_id,
-                    price: item.color.furniture.price
-                }
-            }))
-        };
+        if (cart) {
+            return {
+                id: cart.id,
+                items: cart.items.map(item => ({
+                    quantity: item.quantity,
+                    furniture: {
+                        id: item.color.furniture.id,
+                        name: item.color.furniture.name,
+                        color: item.color.color,
+                        color_id: item.color_id,
+                        model_id: item.color.model_id,
+                        price: item.color.furniture.price
+                    }
+                }))
+            };
+        } else {
+            return null;
+        }
     }
 
     async findOne(where: FindOptionsWhere<Cart>, select: FindOptionsSelect<Cart> = {}, relations: FindOptionsRelations<Cart> = {}): Promise<Cart> {
         return await this.cartRepository.findOne({ where: where, select: select, relations: relations });
+    }
+
+    async removeItem(cart: Cart, color_id: number): Promise<CartResponseDto | null> {
+        const item = cart.items.findIndex(x => x.color_id === color_id);
+        if (item > -1) {
+            cart.items[item].quantity--;
+            if (cart.items[item].quantity <= 0) {
+                cart.items = cart.items.filter((x) => {
+                    return x.color_id !== color_id;
+                });
+                console.log(cart.items);
+            }
+        }
+
+        if (cart.items.length === 0) {
+            await this.cartRepository.remove(cart);
+            console.log("Item removed from cart " + cart.id + ", and cart has been deleted as there was no remaining item");
+        } else {
+            await this.cartRepository.save(cart);
+            console.log("Item removed from cart " + cart.id);
+        }
+
+        return this.getCart(cart.id);
     }
 
     async delete(id: number) {

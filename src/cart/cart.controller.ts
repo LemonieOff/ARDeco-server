@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Body, Controller, Delete, Get, HttpStatus, ParseArrayPipe, Post, Req, Res } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpStatus, Param, ParseArrayPipe, Post, Req, Res } from "@nestjs/common";
 import { Request, Response } from "express";
 import { UserService } from "../user/user.service";
 import { JwtService } from "@nestjs/jwt";
@@ -57,7 +57,7 @@ export class CartController {
             return {
                 status: "OK",
                 code: HttpStatus.CREATED,
-                description: "Items added to cart",
+                description: "Items have successfully been added to cart",
                 data: cart
             };
         } catch (error) {
@@ -81,7 +81,12 @@ export class CartController {
         if (!(user instanceof User)) return user;
 
         try {
-            const cart: CartResponseDto = await this.cartService.getCart(user.cart.id);
+            let cart: CartResponseDto | null;
+            if (user.cart) {
+                cart = await this.cartService.getCart(user.cart.id);
+            } else {
+                cart = null;
+            }
 
             res.status(HttpStatus.OK);
             return {
@@ -119,6 +124,53 @@ export class CartController {
                 code: HttpStatus.OK,
                 description: "Cart has successfully been emptied",
                 data: null
+            };
+        } catch (error) {
+            console.log(error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+            return {
+                status: "KO",
+                code: HttpStatus.INTERNAL_SERVER_ERROR,
+                description: "Internal server error has occurred while trying to empty the cart",
+                data: error
+            };
+        }
+    }
+
+    @Delete(":color_id")
+    async removeItem(
+        @Req() req: Request,
+        @Param("color_id") color_id: number,
+        @Res({ passthrough: true }) res: Response
+    ) {
+        color_id = Number(color_id);
+        if (!color_id || isNaN(color_id)) {
+            res.status(HttpStatus.BAD_REQUEST);
+            return {
+                status: "KO",
+                code: HttpStatus.BAD_REQUEST,
+                description: "The color_id parameter must be a number",
+                data: null
+            };
+        }
+
+        const user = await this.checkAuthorization(req, res);
+        if (!(user instanceof User)) return user;
+
+        try {
+            let cart: CartResponseDto | null;
+            if (user.cart) {
+                cart = await this.cartService.removeItem(user.cart, color_id);
+            } else {
+                cart = null;
+            }
+
+            res.status(HttpStatus.OK);
+            return {
+                status: "OK",
+                code: HttpStatus.OK,
+                description: "Item has successfully been removed from cart",
+                data: cart
             };
         } catch (error) {
             console.log(error);
