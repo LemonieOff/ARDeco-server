@@ -1,35 +1,22 @@
-import {
-    Body,
-    Controller,
-    Get,
-    HttpStatus,
-    NotFoundException,
-    Param,
-    Post,
-    Put,
-    Req,
-    Res,
-    UseGuards
-} from '@nestjs/common';
-import {TicketService} from './ticket.service';
-import {UserService} from 'src/user/user.service';
+import { Body, Controller, Get, HttpStatus, Param, Post, Put, Req, Res } from "@nestjs/common";
+import { TicketService } from "./ticket.service";
+import { UserService } from "src/user/user.service";
 import { Request, Response } from "express";
-import {AuthGuard} from '../auth/auth.guard';
-import {JwtService} from '@nestjs/jwt';
-import {Ticket} from './models/ticket.entity';
-import {QueryPartialEntity} from 'typeorm/query-builder/QueryPartialEntity';
-import {TicketDto} from "./models/ticket.dto";
+import { JwtService } from "@nestjs/jwt";
+import { Ticket } from "./models/ticket.entity";
+import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
+import { TicketDto } from "./models/ticket.dto";
 
-@Controller('ticket')
+@Controller("ticket")
 export class TicketController {
     constructor(
         private ticketService: TicketService,
         private jwtService: JwtService,
-        private userService: UserService,
-    ) {}
+        private userService: UserService
+    ) {
+    }
 
-  //  @UseGuards(AuthGuard)
-    @Get('pending')
+    @Get("pending")
     async getPending(@Req() req: Request, @Res({ passthrough: true }) httpRes: Response): Promise<any> {
         // Check login
         const cookie = req.cookies["jwt"];
@@ -37,31 +24,31 @@ export class TicketController {
         if (!data) {
             httpRes.status(HttpStatus.UNAUTHORIZED);
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.UNAUTHORIZED,
-                description: 'You are not logged in',
-                data: null,
+                description: "You are not logged in",
+                data: null
             };
         }
 
-        const usr = await this.userService.findOne({id: data['id']});
+        const usr = await this.userService.findOne({ id: data["id"] });
         if (!usr) {
             httpRes.status(HttpStatus.FORBIDDEN);
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.FORBIDDEN,
-                description: 'You are not allowed to access this resource',
-                data: null,
+                description: "You are not allowed to access this resource",
+                data: null
             };
         }
 
         if (usr.role != "admin") {
             httpRes.status(HttpStatus.BAD_REQUEST);
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.BAD_REQUEST,
-                description: 'You are not an admin',
-                data: null,
+                description: "You are not an admin",
+                data: null
             };
         }
 
@@ -75,15 +62,14 @@ export class TicketController {
 
         httpRes.status(HttpStatus.OK);
         return {
-            status: 'OK',
+            status: "OK",
             code: HttpStatus.OK,
-            description: 'All pending tickets',
-            data: res,
+            description: "All pending tickets",
+            data: res
         };
     }
 
-   // @UseGuards(AuthGuard)
-    @Get('random')
+    @Get("random")
     async getRandom(@Req() req: Request, @Res({ passthrough: true }) httpRes: Response): Promise<any> {
         // Check login
         const cookie = req.cookies["jwt"];
@@ -91,31 +77,31 @@ export class TicketController {
         if (!data) {
             httpRes.status(HttpStatus.UNAUTHORIZED);
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.UNAUTHORIZED,
-                description: 'You are not logged in',
-                data: null,
+                description: "You are not logged in",
+                data: null
             };
         }
 
-        const usr = await this.userService.findOne({id: data['id']});
+        const usr = await this.userService.findOne({ id: data["id"] });
         if (!usr) {
             httpRes.status(HttpStatus.FORBIDDEN);
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.FORBIDDEN,
-                description: 'You are not allowed to access this resource',
-                data: null,
+                description: "You are not allowed to access this resource",
+                data: null
             };
         }
 
         if (usr.role != "admin") {
             httpRes.status(HttpStatus.BAD_REQUEST);
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.BAD_REQUEST,
-                description: 'You are not an admin',
-                data: null,
+                description: "You are not an admin",
+                data: null
             };
         }
 
@@ -129,24 +115,23 @@ export class TicketController {
         if (res.length == 0) {
             httpRes.status(HttpStatus.BAD_REQUEST);
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.BAD_REQUEST,
-                description: 'No pending tickets',
-                data: null,
+                description: "No pending tickets",
+                data: null
             };
         }
 
         httpRes.status(HttpStatus.OK);
         return {
-            status: 'OK',
+            status: "OK",
             code: HttpStatus.OK,
-            description: 'Random pending ticket',
-            data: res[Math.floor(Math.random() * res.length)],
+            description: "Random pending ticket",
+            data: res[Math.floor(Math.random() * res.length)]
         };
     }
 
-   // @UseGuards(AuthGuard)
-    @Get('stats')
+    @Get("stats")
     async getStats(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<any> {
         // Check login
         const cookie = req.cookies["jwt"];
@@ -154,22 +139,22 @@ export class TicketController {
         if (!data) {
             res.status(HttpStatus.UNAUTHORIZED);
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.UNAUTHORIZED,
-                description: 'You are not logged in',
-                data: null,
+                description: "You are not logged in",
+                data: null
             };
         }
 
         // Check user exists
-        const usr = await this.userService.findOne({id: data['id']});
+        const usr = await this.userService.findOne({ id: data["id"] });
         if (!usr) {
             res.status(HttpStatus.FORBIDDEN);
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.FORBIDDEN,
-                description: 'You are not allowed to access this resource',
-                data: null,
+                description: "You are not allowed to access this resource",
+                data: null
             };
         }
 
@@ -177,10 +162,10 @@ export class TicketController {
         if (usr.role !== "admin") {
             res.status(HttpStatus.FORBIDDEN);
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.FORBIDDEN,
-                description: 'You are not an admin',
-                data: null,
+                description: "You are not an admin",
+                data: null
             };
         }
 
@@ -191,30 +176,27 @@ export class TicketController {
         for (let i = 0; i < tickets.length; i++) {
             if (tickets[i].status == "pending") {
                 pending++;
-            }
-            else if (tickets[i].status == "closed") {
+            } else if (tickets[i].status == "closed") {
                 closed++;
-            }
-            else if (tickets[i].status == "deleted") {
+            } else if (tickets[i].status == "deleted") {
                 deleted++;
             }
         }
 
         res.status(HttpStatus.OK);
         return {
-            status: 'OK',
+            status: "OK",
             code: HttpStatus.OK,
-            description: 'Stats',
+            description: "Stats",
             data: {
                 pending: pending,
                 closed: closed,
-                deleted: deleted,
-            },
+                deleted: deleted
+            }
         };
     }
 
-    //@UseGuards(AuthGuard)
-    @Get('stats/last7days')
+    @Get("stats/last7days")
     async getStatsLast7Days(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<any> {
         // Check login
         const cookie = req.cookies["jwt"];
@@ -222,30 +204,30 @@ export class TicketController {
         if (!data) {
             res.status(HttpStatus.UNAUTHORIZED);
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.UNAUTHORIZED,
-                description: 'You are not logged in',
-                data: null,
+                description: "You are not logged in",
+                data: null
             };
         }
 
-        const usr = await this.userService.findOne({id: data['id']});
+        const usr = await this.userService.findOne({ id: data["id"] });
         if (!usr) {
             res.status(HttpStatus.FORBIDDEN);
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.FORBIDDEN,
-                description: 'You are not allowed to access this resource',
-                data: null,
+                description: "You are not allowed to access this resource",
+                data: null
             };
         }
 
         if (usr.role != "admin") {
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.BAD_REQUEST,
-                description: 'You are not an admin',
-                data: null,
+                description: "You are not an admin",
+                data: null
             };
         }
 
@@ -262,32 +244,26 @@ export class TicketController {
             let ticketDate = new Date(tickets[i].date);
             if (ticketDate.getDate() == today.getDate()) {
                 todayTickets++;
-            }
-            else if (ticketDate.getDate() == today.getDate() - 1) {
+            } else if (ticketDate.getDate() == today.getDate() - 1) {
                 yesterdayTickets++;
-            }
-            else if (ticketDate.getDate() == today.getDate() - 2) {
+            } else if (ticketDate.getDate() == today.getDate() - 2) {
                 twoDaysAgoTickets++;
-            }
-            else if (ticketDate.getDate() == today.getDate() - 3) {
+            } else if (ticketDate.getDate() == today.getDate() - 3) {
                 threeDaysAgoTickets++;
-            }
-            else if (ticketDate.getDate() == today.getDate() - 4) {
+            } else if (ticketDate.getDate() == today.getDate() - 4) {
                 fourDaysAgoTickets++;
-            }
-            else if (ticketDate.getDate() == today.getDate() - 5) {
+            } else if (ticketDate.getDate() == today.getDate() - 5) {
                 fiveDaysAgoTickets++;
-            }
-            else if (ticketDate.getDate() == today.getDate() - 6) {
+            } else if (ticketDate.getDate() == today.getDate() - 6) {
                 sixDaysAgoTickets++;
             }
         }
 
         res.status(HttpStatus.OK);
         return {
-            status: 'OK',
+            status: "OK",
             code: HttpStatus.OK,
-            description: 'Stats',
+            description: "Stats",
             data: {
                 days: {
                     today: todayTickets,
@@ -296,15 +272,15 @@ export class TicketController {
                     threeDaysAgo: threeDaysAgoTickets,
                     fourDaysAgo: fourDaysAgoTickets,
                     fiveDaysAgo: fiveDaysAgoTickets,
-                    sixDaysAgo: sixDaysAgoTickets,
+                    sixDaysAgo: sixDaysAgoTickets
                 },
-                total: todayTickets + yesterdayTickets + twoDaysAgoTickets + threeDaysAgoTickets + fourDaysAgoTickets + fiveDaysAgoTickets + sixDaysAgoTickets,
+                total: todayTickets + yesterdayTickets + twoDaysAgoTickets + threeDaysAgoTickets + fourDaysAgoTickets + fiveDaysAgoTickets + sixDaysAgoTickets
             }
-        }
+        };
     }
 
-    @Get(':id')
-    async getOne(@Param('id') id: number,
+    @Get(":id")
+    async getOne(@Param("id") id: number,
                  @Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<any> {
         // Check login
         const cookie = req.cookies["jwt"];
@@ -312,65 +288,64 @@ export class TicketController {
         if (!data) {
             res.status(HttpStatus.UNAUTHORIZED);
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.UNAUTHORIZED,
-                description: 'You are not logged in',
-                data: null,
+                description: "You are not logged in",
+                data: null
             };
         }
 
-        const usr = await this.userService.findOne({id: data['id']});
+        const usr = await this.userService.findOne({ id: data["id"] });
         if (!usr) {
             res.status(HttpStatus.FORBIDDEN);
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.FORBIDDEN,
-                description: 'You are not allowed to access this resource',
-                data: null,
+                description: "You are not allowed to access this resource",
+                data: null
             };
         }
 
         const requestedTicket = await this.ticketService.findOne({ id });
+        console.log(requestedTicket);
         if (!requestedTicket) {
             res.status(HttpStatus.BAD_REQUEST);
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.BAD_REQUEST,
-                description: 'Ticket was not found',
-                data: null,
+                description: "Ticket was not found",
+                data: null
             };
-        }
-        else if (requestedTicket.status == "deleted" && usr.role != "admin") {
+        } else if (requestedTicket.status == "deleted" && usr.role != "admin") {
             res.status(HttpStatus.BAD_REQUEST);
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.BAD_REQUEST,
-                description: 'Ticket is deleted',
-                data: null,
+                description: "Ticket is deleted",
+                data: null
             };
-        }
-        else if (usr.id != requestedTicket.user_init_id && usr.role != "admin") {
+        } else if (usr.id != requestedTicket.user_id && usr.role != "admin") {
             res.status(HttpStatus.BAD_REQUEST);
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.BAD_REQUEST,
-                description: 'You are not the owner of this ticket',
-                data: null,
+                description: "You are not the owner of this ticket",
+                data: null
             };
         }
 
         res.status(HttpStatus.OK);
         return {
-            status: 'OK',
+            status: "OK",
             code: HttpStatus.OK,
-            description: 'Ticket has been found',
+            description: "Ticket has been found",
             data: {
                 id: requestedTicket.id,
                 title: requestedTicket.title,
                 description: requestedTicket.description,
                 status: requestedTicket.status,
-                messages: JSON.parse(requestedTicket.messages),
-            },
+                messages: JSON.parse(requestedTicket.messages)
+            }
         };
     }
 
@@ -378,15 +353,15 @@ export class TicketController {
     async getViaUser(
         @Param("user_id") user_id: number,
         @Req() req: Request,
-        @Res({ passthrough: true }) res: Response) : Promise<any> {
+        @Res({ passthrough: true }) res: Response): Promise<any> {
         user_id = Number(user_id);
         if (isNaN(user_id)) {
             res.status(HttpStatus.BAD_REQUEST);
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.BAD_REQUEST,
-                description: 'User ID is not a number',
-                data: null,
+                description: "User ID is not a number",
+                data: null
             };
         }
 
@@ -394,31 +369,31 @@ export class TicketController {
         const data = cookie ? this.jwtService.verify(cookie) : null;
         if (!data) {
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.UNAUTHORIZED,
-                description: 'You are not logged in',
-                data: null,
+                description: "You are not logged in",
+                data: null
             };
         }
 
-        const user = await this.userService.findOne({id: data['id']});
+        const user = await this.userService.findOne({ id: data["id"] });
         if (!user) {
             res.status(HttpStatus.FORBIDDEN);
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.FORBIDDEN,
-                description: 'You are not allowed to access this resource',
-                data: null,
+                description: "You are not allowed to access this resource",
+                data: null
             };
         }
 
         if (user.id !== user_id && user.role !== "admin") {
             res.status(HttpStatus.FORBIDDEN);
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.FORBIDDEN,
-                description: 'You are not an admin nor the owner of the targeted account',
-                data: null,
+                description: "You are not an admin nor the owner of the targeted account",
+                data: null
             };
         }
 
@@ -427,57 +402,28 @@ export class TicketController {
 
         res.status(HttpStatus.OK);
         return {
-            status: 'OK',
+            status: "OK",
             code: HttpStatus.OK,
-            description: 'All tickets for user ' + user_id,
-            data: tickets,
+            description: "All tickets for user " + user_id,
+            data: tickets
         };
     }
 
-    //@UseGuards(AuthGuard)
-    @Put(':id')
+    @Put(":id")
     async editViaParam(
         @Req() req: Request,
-        @Param('id') id: number,
+        @Param("id") id: number,
         @Body() ticket: QueryPartialEntity<Ticket>,
-        @Res({ passthrough: true }) res: Response,
+        @Res({ passthrough: true }) res: Response
     ) {
         return await this.editTicket(req, id, ticket, res);
     }
 
-    private async editTicket(
-        req: Request,
-        id: number,
-        new_item: QueryPartialEntity<Ticket>,
-        res: Response,
-    ): Promise<any> {
-        try {
-            const result = await this.ticketService.update(id, new_item);
-            res.status(HttpStatus.OK);
-            return {
-                status: 'OK',
-                code: HttpStatus.OK,
-                description: 'Ticket was updated',
-                data: result,
-            };
-        } catch (e) {
-            res.status(HttpStatus.BAD_REQUEST);
-            return {
-                status: 'KO',
-                code: HttpStatus.BAD_REQUEST,
-                description: 'Ticket was not updated because of an error',
-                error: e,
-                data: null,
-            };
-        }
-    }
-
-    //@UseGuards(AuthGuard)
-    @Put('close/:id')
+    @Put("close/:id")
     async closeTicket(
         @Req() req: Request,
-        @Param('id') id: number,
-        @Res({ passthrough: true }) res: Response,
+        @Param("id") id: number,
+        @Res({ passthrough: true }) res: Response
     ) {
         // Check login
         const cookie = req.cookies["jwt"];
@@ -493,7 +439,7 @@ export class TicketController {
         }
 
         // Check user exists
-        const usr = await this.userService.findOne({id: data['id']});
+        const usr = await this.userService.findOne({ id: data["id"] });
         if (!usr) {
             res.status(HttpStatus.FORBIDDEN);
             return {
@@ -526,7 +472,7 @@ export class TicketController {
             };
         }
 
-        if (usr.id !== ticket.user_init_id && usr.role != "admin") {
+        if (usr.id !== ticket.user_id && usr.role != "admin") {
             res.status(HttpStatus.UNAUTHORIZED);
             return {
                 status: "KO",
@@ -551,16 +497,15 @@ export class TicketController {
 
         res.status(HttpStatus.OK);
         return {
-            status: 'OK',
+            status: "OK",
             code: HttpStatus.OK,
-            description: 'Ticket was closed',
-            data: null,
+            description: "Ticket was closed",
+            data: null
         };
     }
 
-    //@UseGuards(AuthGuard)
-    @Put('delete/:id')
-    async delete(@Param('id') id: number,
+    @Put("delete/:id")
+    async delete(@Param("id") id: number,
                  @Req() req: Request,
                  @Res({ passthrough: true }) res: Response
     ): Promise<any> {
@@ -576,7 +521,7 @@ export class TicketController {
             };
         }
 
-        const usr = await this.userService.findOne({id: data['id']});
+        const usr = await this.userService.findOne({ id: data["id"] });
         if (!usr) {
             res.status(HttpStatus.FORBIDDEN);
             return {
@@ -589,10 +534,10 @@ export class TicketController {
         if (usr.role !== "admin") {
             res.status(HttpStatus.FORBIDDEN);
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.FORBIDDEN,
-                description: 'You are not an admin',
-                data: null,
+                description: "You are not an admin",
+                data: null
             };
         }
 
@@ -622,19 +567,18 @@ export class TicketController {
 
         res.status(HttpStatus.OK);
         return {
-            status: 'OK',
+            status: "OK",
             code: HttpStatus.OK,
-            description: 'Ticket was deleted',
-            data: null,
+            description: "Ticket was deleted",
+            data: null
         };
     }
 
-    //@UseGuards(AuthGuard)
-    @Post('create')
+    @Post("create")
     async createTicket(
         @Req() req: Request,
         @Body() ticket: TicketDto,
-        @Res({ passthrough: true }) res: Response,
+        @Res({ passthrough: true }) res: Response
     ) {
         // Check login
         const cookie = req.cookies["jwt"];
@@ -642,51 +586,51 @@ export class TicketController {
         if (!data) {
             res.status(HttpStatus.UNAUTHORIZED);
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.UNAUTHORIZED,
-                description: 'You are not logged in',
-                data: null,
+                description: "You are not logged in",
+                data: null
             };
         }
 
-        const usr = await this.userService.findOne({id: data['id']});
+        const usr = await this.userService.findOne({ id: data["id"] });
         if (!usr) {
             res.status(HttpStatus.FORBIDDEN);
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.FORBIDDEN,
-                description: 'You are not allowed to access this resource',
-                data: null,
+                description: "You are not allowed to access this resource",
+                data: null
             };
         }
 
-        const body = {
-            "title": ticket.title,
-            "description": ticket.description,
-            "messages": "[{\"sender\": \"" + usr.first_name + " " + usr.last_name + "\", \"content\": \"" + ticket.message + "\", \"timestamp\": \"" + Date.now().toLocaleString() + "\"}]",
-            "user_init_id": usr.id,
-            "status": "pending",
-            //QueryFailedError: Incorrect datetime value: '1697831975703' for column 'date' at row 1
-            //  "date": Date.now()
-        }
+        const ticketTmp: Ticket = new Ticket();
+        ticketTmp.title = ticket.title;
+        ticketTmp.description = ticket.description;
+        ticketTmp.messages = JSON.stringify([{
+            sender: `${usr.first_name} ${usr.last_name}`,
+            content: ticket.message,
+            timestamp: Date.now().toLocaleString()
+        }]);
+        ticketTmp.user_id = usr.id;
+        ticketTmp.status = "pending";
 
-        const ress = await this.ticketService.create(body);
+        const ress = await this.ticketService.create(ticketTmp);
         res.status(HttpStatus.OK);
         return {
-            status: 'OK',
+            status: "OK",
             code: HttpStatus.OK,
-            description: 'Ticket was created',
-            data: ress,
+            description: "Ticket was created",
+            data: ress
         };
     }
 
-    //@UseGuards(AuthGuard)
-    @Put('write/:id')
+    @Put("write/:id")
     async writeTicket(
         @Req() req: Request,
-        @Param('id') id: number,
-        @Body('message') message: string,
-        @Res({ passthrough: true }) res: Response,
+        @Param("id") id: number,
+        @Body("message") message: string,
+        @Res({ passthrough: true }) res: Response
     ) {
         // Check login
         const cookie = req.cookies["jwt"];
@@ -694,102 +638,104 @@ export class TicketController {
         if (!data) {
             res.status(HttpStatus.UNAUTHORIZED);
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.UNAUTHORIZED,
-                description: 'You are not logged in',
-                data: null,
+                description: "You are not logged in",
+                data: null
             };
         }
 
-        const usr = await this.userService.findOne({id: data['id']});
+        const usr = await this.userService.findOne({ id: data["id"] });
         if (!usr) {
             res.status(HttpStatus.FORBIDDEN);
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.FORBIDDEN,
-                description: 'You are not allowed to access this resource',
-                data: null,
+                description: "You are not allowed to access this resource",
+                data: null
             };
         }
 
-        const ticket = await this.ticketService.findOne({id: id});
+        const ticket = await this.ticketService.findOne({ id: id });
         try {
             if (!ticket) {
                 res.status(HttpStatus.BAD_REQUEST);
                 return {
-                    status: 'KO',
+                    status: "KO",
                     code: HttpStatus.BAD_REQUEST,
-                    description: 'Ticket was not found',
-                    data: null,
+                    description: "Ticket was not found",
+                    data: null
                 };
-            }
-            else if (ticket.status == "closed") {
+            } else if (ticket.status == "closed") {
                 res.status(HttpStatus.BAD_REQUEST);
                 return {
-                    status: 'KO',
+                    status: "KO",
                     code: HttpStatus.BAD_REQUEST,
-                    description: 'Ticket is closed',
-                    data: null,
+                    description: "Ticket is closed",
+                    data: null
                 };
-            }
-            else if (ticket.status == "deleted") {
+            } else if (ticket.status == "deleted") {
                 res.status(HttpStatus.BAD_REQUEST);
                 return {
-                    status: 'KO',
+                    status: "KO",
                     code: HttpStatus.BAD_REQUEST,
-                    description: 'Ticket is deleted',
-                    data: null,
+                    description: "Ticket is deleted",
+                    data: null
                 };
-            }
-            else if (usr.id != ticket.user_init_id && usr.role != "admin") {
+            } else if (usr.id != ticket.user_id && usr.role != "admin") {
                 res.status(HttpStatus.BAD_REQUEST);
                 return {
-                    status: 'KO',
+                    status: "KO",
                     code: HttpStatus.BAD_REQUEST,
-                    description: 'You are not the owner of this ticket',
-                    data: null,
+                    description: "You are not the owner of this ticket",
+                    data: null
                 };
-            }
-            else if (message.length == 0) {
+            } else if (message.length == 0) {
                 res.status(HttpStatus.BAD_REQUEST);
                 return {
-                    status: 'KO',
+                    status: "KO",
                     code: HttpStatus.BAD_REQUEST,
-                    description: 'Message is empty',
-                    data: null,
+                    description: "Message is empty",
+                    data: null
                 };
             }
         } catch (e) {
             res.status(HttpStatus.BAD_REQUEST);
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.BAD_REQUEST,
-                description: 'Ticket was not edited because of an error',
-                data: null,
+                description: "Ticket was not edited because of an error",
+                data: null
             };
         }
 
-        let messages = ticket.messages
-        console.log("Messages", JSON.stringify(messages));
+        let messages: [{ sender: string, content: string, timestamp: string }] = JSON.parse(ticket.messages);
         if (usr.role == "admin") {
-            messages = messages.slice(0, -1) + ",{\"sender\": \"" + "Support" + "\", \"content\": \"" + message + "\", \"timestamp\": \"" + Date.now().toLocaleString() + "\"}]"
+            messages.push({
+                sender: "Support",
+                content: message,
+                timestamp: Date.now().toLocaleString()
+            });
+        } else {
+            messages.push({
+                sender: `${usr.first_name} ${usr.last_name}`,
+                content: message,
+                timestamp: Date.now().toLocaleString()
+            });
         }
-        else messages = messages.slice(0, -1) + ",{\"sender\": \"" + usr.first_name + " " + usr.last_name + "\", \"content\": \"" + message + "\", \"timestamp\": \"" + Date.now().toLocaleString() + "\"}]"
-        const body = {
-            "messages": messages
-        }
-        const ress = await this.ticketService.update(id, body);
+        ticket.messages = JSON.stringify(messages);
+
+        const ress = await this.ticketService.update(id, ticket);
         res.status(HttpStatus.OK);
         return {
-            status: 'OK',
+            status: "OK",
             code: HttpStatus.OK,
-            description: 'Message was added to ticket',
-            data: ress,
+            description: "Message was added to ticket",
+            data: ress
         };
     }
 
-    //@UseGuards(AuthGuard)
-    @Get('all')
+    @Get("all")
     async getAll(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<any> {
         // Check login
         const cookie = req.cookies["jwt"];
@@ -797,42 +743,69 @@ export class TicketController {
         if (!data) {
             res.status(HttpStatus.UNAUTHORIZED);
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.UNAUTHORIZED,
-                description: 'You are not logged in',
-                data: null,
+                description: "You are not logged in",
+                data: null
             };
         }
 
-        const usr = await this.userService.findOne({id: data['id']});
+        const usr = await this.userService.findOne({ id: data["id"] });
         if (!usr) {
             res.status(HttpStatus.FORBIDDEN);
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.FORBIDDEN,
-                description: 'You are not allowed to access this resource',
-                data: null,
+                description: "You are not allowed to access this resource",
+                data: null
             };
         }
 
         if (usr.role != "admin") {
             res.status(HttpStatus.BAD_REQUEST);
             return {
-                status: 'KO',
+                status: "KO",
                 code: HttpStatus.BAD_REQUEST,
-                description: 'You are not an admin',
-                data: null,
+                description: "You are not an admin",
+                data: null
             };
         }
 
         const tickets = await this.ticketService.all();
         res.status(HttpStatus.OK);
         return {
-            status: 'OK',
+            status: "OK",
             code: HttpStatus.OK,
-            description: 'All tickets',
-            data: tickets,
+            description: "All tickets",
+            data: tickets
         };
+    }
+
+    private async editTicket(
+        req: Request,
+        id: number,
+        new_item: QueryPartialEntity<Ticket>,
+        res: Response
+    ): Promise<any> {
+        try {
+            const result = await this.ticketService.update(id, new_item);
+            res.status(HttpStatus.OK);
+            return {
+                status: "OK",
+                code: HttpStatus.OK,
+                description: "Ticket was updated",
+                data: result
+            };
+        } catch (e) {
+            res.status(HttpStatus.BAD_REQUEST);
+            return {
+                status: "KO",
+                code: HttpStatus.BAD_REQUEST,
+                description: "Ticket was not updated because of an error",
+                error: e,
+                data: null
+            };
+        }
     }
 }
 

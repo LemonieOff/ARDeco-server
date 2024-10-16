@@ -19,7 +19,7 @@ export class TicketService {
     async allForUser(userId: number): Promise<Ticket[]> {
         return this.TicketRepository.find({
             where: {
-                user_init_id: userId,
+                user_id: userId,
                 status: Not("deleted")
             },
             select: ["id", "title", "status", "description"]
