@@ -86,8 +86,8 @@ export class CartService {
         return await this.cartRepository.findOne({ where: where, select: select, relations: relations });
     }
 
-    async delete(id: number): Promise<any> {
+    async delete(id: number) {
         console.log("Deleting cart : ", id);
-        return this.cartRepository.delete(id);
+        return this.cartRepository.delete({ id: id });
     }
 }

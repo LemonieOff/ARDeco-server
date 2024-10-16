@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Body, Controller, Get, HttpStatus, ParseArrayPipe, Post, Req, Res } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpStatus, ParseArrayPipe, Post, Req, Res } from "@nestjs/common";
 import { Request, Response } from "express";
 import { UserService } from "../user/user.service";
 import { JwtService } from "@nestjs/jwt";
@@ -81,7 +81,7 @@ export class CartController {
         if (!(user instanceof User)) return user;
 
         try {
-            let cart: CartResponseDto = await this.cartService.getCart(user.cart.id);
+            const cart: CartResponseDto = await this.cartService.getCart(user.cart.id);
 
             res.status(HttpStatus.OK);
             return {
@@ -96,7 +96,37 @@ export class CartController {
             return {
                 status: "KO",
                 code: HttpStatus.INTERNAL_SERVER_ERROR,
-                description: "Internal server error has occurred while trying to add items to the cart",
+                description: "Internal server error has occurred while trying to retrieve the cart",
+                data: error
+            };
+        }
+    }
+
+    @Delete()
+    async emptyCart(
+        @Req() req: Request,
+        @Res({ passthrough: true }) res: Response
+    ) {
+        const user = await this.checkAuthorization(req, res);
+        if (!(user instanceof User)) return user;
+
+        try {
+            if (user.cart) await this.cartService.delete(user.cart.id);
+
+            res.status(HttpStatus.OK);
+            return {
+                status: "OK",
+                code: HttpStatus.OK,
+                description: "Cart has successfully been emptied",
+                data: null
+            };
+        } catch (error) {
+            console.log(error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+            return {
+                status: "KO",
+                code: HttpStatus.INTERNAL_SERVER_ERROR,
+                description: "Internal server error has occurred while trying to empty the cart",
                 data: error
             };
         }
