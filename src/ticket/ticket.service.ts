@@ -40,8 +40,6 @@ export class TicketService {
         id: number,
         data: QueryPartialEntity<Ticket>
     ): Promise<Ticket> {
-        console.log(data.messages);
-        console.log(JSON.stringify(data.messages));
         await this.TicketRepository.update(id, data);
         return await this.findOne({ id: id });
     }

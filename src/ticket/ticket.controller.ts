@@ -604,23 +604,18 @@ export class TicketController {
             };
         }
 
-        const body = {
-            title: ticket.title,
-            description: ticket.description,
-            messages: [
-                {
-                    sender: `${usr.first_name} ${usr.last_name}`,
-                    content: ticket.message,
-                    timestamp: Date.now().toLocaleString()
-                }
-            ],
-            user_id: usr.id,
-            status: "pending"
-            //QueryFailedError: Incorrect datetime value: '1697831975703' for column 'date' at row 1
-            //  "date": Date.now()
-        };
+        const ticketTmp: Ticket = new Ticket();
+        ticketTmp.title = ticket.title;
+        ticketTmp.description = ticket.description;
+        ticketTmp.messages = JSON.stringify([{
+            sender: `${usr.first_name} ${usr.last_name}`,
+            content: ticket.message,
+            timestamp: Date.now().toLocaleString()
+        }]);
+        ticketTmp.user_id = usr.id;
+        ticketTmp.status = "pending";
 
-        const ress = await this.ticketService.create(body);
+        const ress = await this.ticketService.create(ticketTmp);
         res.status(HttpStatus.OK);
         return {
             status: "OK",
@@ -714,16 +709,23 @@ export class TicketController {
             };
         }
 
-        let messages = ticket.messages;
-        console.log(messages);
-        console.log("Messages", JSON.stringify(messages));
+        let messages: [{ sender: string, content: string, timestamp: string }] = JSON.parse(ticket.messages);
         if (usr.role == "admin") {
-            messages = messages.slice(0, -1) + ",{\"sender\": \"" + "Support" + "\", \"content\": \"" + message + "\", \"timestamp\": \"" + Date.now().toLocaleString() + "\"}]";
-        } else messages = messages.slice(0, -1) + ",{\"sender\": \"" + usr.first_name + " " + usr.last_name + "\", \"content\": \"" + message + "\", \"timestamp\": \"" + Date.now().toLocaleString() + "\"}]";
-        const body = {
-            "messages": messages
-        };
-        const ress = await this.ticketService.update(id, body);
+            messages.push({
+                sender: "Support",
+                content: message,
+                timestamp: Date.now().toLocaleString()
+            });
+        } else {
+            messages.push({
+                sender: `${usr.first_name} ${usr.last_name}`,
+                content: message,
+                timestamp: Date.now().toLocaleString()
+            });
+        }
+        ticket.messages = JSON.stringify(messages);
+
+        const ress = await this.ticketService.update(id, ticket);
         res.status(HttpStatus.OK);
         return {
             status: "OK",
