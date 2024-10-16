@@ -98,7 +98,6 @@ export class CartService {
                 cart.items = cart.items.filter((x) => {
                     return x.color_id !== color_id;
                 });
-                console.log(cart.items);
             }
         }
 
