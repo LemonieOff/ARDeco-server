@@ -19,7 +19,7 @@ export class TicketService {
     async allForUser(userId: number): Promise<Ticket[]> {
         return this.TicketRepository.find({
             where: {
-                user_init_id: userId,
+                user_id: userId,
                 status: Not("deleted")
             },
             select: ["id", "title", "status", "description"]
@@ -40,6 +40,8 @@ export class TicketService {
         id: number,
         data: QueryPartialEntity<Ticket>
     ): Promise<Ticket> {
+        console.log(data.messages);
+        console.log(JSON.stringify(data.messages));
         await this.TicketRepository.update(id, data);
         return await this.findOne({ id: id });
     }

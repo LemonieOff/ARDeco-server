@@ -1,13 +1,23 @@
 /* eslint-disable prettier/prettier */
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { User } from "../../user/models/user.entity";
 
 @Entity("ticket")
 export class Ticket {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
-    user_init_id: number; // The ID of the user that create the ticket
+    @ManyToOne(_ => User, user => user.galleries, { onDelete: "CASCADE" })
+    @JoinColumn({
+        name: "user_id",
+        referencedColumnName: "id"
+    })
+    user: User;
+
+    @Column({
+        type: "int"
+    })
+    user_id: number; // The ID of the user that create the ticket
 
     @Column()
     status: string; // The status of the ticket (open, closed, in progress)
@@ -18,7 +28,7 @@ export class Ticket {
     @Column()
     description: string; // The description of the ticket
 
-    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
     date: Date; // The date of the ticket
 
     @Column("longtext") // The messages of the ticket
