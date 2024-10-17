@@ -819,6 +819,7 @@ export class CatalogController {
                              "• Restriction sur les grands meubles : Suggérez uniquement un grand article (par exemple, canapé, table à manger) à moins que l'espace ne puisse clairement en accueillir plus.\n" +
                              "• Évitez l'encombrement : Assurez-vous que les articles sélectionnés s'adaptent à l'espace disponible sans surcharger. Priorisez la fonctionnalité de la disposition.\n" +
                              "• Suggestions : Fournissez au moins trois suggestions qui améliorent l'apparence générale de la pièce, en garantissant l'harmonie et l'équilibre.\n" +
+                             " Si tu ne sais pas quoi mettre pour la piece ou determiner le type de pièce, donne quand même des ids de chaises et tables" + 
                              "Réponse uniquement avec des IDs séparés par des points-virgules."
                 },
                 {
