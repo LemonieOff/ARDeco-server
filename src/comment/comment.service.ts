@@ -56,7 +56,9 @@ export class CommentService {
             comment: comment.comment,
             gallery_id: comment.gallery_id,
             user_id: comment.user_id,
-            creation_date: comment.creation_date
+            creation_date: comment.creation_date,
+            edited: comment.edited,
+            edit_date: comment.edit_date
         };
     }
 
