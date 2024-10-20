@@ -5,7 +5,6 @@ interface OrderFurniture {
     id: number;
     name: string;
     color: string;
-    furniture_id: number;
     company: string;
     object_id: string;
     color_id: number;

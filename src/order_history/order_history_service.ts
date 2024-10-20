@@ -2,13 +2,16 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { FindOptionsWhere, Repository } from "typeorm";
 import { OrderHistory } from "./models/order_history.entity";
+import { User } from "../user/models/user.entity";
+import { CartOrderResponseDto } from "../cart/dtos/CartOrderResponse.dto";
 
 @Injectable()
 export class OrderHistoryService {
     constructor(
         @InjectRepository(OrderHistory)
         private readonly orderHistoryRepository: Repository<OrderHistory>
-    ) {}
+    ) {
+    }
 
     async all(): Promise<OrderHistory[]> {
         return this.orderHistoryRepository.find();
@@ -18,24 +21,24 @@ export class OrderHistoryService {
         return (await this.orderHistoryRepository.find()).map((item) => item.id);
     }
 
-    async create(data): Promise<OrderHistory> {
-        try {
-            JSON.parse(data.furniture);
-        } catch (e) {
-            return await new Promise((_, reject) => {
-                reject({
-                    error: "JsonError",
-                    message: "Furniture is not a valid JSON object",
-                    furniture: data.furniture
-                });
-            });
-        }
+    async create(user: User, cart: CartOrderResponseDto): Promise<OrderHistory> {
+        const order = new OrderHistory();
+        order.user = user;
+        order.name = user.first_name + " " + user.last_name;
+        order.total_amount = cart.total_amount;
+        order.furniture = cart.items.map(item => ({
+            id: item.furniture.id,
+            amount: item.amount,
+            quantity: item.quantity,
+            color: item.furniture.color,
+            color_id: item.furniture.color_id,
+            price: item.furniture.price,
+            company: item.furniture.company,
+            name: item.furniture.name,
+            object_id: item.furniture.object_id
+        }));
 
-        /*TODO : Potentially check if every furniture is available in catalog. 
-           See if it's relevant based on the manner we pass furniture list
-           Also, see if it will be possible to register order history items after a furniture item has been removed from catalog*/
-
-        const item = await this.orderHistoryRepository.save(data);
+        const item = await this.orderHistoryRepository.save(order);
         console.log("Create OrderHistory item :", item);
         return item;
     }
