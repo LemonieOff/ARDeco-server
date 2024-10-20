@@ -1,5 +1,6 @@
 export class CartResponseDto {
     id: number;
+    total_amount: number;
     items: {
         quantity: number;
         furniture: {

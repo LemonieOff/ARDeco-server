@@ -69,6 +69,7 @@ export class CartService {
         if (cart) {
             return {
                 id: cart.id,
+                total_amount: cart.items.reduce((a, b) => a + (b.color.furniture.price * b.quantity), 0),
                 items: cart.items.map(item => ({
                     quantity: item.quantity,
                     furniture: {
