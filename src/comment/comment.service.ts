@@ -46,6 +46,20 @@ export class CommentService {
         };
     }
 
+    async update(data: Comment): Promise<Partial<Comment>> {
+        data.edited = true;
+        data.edit_date = new Date();
+        const comment = await this.commentRepository.save(data);
+        console.log("Update comment :", comment);
+        return {
+            id: comment.id,
+            comment: comment.comment,
+            gallery_id: comment.gallery_id,
+            user_id: comment.user_id,
+            creation_date: comment.creation_date
+        };
+    }
+
     async delete(id: number) {
         console.log("Deleting comment ", id);
         return this.commentRepository.delete(id);
