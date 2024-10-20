@@ -79,12 +79,19 @@ export class CartService {
                         color_id: item.color_id,
                         model_id: item.color.model_id,
                         price: item.color.furniture.price
-                    }
+                    },
+                    amount: item.color.furniture.price * item.quantity
                 }))
             };
         } else {
             return null;
         }
+    }
+
+    async getCartForUser(user_id: number): Promise<CartResponseDto | null> {
+        const cart = await this.findOne({ id: user_id });
+        if (cart) return this.getCart(cart.id);
+        return null;
     }
 
     async findOne(where: FindOptionsWhere<Cart>, select: FindOptionsSelect<Cart> = {}, relations: FindOptionsRelations<Cart> = {}): Promise<Cart> {

@@ -10,6 +10,7 @@ export class CartResponseDto {
             color_id: number;
             model_id: number;
             price: number;
-        }
+        },
+        amount: number;
     }[];
 }
