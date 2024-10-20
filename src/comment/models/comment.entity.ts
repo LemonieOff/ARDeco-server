@@ -25,8 +25,7 @@ export class Comment {
     user: User;
 
     @Column({
-        type: "int",
-        update: false
+        type: "int"
     })
     user_id: number;
 
@@ -38,4 +37,10 @@ export class Comment {
         default: () => "CURRENT_TIMESTAMP"
     })
     creation_date: Date;
+
+    @Column({ default: false })
+    edited: boolean;
+
+    @Column({ type: "timestamp", nullable: true })
+    edit_date: Date;
 }

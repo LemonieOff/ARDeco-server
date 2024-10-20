@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Req, Res } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, Req, Res } from "@nestjs/common";
 import { CommentService } from "./comment.service";
 import { Request, Response } from "express";
 import { Comment } from "./models/comment.entity";
@@ -157,6 +157,119 @@ export class CommentController {
                 code: 501,
                 data: e,
                 description: "Error creating comment",
+                status: "KO"
+            };
+        }
+    }
+
+    @Put("gallery/:gallery_id/comments/:comment_id")
+    async update(
+        @Req() request: Request,
+        @Res({ passthrough: true }) response: Response,
+        @Param("gallery_id") gallery_id: number,
+        @Param("comment_id") comment_id: number,
+        @Body("comment") comment: string
+    ): Promise<{
+        status: string
+        code: number;
+        description: string;
+        data: null | Partial<Comment>;
+    }> {
+        try {
+            // Check comment presence
+            if (!comment) {
+                response.status(400);
+                return {
+                    code: 400,
+                    data: null,
+                    description: "Comment is required",
+                    status: "KO"
+                };
+            }
+
+            // Check parameters format
+            if (Number.isNaN(gallery_id) || Number.isNaN(comment_id)) {
+                response.status(400);
+                return {
+                    code: 400,
+                    data: null,
+                    description: "Gallery ID and Comment ID are required and must be numbers",
+                    status: "KO"
+                };
+            }
+
+            // Check authorization of access (user and gallery)
+            const auth = await this.checkAuthorization(request, gallery_id);
+            if (!Array.isArray(auth)) {
+                response.status(auth.code);
+                return auth;
+            }
+            const [user, gallery] = auth;
+
+            // Find comment
+            const commentToUpdate = await this.commentService.findOne(comment_id);
+            if (!commentToUpdate) {
+                response.status(404);
+                return {
+                    code: 404,
+                    data: null,
+                    description: "Comment not found",
+                    status: "KO"
+                };
+            }
+
+            // Check if user is the author of the comment or an admin
+            if (commentToUpdate.user_id !== user.id && user.role !== "admin") {
+                response.status(403);
+                return {
+                    code: 403,
+                    data: null,
+                    description: "You are not allowed to modify this comment",
+                    status: "KO"
+                };
+            }
+
+            // Check if comment belongs to gallery
+            if (commentToUpdate.gallery_id !== gallery.id) {
+                response.status(403);
+                return {
+                    code: 403,
+                    data: null,
+                    description: `This comment does not belong to gallery ${gallery_id}`,
+                    status: "KO"
+                };
+            }
+
+            // Update the comment
+            commentToUpdate.comment = comment;
+            const updatedComment = await this.commentService.update(commentToUpdate);
+
+            // Check if comment has actually been updated
+            if (!updatedComment) {
+                response.status(501);
+                return {
+                    code: 501,
+                    data: null,
+                    description: "Error updating comment",
+                    status: "KO"
+                };
+            }
+
+            // Return updated comment and response
+            response.status(200);
+            return {
+                code: 200,
+                data: updatedComment,
+                description: `Comment ${comment_id} updated successfully`,
+                status: "OK"
+            };
+        } catch (e) {
+            console.error(e);
+            response.status(501);
+            return {
+                code: 501,
+                data: e,
+                description: "Error updating comment",
                 status: "KO"
             };
         }
