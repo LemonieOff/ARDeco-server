@@ -162,6 +162,7 @@ export class OrderHistoryController {
         try {
             const result = await this.orderHistoryService.create(user, cart);
             delete result.user;
+            await this.cartService.delete(cart.id);
             res.status(201);
             return {
                 status: "OK",
