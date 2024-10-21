@@ -4,6 +4,7 @@ import { FindOptionsRelations, FindOptionsSelect, FindOptionsWhere, Repository }
 import { Cart } from "./models/cart.entity";
 import { CartItem } from "./models/cart_item.entity";
 import { CartResponseDto } from "./dtos/CartResponse.dto";
+import { CartOrderResponseDto } from "./dtos/CartOrderResponse.dto";
 
 @Injectable()
 export class CartService {
@@ -79,7 +80,60 @@ export class CartService {
                         color_id: item.color_id,
                         model_id: item.color.model_id,
                         price: item.color.furniture.price
+                    },
+                    amount: item.color.furniture.price * item.quantity
+                }))
+            };
+        } else {
+            return null;
+        }
+    }
+
+    async getCartForUser(user_id: number): Promise<CartOrderResponseDto | null> {
+        const cart = await this.findOne({ user_id: user_id }, {
+            items: {
+                id: true,
+                quantity: true,
+                color_id: true,
+                color: {
+                    id: true,
+                    furniture_id: true,
+                    color: true,
+                    model_id: true,
+                    furniture: {
+                        name: true,
+                        price: true,
+                        id: true,
+                        company_name: true
                     }
+                }
+            }
+        }, {
+            items: {
+                color: {
+                    furniture: true
+                },
+                cart: false
+            }
+        });
+
+        if (cart) {
+            return {
+                id: cart.id,
+                total_amount: cart.items.reduce((a, b) => a + (b.color.furniture.price * b.quantity), 0),
+                items: cart.items.map(item => ({
+                    quantity: item.quantity,
+                    furniture: {
+                        id: item.color.furniture.id,
+                        name: item.color.furniture.name,
+                        color: item.color.color,
+                        color_id: item.color_id,
+                        model_id: item.color.model_id,
+                        price: item.color.furniture.price,
+                        object_id: item.color.furniture.object_id,
+                        company: item.color.furniture.company_name
+                    },
+                    amount: item.color.furniture.price * item.quantity
                 }))
             };
         } else {

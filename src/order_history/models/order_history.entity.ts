@@ -1,6 +1,18 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "../../user/models/user.entity";
 
+interface OrderFurniture {
+    id: number;
+    name: string;
+    color: string;
+    company: string;
+    object_id: string;
+    color_id: number;
+    quantity: number;
+    price: number;
+    amount: number; // price * quantity
+}
+
 @Entity("order_history")
 export class OrderHistory {
     @PrimaryGeneratedColumn()
@@ -43,5 +55,5 @@ export class OrderHistory {
     total_amount: number;
 
     @Column({ type: "json" })
-    furniture: string; // TODO : Change this (maybe)
+    furniture: OrderFurniture[];
 }

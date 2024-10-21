@@ -1,22 +1,13 @@
-import {
-    Body,
-    Controller,
-    Get,
-    Param,
-    Post,
-    Query,
-    Req,
-    Res, StreamableFile
-} from "@nestjs/common";
+import { Controller, Get, Param, Post, Query, Req, Res, StreamableFile } from "@nestjs/common";
 import { OrderHistoryService } from "./order_history_service";
 import { Request, Response } from "express";
 import { JwtService } from "@nestjs/jwt";
 import { OrderHistory } from "./models/order_history.entity";
-import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 import { User } from "../user/models/user.entity";
 import { UserService } from "../user/user.service";
-import { createReadStream } from 'fs';
+import { createReadStream } from "fs";
 import { join } from "path";
+import { CartService } from "../cart/cart.service";
 
 enum GetMode {
     DEFAULT,
@@ -40,21 +31,10 @@ export class OrderHistoryController {
     constructor(
         private orderHistoryService: OrderHistoryService,
         private jwtService: JwtService,
-        private userService: UserService
-    ) {}
-
-    private selectGetMode = (mode: QueryMode): GetMode => {
-        if (!mode.mode) return GetMode.DEFAULT;
-        if (typeof mode.mode === "string") {
-            if (mode.mode === "id") return GetMode.ID;
-            if (mode.mode === "details") return GetMode.DETAILS;
-        } else if (Array.isArray(mode.mode)) {
-            const extracted_mode = mode.mode.pop();
-            if (extracted_mode === "id") return GetMode.ID;
-            if (extracted_mode === "details") return GetMode.DETAILS;
-        }
-        return GetMode.DEFAULT;
-    };
+        private userService: UserService,
+        private cartService: CartService
+    ) {
+    }
 
     @Get()
     async get(
@@ -163,15 +143,26 @@ export class OrderHistoryController {
     @Post()
     async post(
         @Req() req: Request,
-        @Body() item: QueryPartialEntity<OrderHistory>,
         @Res({ passthrough: true }) res: Response
     ) {
         const user = await this.checkAuthorization(req, res, Type.POST);
         if (!(user instanceof User)) return user;
 
+        const cart = await this.cartService.getCartForUser(user.id);
+        if (!cart) {
+            res.status(404);
+            return {
+                status: "KO",
+                code: 404,
+                description: "Cart is empty, so no order can be made",
+                data: null
+            };
+        }
+
         try {
-            item.user_id = user.id;
-            const result = await this.orderHistoryService.create(item);
+            const result = await this.orderHistoryService.create(user, cart);
+            delete result.user;
+            await this.cartService.delete(cart.id);
             res.status(201);
             return {
                 status: "OK",
@@ -205,8 +196,8 @@ export class OrderHistoryController {
 
         const file = createReadStream(join(process.cwd(), `ardeco_invoices/invoice_${order_id}.pdf`));
         res.set({
-            'Content-Type': 'application/pdf',
-            'Content-Disposition': `attachment; filename="ardeco_invoice_${order_id}.pdf"`,
+            "Content-Type": "application/pdf",
+            "Content-Disposition": `attachment; filename="ardeco_invoice_${order_id}.pdf"`
         });
 
         res.status(200);
@@ -328,4 +319,17 @@ export class OrderHistoryController {
         }
         return user;
     }
+
+    private selectGetMode = (mode: QueryMode): GetMode => {
+        if (!mode.mode) return GetMode.DEFAULT;
+        if (typeof mode.mode === "string") {
+            if (mode.mode === "id") return GetMode.ID;
+            if (mode.mode === "details") return GetMode.DETAILS;
+        } else if (Array.isArray(mode.mode)) {
+            const extracted_mode = mode.mode.pop();
+            if (extracted_mode === "id") return GetMode.ID;
+            if (extracted_mode === "details") return GetMode.DETAILS;
+        }
+        return GetMode.DEFAULT;
+    };
 }

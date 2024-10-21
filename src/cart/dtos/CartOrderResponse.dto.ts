@@ -1,4 +1,4 @@
-export class CartResponseDto {
+export class CartOrderResponseDto {
     id: number;
     total_amount: number;
     items: {
@@ -10,6 +10,8 @@ export class CartResponseDto {
             color_id: number;
             model_id: number;
             price: number;
+            company: string;
+            object_id: string;
         },
         amount: number;
     }[];

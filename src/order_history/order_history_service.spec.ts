@@ -17,10 +17,10 @@ describe("OrderHistoryService", () => {
                     useValue: {
                         find: jest.fn(),
                         save: jest.fn(),
-                        findOne: jest.fn(),
-                    },
-                },
-            ],
+                        findOne: jest.fn()
+                    }
+                }
+            ]
         }).compile();
 
         service = module.get<OrderHistoryService>(OrderHistoryService);
@@ -51,23 +51,23 @@ describe("OrderHistoryService", () => {
 
     describe("create", () => {
         it("should create a new order history item with valid JSON", async () => {
-            const data = { furniture: '{"item1": 1, "item2": 2}' };
+            const data = { furniture: "{\"item1\": 1, \"item2\": 2}" };
             const createdItem = new OrderHistory();
             Object.assign(createdItem, data, { id: 1 });
 
             jest.spyOn(orderHistoryRepository, "save").mockResolvedValue(createdItem);
 
-            const result = await service.create(data);
+            const result = await service.create(undefined, data);
             expect(result).toEqual(createdItem);
         });
 
         it("should reject with a JsonError if furniture is not valid JSON", async () => {
             const data = { furniture: "invalid JSON" };
 
-            await expect(service.create(data)).rejects.toEqual({
+            await expect(service.create(undefined, data)).rejects.toEqual({
                 error: "JsonError",
                 message: "Furniture is not a valid JSON object",
-                furniture: data.furniture,
+                furniture: data.furniture
             });
         });
     });
