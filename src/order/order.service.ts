@@ -1,19 +1,19 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { FindOptionsWhere, Repository } from "typeorm";
-import { OrderHistory } from "./models/order_history.entity";
+import { Order } from "./models/order.entity";
 import { User } from "../user/models/user.entity";
 import { CartOrderResponseDto } from "../cart/dtos/CartOrderResponse.dto";
 
 @Injectable()
-export class OrderHistoryService {
+export class OrderService {
     constructor(
-        @InjectRepository(OrderHistory)
-        private readonly orderHistoryRepository: Repository<OrderHistory>
+        @InjectRepository(Order)
+        private readonly orderHistoryRepository: Repository<Order>
     ) {
     }
 
-    async all(): Promise<OrderHistory[]> {
+    async all(): Promise<Order[]> {
         return this.orderHistoryRepository.find();
     }
 
@@ -21,8 +21,8 @@ export class OrderHistoryService {
         return (await this.orderHistoryRepository.find()).map((item) => item.id);
     }
 
-    async create(user: User, cart: CartOrderResponseDto): Promise<OrderHistory> {
-        const order = new OrderHistory();
+    async create(user: User, cart: CartOrderResponseDto): Promise<Order> {
+        const order = new Order();
         order.user = user;
         order.name = user.first_name + " " + user.last_name;
         order.total_amount = cart.total_amount;
@@ -43,11 +43,11 @@ export class OrderHistoryService {
         return item;
     }
 
-    async findOne(condit: FindOptionsWhere<OrderHistory>): Promise<OrderHistory> {
+    async findOne(condit: FindOptionsWhere<Order>): Promise<Order> {
         return this.orderHistoryRepository.findOne({ where: condit });
     }
 
-    async find(condit: FindOptionsWhere<OrderHistory>): Promise<OrderHistory[]> {
+    async find(condit: FindOptionsWhere<Order>): Promise<Order[]> {
         return this.orderHistoryRepository.find({ where: condit });
     }
 }

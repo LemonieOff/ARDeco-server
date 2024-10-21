@@ -1,6 +1,4 @@
-import { forwardRef, Inject, Injectable } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { PaymentsService } from "src/payments/payments.service";
+import { Injectable } from "@nestjs/common";
 import * as nodemailer from "nodemailer";
 import SMTPTransport from "nodemailer/lib/smtp-transport";
 import { loopWhile } from "deasync";
@@ -17,13 +15,6 @@ const ARDeco_sender: EmailSender = {
 
 @Injectable()
 export class MailService {
-    constructor(
-        private readonly configService: ConfigService,
-        @Inject(forwardRef(() => PaymentsService))
-        private paymentService: PaymentsService
-    ) {
-    }
-
     public sendWelcomeAndVerification(email: string, token: string) {
         const subject = "Bienvenue sur ARDeco !";
         const checkLink = "https://ardeco.app/checkEmail?token=" + token;
