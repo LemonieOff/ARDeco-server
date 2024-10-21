@@ -26,7 +26,7 @@ export class PaymentsService {
 
         this.generateHeader(pdfDoc, order);
 
-        const values = order.furniture.split(",");
+        // const values = order.furniture.split(",");
         let itemsInCart = [];
         let y = 1;
 
@@ -35,7 +35,7 @@ export class PaymentsService {
             .text("Prix", 280, 280, { width: 90, align: "right" })
             .text("Taxe %", 0, 280, { align: "right" });
 
-        for (let i = 0; i != values.length; i++) { // A pour fonction de convertir les id des meubles en json de meuble
+        /*for (let i = 0; i != values.length; i++) { // A pour fonction de convertir les id des meubles en json de meuble
             const parsedId = parseInt(values[i]);
             if (isNaN(parsedId)) {
                 console.error(`Invalid id: ${values[i]}`);
@@ -48,7 +48,7 @@ export class PaymentsService {
                 }
             }
         }
-        this.addCommandPrice(pdfDoc, order.total_taxes, y * 30 + 280, "Prix HT");
+        this.addCommandPrice(pdfDoc, order.total_taxes, y * 30 + 280, "Prix HT");*/
         this.addCommandPrice(pdfDoc, order.total_amount, y * 30 + 310, "Prix TTC");
         this.generateFooter(pdfDoc, order);
 
@@ -68,13 +68,13 @@ export class PaymentsService {
             .text(`Date de paiement: ${order.datetime.toUTCString()}`, 50, 215)
             .text(`Total: ${order.total_amount}`, 50, 130)
 
-            .text(order.name, 300, 200)
-            .text(order.delivery_adress_line_1, 300, 215)
-            .text(
-                `${order.delivery_city}, ${order.delivery_country}, ${order.delivery_postal_code} ${order.delivery_region}`,
-                300,
-                150
-            );
+            .text(order.name, 300, 200);
+        /*.text(order.delivery_adress_line_1, 300, 215)
+        .text(
+            `${order.delivery_city}, ${order.delivery_country}, ${order.delivery_postal_code} ${order.delivery_region}`,
+            300,
+            150
+        );*/
     }
 
     private async addItem(pdfDoc: PDFKit.PDFDocument, order: Order, item: Catalog, y: number) {
@@ -82,7 +82,7 @@ export class PaymentsService {
             .text(item.name, 50, y)
             .text(item.company_name, 150, y)
             .text(String(item.price), 280, y, { width: 90, align: "right" })
-            .text(order.total_taxes, 0, y, { align: "right" })
+            // .text(order.total_taxes, 0, y, { align: "right" })
             .strokeColor("#aaaaaa")
             .lineWidth(1)
             .moveTo(50, y - 13)
