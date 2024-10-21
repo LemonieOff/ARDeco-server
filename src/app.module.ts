@@ -13,7 +13,7 @@ import { MailModule } from "./mail/mail.module";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { UserSettingsModule } from "./user_settings/user_settings_module";
 import { GalleryModule } from "./gallery/gallery.module";
-import { OrderHistoryModule } from "./order_history/order_history_module";
+import { OrderHistoryModule } from "./order/order.module";
 import { TicketModule } from "./ticket/ticket.module";
 import { ArchiveModule } from "./archive/archive.module";
 import { FavoriteFurnitureModule } from "./favorite_furniture/favorite_furniture.module";

@@ -1,8 +1,8 @@
 import { Controller, Get, Param, Post, Query, Req, Res, StreamableFile } from "@nestjs/common";
-import { OrderHistoryService } from "./order_history_service";
+import { OrderService } from "./order.service";
 import { Request, Response } from "express";
 import { JwtService } from "@nestjs/jwt";
-import { OrderHistory } from "./models/order_history.entity";
+import { Order } from "./models/order.entity";
 import { User } from "../user/models/user.entity";
 import { UserService } from "../user/user.service";
 import { createReadStream } from "fs";
@@ -27,9 +27,9 @@ type QueryMode = {
 };
 
 @Controller(["order", "order_history"])
-export class OrderHistoryController {
+export class OrderController {
     constructor(
-        private orderHistoryService: OrderHistoryService,
+        private orderHistoryService: OrderService,
         private jwtService: JwtService,
         private userService: UserService,
         private cartService: CartService
@@ -208,7 +208,7 @@ export class OrderHistoryController {
         req: Request,
         res: Response,
         type: Type,
-        order: OrderHistory = null,
+        order: Order = null,
         user_id: number = null
     ) {
         const cookie = req.cookies["jwt"];

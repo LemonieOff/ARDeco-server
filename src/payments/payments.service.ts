@@ -3,11 +3,14 @@ import * as fs from "fs";
 import * as path from "path";
 import * as PDFDocument from "pdfkit";
 import { Catalog } from "src/catalog/models/catalog.entity";
-import { OrderHistory } from "../order_history/models/order_history.entity";
+import { Order } from "../order/models/order.entity";
+
+/* TODO : Take inspiration from this code to put the invoice creation in order.service.ts (and call it from controller)
+ */
 
 @Injectable()
 export class PaymentsService {
-    async createInvoice(order: OrderHistory) {
+    async createInvoice(order: Order) {
         console.log(`Creating invoice pdf for order ${order.id}`);
 
         const invoiceFileName = `invoice_${order.id}.pdf`;
@@ -52,7 +55,7 @@ export class PaymentsService {
         pdfDoc.end();
     }
 
-    private async generateHeader(pdfDoc: PDFKit.PDFDocument, order: OrderHistory) {
+    private async generateHeader(pdfDoc: PDFKit.PDFDocument, order: Order) {
         pdfDoc.image("ardeco_logo.png", 50, 45, { width: 50 })
             .fillColor("#444444")
             .fontSize(20)
@@ -74,7 +77,7 @@ export class PaymentsService {
             );
     }
 
-    private async addItem(pdfDoc: PDFKit.PDFDocument, order: OrderHistory, item: Catalog, y: number) {
+    private async addItem(pdfDoc: PDFKit.PDFDocument, order: Order, item: Catalog, y: number) {
         pdfDoc.fontSize(10)
             .text(item.name, 50, y)
             .text(item.company_name, 150, y)
@@ -100,7 +103,7 @@ export class PaymentsService {
             .moveDown();
     }
 
-    private async generateFooter(pdfDoc: PDFKit.PDFDocument, order: OrderHistory) {
+    private async generateFooter(pdfDoc: PDFKit.PDFDocument, order: Order) {
 
     }
 }

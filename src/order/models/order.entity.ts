@@ -13,8 +13,8 @@ interface OrderFurniture {
     amount: number; // price * quantity
 }
 
-@Entity("order_history")
-export class OrderHistory {
+@Entity("order")
+export class Order {
     @PrimaryGeneratedColumn()
     id: number;
 

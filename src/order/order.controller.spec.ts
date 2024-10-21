@@ -1,20 +1,18 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { StreamableFile } from "@nestjs/common";
-import { OrderHistoryController } from "./order_history_controller";
-import { OrderHistoryService } from "./order_history_service";
+import { OrderController } from "./order.controller";
+import { OrderService } from "./order.service";
 import { JwtService } from "@nestjs/jwt";
 import { UserService } from "../user/user.service";
 import { User } from "../user/models/user.entity";
-import { OrderHistory } from "./models/order_history.entity";
+import { Order } from "./models/order.entity";
 import { Request, Response } from "express";
 import { createReadStream } from "fs";
-import { Readable } from "stream";
-import mock = jest.mock;
 import * as fs from "node:fs";
 
-describe("OrderHistoryController", () => {
-    let controller: OrderHistoryController;
-    let orderHistoryService: OrderHistoryService;
+describe("OrderController", () => {
+    let controller: OrderController;
+    let orderHistoryService: OrderService;
     let userService: UserService;
     let jwtService: JwtService;
 
@@ -22,7 +20,7 @@ describe("OrderHistoryController", () => {
     mockUser.id = 1;
     mockUser.role = "client";
 
-    const mockOrder = new OrderHistory();
+    const mockOrder = new Order();
     mockOrder.id = 10;
     mockOrder.user_id = mockUser.id;
 
@@ -38,10 +36,10 @@ describe("OrderHistoryController", () => {
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
-            controllers: [OrderHistoryController],
+            controllers: [OrderController],
             providers: [
                 {
-                    provide: OrderHistoryService,
+                    provide: OrderService,
                     useValue: {
                         all: jest.fn(),
                         allIds: jest.fn(),
@@ -65,8 +63,8 @@ describe("OrderHistoryController", () => {
             ]
         }).compile();
 
-        controller = module.get<OrderHistoryController>(OrderHistoryController);
-        orderHistoryService = module.get<OrderHistoryService>(OrderHistoryService);
+        controller = module.get<OrderController>(OrderController);
+        orderHistoryService = module.get<OrderService>(OrderService);
         userService = module.get<UserService>(UserService);
         jwtService = module.get<JwtService>(JwtService);
     });
