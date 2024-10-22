@@ -120,7 +120,9 @@ export class GalleryController {
             if (!item.user.settings || !item.user.settings.display_lastname_on_public) {
                 if (item.user.last_name) item.user.last_name = "";
             }
-            delete item.user.settings;
+            if (item.user.role !== "admin") {
+                delete item.user.settings;
+            }
         });
 
         res.status(200);
