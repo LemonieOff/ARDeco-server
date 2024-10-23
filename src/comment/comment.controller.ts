@@ -320,7 +320,7 @@ export class CommentController {
             }
 
             // Check if user is the author of the comment
-            if (comment.user_id !== user.id) {
+            if (comment.user_id !== user.id && user.role !== "admin") {
                 response.status(403);
                 return {
                     code: 403,
