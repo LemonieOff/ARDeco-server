@@ -59,6 +59,7 @@ export class CatalogController {
         }
 
         const company = await this.userService.findOne({ id: data["id"] });
+        const isAdmin = company.role === "admin";
 
         if (!company) {
             res.status(403);
@@ -76,7 +77,7 @@ export class CatalogController {
             status: "OK",
             code: 200,
             description: "All filtered objects from catalog",
-            data: await this.catalogService.filter(body)
+            data: await this.catalogService.filter(body, isAdmin)
         };
     }
 
