@@ -93,24 +93,22 @@ export class GalleryService {
         user_id: number | null,
         limit: number | null,
         begin_pos: number | null,
+        isAdmin: boolean,
         relations: FindOptionsRelations<Gallery> = {},
         select: FindOptionsSelect<Gallery> = {},
         loadIds: boolean = false
     ): Promise<Gallery[]> {
         const [blocked, blocking] = await this.blockedUsersService.findByBlockedAndBlocking(fetcher_id);
 
-        let where: FindOptionsWhere<Gallery> = { visibility: true }; // Public items only
-        if (user_id) {
-            if (blocked.includes(user_id) || blocking.includes(user_id)) return [];
-            where = {
-                ...where,
-                user_id: user_id
-            };
-        } else {
-            where = {
-                ...where,
-                user_id: And(Not(In(blocked)), Not(In(blocking)))
-            };
+        let where: FindOptionsWhere<Gallery> = {};
+        if (!isAdmin) {
+            where.visibility = true; 
+            if (user_id) {
+                if (blocked.includes(user_id) || blocking.includes(user_id)) return [];
+                where.user_id = user_id;
+            } else {
+                where.user_id = And(Not(In(blocked)), Not(In(blocking)));
+            }
         }
 
         let options: FindManyOptions<Gallery> = {

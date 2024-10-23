@@ -110,6 +110,7 @@ export class GalleryController {
             user_id,
             limit,
             begin_pos,
+            fetcher.role === "admin",
             relations,
             select
         );
