@@ -75,7 +75,7 @@ export class CatalogService {
         }));
     }
 
-    async filter(query: CatalogFilterDto): Promise<CatalogResponseDto[]> {
+    async filter(query: CatalogFilterDto, isAdmin: boolean = false): Promise<CatalogResponseDto[]> {
         const where: FindOptionsWhere<Catalog> = {};
         if (query.price) {
             console.log("Price");
@@ -101,15 +101,22 @@ export class CatalogService {
         }
 
         console.log("");
-
-        const catalog = await this.catalogRepository.find({
+        let catalog: Catalog[];
+        if (!isAdmin) {
+        catalog = await this.catalogRepository.find({
             where: {
                 ...where,
                 archived: false,
                 active: true
             },
             ...selectRelations
-        });
+            });
+        } else {
+                catalog = await this.catalogRepository.find({
+                where: where,
+                ...selectRelations
+            });
+        }
 
         return catalog.map(catalog => ({
             ...catalog,
