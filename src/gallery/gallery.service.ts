@@ -102,7 +102,7 @@ export class GalleryService {
 
         let where: FindOptionsWhere<Gallery> = {};
         if (!isAdmin) {
-            where.visibility = true; 
+            where.visibility = true;
             if (user_id) {
                 if (blocked.includes(user_id) || blocking.includes(user_id)) return [];
                 where.user_id = user_id;
@@ -181,12 +181,7 @@ export class GalleryService {
         return await this.findOne({ id: id });
     }
 
-    async delete(id: number): Promise<any> {
-        return this.galleryRepository
-            .createQueryBuilder("gallery")
-            .delete()
-            .from(Gallery)
-            .where("id = id", { id: id })
-            .execute();
+    async delete(id: number) {
+        return this.galleryRepository.delete({ id: id });
     }
 }
