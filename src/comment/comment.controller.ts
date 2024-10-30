@@ -53,7 +53,7 @@ export class CommentController {
             const [user, gallery] = auth;
 
             // Users blocked by the current user
-            const blockedUsers = await this.blockedUsersService.findByBlocker(user.id);
+            const blockedUsers = await this.blockedUsersService.findByBlocker(user.id, user);
             const blockedUsersIds = blockedUsers.map(blockedUser => blockedUser.blocked_user_id);
 
             // Users blocking the current user
