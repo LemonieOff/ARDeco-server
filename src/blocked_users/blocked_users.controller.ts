@@ -58,6 +58,11 @@ export class BlockedUsersController {
         if (!(user instanceof User)) return user;
 
         try {
+            let queryUserDetails = false;
+            if (Object.keys(req.query).includes("user_details")) {
+                queryUserDetails = true;
+            }
+
             const blockedUsers = await this.blockedUsersService.findByBlocker(user_id, user);
             const blockedUserIds = blockedUsers.map((blockedUser) => blockedUser.blocked_user_id);
 
@@ -66,7 +71,7 @@ export class BlockedUsersController {
                 status: "OK",
                 code: 200,
                 description: "Blocked user retrieved successfully",
-                data: blockedUserIds
+                data: queryUserDetails ? blockedUsers : blockedUserIds
             };
         } catch (e) {
             console.error(e);
