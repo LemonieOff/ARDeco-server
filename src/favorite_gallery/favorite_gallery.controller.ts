@@ -15,7 +15,8 @@ export class FavoriteGalleryController {
         private jwtService: JwtService,
         private userService: UserService,
         private galleryService: GalleryService
-    ) {}
+    ) {
+    }
 
     @Get()
     async all(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
@@ -41,7 +42,9 @@ export class FavoriteGalleryController {
                 const gallery: Gallery = await this.galleryService.findOne({
                     id: item.gallery_id
                 }, {
-                    user: true
+                    user: {
+                        settings: true
+                    }
                 }, {
                     id: true,
                     name: true,
@@ -53,9 +56,19 @@ export class FavoriteGalleryController {
                         id: true,
                         first_name: true,
                         last_name: true,
-                        profile_picture_id: true
+                        profile_picture_id: true,
+                        settings: {
+                            display_lastname_on_public: true
+                        }
                     }
                 });
+
+                let displayName = gallery.user.settings.display_lastname_on_public;
+                if (user.role === "admin" || user.id === gallery.user.id) displayName = true; // Always display name if admin or self
+
+                if (!displayName) gallery.user.last_name = "";
+                delete gallery.user.settings;
+
                 galleryItems.push(gallery);
             }
 

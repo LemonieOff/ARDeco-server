@@ -45,13 +45,14 @@ export class GalleryService {
         where: FindOptionsWhere<Gallery>,
         relations: FindOptionsRelations<Gallery> = {},
         select: FindOptionsSelect<Gallery> = {},
-        loadIds: boolean = false
+        loadIds: boolean = false,
+        loadEager: boolean = false
     ): Promise<Gallery> {
         return this.galleryRepository.findOne({
             where: where,
             relations: relations,
             loadRelationIds: loadIds,
-            loadEagerRelations: false,
+            loadEagerRelations: loadEager,
             select: select
         });
     }
