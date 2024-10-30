@@ -1,10 +1,14 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Comment } from "./models/comment.entity";
+import { User } from "../user/models/user.entity";
+import { logObject } from "../logging/LogObject";
 
 @Injectable()
 export class CommentService {
+    private readonly logger = new Logger("CommentService");
+
     constructor(
         @InjectRepository(Comment)
         private readonly commentRepository: Repository<Comment>
@@ -19,24 +23,49 @@ export class CommentService {
         return this.commentRepository.findOne({ where: { id } });
     }
 
-    async allForGallery(gallery_id: number): Promise<Comment[]> {
+    async allForGallery(gallery_id: number, requesting_user: User | null): Promise<Comment[]> {
         const all = await this.commentRepository.find({
             where: {
                 gallery: {
                     id: gallery_id
                 }
+            },
+            relations: {
+                user: true
+            },
+            select: {
+                user: {
+                    first_name: true,
+                    last_name: true,
+                    profile_picture_id: true
+                }
             }
         });
         all.forEach(comment => {
+            let display_lastName = false;
+
+            const [first_name, last_name, picture] = [comment.user.first_name, comment.user.last_name, comment.user.profile_picture_id];
+
+            if (requesting_user) {
+                display_lastName = requesting_user.settings.display_lastname_on_public;
+                if (requesting_user.role === "admin" || requesting_user.id === comment.user_id) display_lastName = true; // Always display last name if admin or self
+            }
+
             delete comment.gallery;
             delete comment.user;
+
+            comment.user = {
+                first_name: first_name,
+                last_name: display_lastName ? last_name : "",
+                profile_picture_id: picture
+            } as User;
         });
         return all;
     }
 
     async create(data: Partial<Comment>): Promise<Partial<Comment>> {
         const comment = await this.commentRepository.save(data);
-        console.log("Create comment :", comment);
+        this.logger.debug(`Create comment : ${logObject(comment)}`);
         return {
             id: comment.id,
             comment: comment.comment,
@@ -50,7 +79,7 @@ export class CommentService {
         data.edited = true;
         data.edit_date = new Date();
         const comment = await this.commentRepository.save(data);
-        console.log("Update comment :", comment);
+        this.logger.debug(`Update comment : ${logObject(comment)}`);
         return {
             id: comment.id,
             comment: comment.comment,
@@ -63,7 +92,7 @@ export class CommentService {
     }
 
     async delete(id: number) {
-        console.log("Deleting comment ", id);
+        this.logger.debug(`Deleting comment ${id}`);
         return this.commentRepository.delete(id);
     }
 }

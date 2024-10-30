@@ -3,6 +3,7 @@ import { CreateBlockedUserDto } from "./dto/create-blocked_user.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { BlockedUser } from "./entities/blocked_user.entity";
+import { User } from "../user/models/user.entity";
 
 export type Blocked = number; // Users blocked by current user
 export type Blocking = number; // Users blocking current user
@@ -29,11 +30,32 @@ export class BlockedUsersService {
         });
     }
 
-    findByBlocker(user_id: number): Promise<BlockedUser[]> {
-        return this.blockedUsersRepository.find({
+    async findByBlocker(user_id: number, request_user: User): Promise<BlockedUser[]> {
+        const users = await this.blockedUsersRepository.find({
             where: {
                 user_id: user_id
-            }
+            },
+            relations: { blocked_user: { settings: true } },
+            select: {
+                blocked_user: {
+                    id: true,
+                    first_name: true,
+                    last_name: true,
+                    settings: {
+                        display_lastname_on_public: true
+                    }
+                }
+            },
+            loadRelationIds: false,
+            loadEagerRelations: false
+        });
+
+        return users.map(user => {
+            let displayName = user.blocked_user.settings.display_lastname_on_public;
+            if (request_user.role === "admin") displayName = true;
+            if (!displayName) user.blocked_user.last_name = "";
+            delete user.blocked_user.settings;
+            return user;
         });
     }
 

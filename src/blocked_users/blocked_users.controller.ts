@@ -1,4 +1,4 @@
-import { Controller, Get, HttpStatus, Param, Put, Req, Res } from "@nestjs/common";
+import { Controller, Get, HttpStatus, Logger, Param, Put, Req, Res } from "@nestjs/common";
 import { BlockedUsersService } from "./blocked_users.service";
 import { CreateBlockedUserDto } from "./dto/create-blocked_user.dto";
 import { User } from "../user/models/user.entity";
@@ -8,6 +8,8 @@ import { UserService } from "../user/user.service";
 
 @Controller()
 export class BlockedUsersController {
+    private readonly logger = new Logger("BlockedUsersController");
+
     constructor(
         private readonly blockedUsersService: BlockedUsersService,
         private readonly userService: UserService,
@@ -16,19 +18,27 @@ export class BlockedUsersController {
     }
 
     @Get("/blocked_users")
-    async getBlockedUsers(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    async getBlockedUsers(
+        @Req() req: Request,
+        @Res({ passthrough: true }) res: Response
+    ) {
         const user = await this.checkAuthGet(req, res);
         if (!(user instanceof User)) return user;
 
         try {
-            const blockedUsers = await this.blockedUsersService.findByBlocker(user.id);
+            let queryUserDetails = false;
+            if (Object.keys(req.query).includes("user_details")) {
+                queryUserDetails = true;
+            }
+
+            const blockedUsers = await this.blockedUsersService.findByBlocker(user.id, user);
             const blockedUserIds = blockedUsers.map((blockedUser) => blockedUser.blocked_user_id);
             res.status(200);
             return {
                 status: "OK",
                 code: 200,
                 description: "Blocked users retrieved successfully",
-                data: blockedUserIds
+                data: queryUserDetails ? blockedUsers : blockedUserIds
             };
         } catch (e) {
             console.error(e);
@@ -48,7 +58,12 @@ export class BlockedUsersController {
         if (!(user instanceof User)) return user;
 
         try {
-            const blockedUsers = await this.blockedUsersService.findByBlocker(user_id);
+            let queryUserDetails = false;
+            if (Object.keys(req.query).includes("user_details")) {
+                queryUserDetails = true;
+            }
+
+            const blockedUsers = await this.blockedUsersService.findByBlocker(user_id, user);
             const blockedUserIds = blockedUsers.map((blockedUser) => blockedUser.blocked_user_id);
 
             res.status(200);
@@ -56,7 +71,7 @@ export class BlockedUsersController {
                 status: "OK",
                 code: 200,
                 description: "Blocked user retrieved successfully",
-                data: blockedUserIds
+                data: queryUserDetails ? blockedUsers : blockedUserIds
             };
         } catch (e) {
             console.error(e);

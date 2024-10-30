@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Put, Req, Res, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Logger, Param, Put, Req, Res, UseGuards } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { Request, Response } from "express";
 import * as bcrypt from "bcryptjs";
@@ -7,9 +7,12 @@ import { JwtService } from "@nestjs/jwt";
 import { User } from "./models/user.entity";
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 import { MailService } from "../mail/mail.service";
+import { logObject } from "../logging/LogObject";
 
 @Controller("user")
 export class UserController {
+    private readonly logger: Logger = new Logger("UserController");
+
     constructor(
         private userService: UserService,
         private jwtService: JwtService,
@@ -165,10 +168,14 @@ export class UserController {
     }
 
     @Get(":id")
-    async getOne(@Param("id") id: number) {
+    async getOne(@Req() req: Request, @Res({ passthrough: true }) res: Response, @Param("id") id: number) {
+        const authorizedUser = await this.checkAuth(req, res);
+        if (!(authorizedUser instanceof User)) return authorizedUser;
+
         const requestedUser = await this.userService.findOne({ id: id });
-        console.log(requestedUser);
-        if (requestedUser === undefined || requestedUser === null) {
+        this.logger.debug(`Found user : ${id}`);
+        this.logger.verbose(logObject(requestedUser));
+        if (!requestedUser) {
             return {
                 status: "KO",
                 code: 404,
@@ -177,6 +184,10 @@ export class UserController {
                 data: null
             };
         }
+
+        let displayLastName: boolean = requestedUser.settings.display_lastname_on_public;
+        if (requestedUser.role == "admin" || requestedUser.id === authorizedUser.id) displayLastName = true; // Always display lastname if admin or self
+
         return {
             status: "OK",
             code: 200,
@@ -184,7 +195,7 @@ export class UserController {
             data: {
                 id: requestedUser.id,
                 firstname: requestedUser.first_name,
-                lastname: requestedUser.last_name,
+                lastname: displayLastName ? requestedUser.last_name : "",
                 email: requestedUser.email,
                 phone: requestedUser.phone,
                 city: requestedUser.city,
@@ -369,5 +380,41 @@ export class UserController {
                 data: null
             };
         }
+    }
+
+    async checkAuth(req: Request, res: Response): Promise<User | {
+        status: string,
+        code: number,
+        description: string,
+        data: any
+    }> {
+        const cookie = req.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+
+        // Cookie or JWT not valid
+        if (!cookie || !data) {
+            res.status(401);
+            return {
+                status: "KO",
+                code: 401,
+                description:
+                    "You have to login to access this resource",
+                data: null
+            };
+        }
+
+        const user = await this.userService.findOne({ id: data["id"] });
+
+        if (!user) {
+            res.status(403);
+            return {
+                status: "KO",
+                code: 403,
+                description: "You are not allowed to access this resource",
+                data: null
+            };
+        }
+
+        return user;
     }
 }

@@ -9,7 +9,7 @@ import { AllExceptionsFilter, exceptionFactory } from "./exception_filters/all-e
 
 async function bootstrap() {
     const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-        logger: ["error", "warn", "debug", "log", "verbose"]
+        logger: ["fatal", "error", "warn", "log", "debug", "verbose"]
     });
     const httpAdapter = app.get(HttpAdapterHost);
     app.useGlobalFilters(new AllExceptionsFilter(httpAdapter));
