@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Req, Res } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Logger, Param, Post, Put, Req, Res } from "@nestjs/common";
 import { CommentService } from "./comment.service";
 import { Request, Response } from "express";
 import { Comment } from "./models/comment.entity";
@@ -9,8 +9,10 @@ import { GalleryService } from "../gallery/gallery.service";
 import { Gallery } from "../gallery/models/gallery.entity";
 import { BlockedUsersService } from "../blocked_users/blocked_users.service";
 
-@Controller("")
+@Controller()
 export class CommentController {
+    private readonly logger = new Logger("CommentController");
+
     constructor(
         private commentService: CommentService,
         private jwtService: JwtService,
@@ -59,7 +61,7 @@ export class CommentController {
             const blockerUsersIds = blockerUsers.map(blockerUser => blockerUser.user_id);
 
             // Filter comments to remove unwanted comments (from blocked users and blocking users)
-            const comments = await this.commentService.allForGallery(gallery.id);
+            const comments = await this.commentService.allForGallery(gallery.id, user);
             const filteredComments = comments.filter(comment => {
                 return !blockedUsersIds.includes(comment.user_id) && !blockerUsersIds.includes(comment.user_id);
             });
