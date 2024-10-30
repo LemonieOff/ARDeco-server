@@ -92,15 +92,12 @@ export class FavoriteGalleryController {
         }
     }
 
-    @Post("/:gallery_id")
-    async post(
+    @Get(":gallery_id")
+    async isFavorite(
         @Req() req: Request,
-        @Param("gallery_id") gallery_id: number,
-        @Res({ passthrough: true }) res: Response
+        @Res({ passthrough: true }) res: Response,
+        @Param("gallery_id") gallery_id: number
     ) {
-        const user = await this.checkAuthorization(req, res);
-        if (!(user instanceof User)) return user;
-
         if (isNaN(gallery_id)) {
             res.status(400);
             return {
@@ -110,6 +107,38 @@ export class FavoriteGalleryController {
                 data: null
             };
         }
+
+        const user = await this.checkAuthorization(req, res);
+        if (!(user instanceof User)) return user;
+
+        const favoriteGallery = await this.favGalleryService.findOne({ gallery_id: gallery_id, user_id: user.id });
+
+        return {
+            status: "OK",
+            code: 200,
+            description: "Gallery favorite status",
+            data: !(!favoriteGallery)
+        };
+    }
+
+    @Post("/:gallery_id")
+    async post(
+        @Req() req: Request,
+        @Param("gallery_id") gallery_id: number,
+        @Res({ passthrough: true }) res: Response
+    ) {
+        if (isNaN(gallery_id)) {
+            res.status(400);
+            return {
+                status: "KO",
+                code: 400,
+                description: "Gallery id is not a number",
+                data: null
+            };
+        }
+
+        const user = await this.checkAuthorization(req, res);
+        if (!(user instanceof User)) return user;
 
         const gallery = await this.galleryService.findOne({ id: gallery_id });
         if (!gallery) {

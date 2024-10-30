@@ -84,6 +84,38 @@ export class FavoriteFurnitureController {
         }
     }
 
+    @Get(":furniture_id")
+    async isFavorite(
+        @Req() req: Request,
+        @Res({ passthrough: true }) res: Response,
+        @Param("furniture_id") furniture_id: number
+    ) {
+        if (isNaN(furniture_id)) {
+            res.status(400);
+            return {
+                status: "KO",
+                code: 400,
+                description: "Gallery id is not a number",
+                data: null
+            };
+        }
+
+        const user = await this.checkAuthorization(req, res);
+        if (!(user instanceof User)) return user;
+
+        const favoriteFurniture = await this.favFurnitureService.findOne({
+            furniture_id: furniture_id,
+            user_id: user.id
+        });
+
+        return {
+            status: "OK",
+            code: 200,
+            description: "Furniture favorite status",
+            data: !(!favoriteFurniture)
+        };
+    }
+
     @Post("/:furniture_id")
     async post(
         @Req() req: Request,
