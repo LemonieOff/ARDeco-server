@@ -1,5 +1,5 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
+import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
 import {
     And,
     FindOptionsRelations,
@@ -14,7 +14,7 @@ import { GalleryService } from "./gallery.service";
 import { Gallery } from "./models/gallery.entity";
 import { BlockedUsersService } from "../blocked_users/blocked_users.service";
 
-describe('GalleryService', () => {
+describe("GalleryService", () => {
     let galleryService: GalleryService;
     let galleryRepository: Repository<Gallery>;
     let blockedUserService: BlockedUsersService;
@@ -35,21 +35,21 @@ describe('GalleryService', () => {
                             delete: jest.fn().mockReturnValue({
                                 from: jest.fn().mockReturnValue({
                                     where: jest.fn().mockReturnValue({
-                                        execute: jest.fn(),
-                                    }),
-                                }),
-                            }),
-                        }),
-                    },
+                                        execute: jest.fn()
+                                    })
+                                })
+                            })
+                        })
+                    }
                 },
                 {
                     provide: BlockedUsersService,
                     useValue: {
                         checkBlockedForBlocker: jest.fn(),
-                        findByBlockedAndBlocking: jest.fn(),
+                        findByBlockedAndBlocking: jest.fn()
                     }
                 }
-            ],
+            ]
         }).compile();
 
         galleryService = module.get<GalleryService>(GalleryService);
@@ -57,23 +57,24 @@ describe('GalleryService', () => {
         blockedUserService = module.get<BlockedUsersService>(BlockedUsersService);
     });
 
-    it('should be defined', () => {
+    it("should be defined", () => {
         expect(galleryService).toBeDefined();
     });
 
     describe("create", () => {
-        it('should create a new gallery', async () => {
+        it("should create a new gallery", async () => {
             const model_data = JSON.stringify([
                 {
-                    "id":0,
-                    "model_id":0,
-                    "position_x":140.46806498840633,
-                    "position_y":10.571208305193373,
-                    "position_z":-70.9366789464873
+                    "id": 0,
+                    "model_id": 0,
+                    "position_x": 140.46806498840633,
+                    "position_y": 10.571208305193373,
+                    "position_z": -70.9366789464873
                 }
             ]);
             const data: Gallery = { model_data: model_data } as any;
             const expectedGallery: Gallery = {
+                favorites: [], likes: [],
                 galleryReports: [],
                 user: undefined,
                 id: 1,
@@ -86,16 +87,20 @@ describe('GalleryService', () => {
                 comments: [],
                 style: ""
             };
-            jest.spyOn(galleryRepository, 'save').mockResolvedValueOnce(expectedGallery);
+            jest.spyOn(galleryRepository, "save").mockResolvedValueOnce(expectedGallery);
             const result = await galleryService.create(data);
             expect(result).toEqual(expectedGallery);
         });
 
         it("should return error if furniture is not JSON", async () => {
-            const data: Gallery = { model_data: '{"", "", ""}' } as any;
-            jest.spyOn(console, 'log').mockImplementationOnce(() => { throw new Error() }); // TODO : TEMPORARY while create is not checking JSON
+            const data: Gallery = { model_data: "{\"\", \"\", \"\"}" } as any;
+            jest.spyOn(console, "log").mockImplementationOnce(() => {
+                throw new Error();
+            }); // TODO : TEMPORARY while create is not checking JSON
             expect.assertions(1);
-            return galleryService.create(data).catch(err => {expect(true).toEqual(true)});
+            return galleryService.create(data).catch(err => {
+                expect(true).toEqual(true);
+            });
         });
     });
 
@@ -104,6 +109,7 @@ describe('GalleryService', () => {
             const where: FindOptionsWhere<Gallery> = { id: 1 };
             const relations: FindOptionsRelations<Gallery> = {};
             const expectedGallery: Gallery = {
+                favorites: [], likes: [],
                 galleryReports: [],
                 user: undefined,
                 id: 1,
@@ -116,7 +122,7 @@ describe('GalleryService', () => {
                 comments: [],
                 style: ""
             };
-            jest.spyOn(galleryRepository, 'findOne').mockResolvedValueOnce(expectedGallery);
+            jest.spyOn(galleryRepository, "findOne").mockResolvedValueOnce(expectedGallery);
             const result = await galleryService.findOne(where, relations);
             expect(result).toEqual(expectedGallery);
         });
@@ -124,6 +130,7 @@ describe('GalleryService', () => {
         it("should return an existing gallery without relations", async () => {
             const where: FindOptionsWhere<Gallery> = { id: 1 };
             const expectedGallery: Gallery = {
+                favorites: [], likes: [],
                 galleryReports: [],
                 user: undefined,
                 id: 1,
@@ -136,7 +143,7 @@ describe('GalleryService', () => {
                 comments: [],
                 style: ""
             };
-            jest.spyOn(galleryRepository, 'findOne').mockResolvedValueOnce(expectedGallery);
+            jest.spyOn(galleryRepository, "findOne").mockResolvedValueOnce(expectedGallery);
             const result = await galleryService.findOne(where);
             expect(result).toEqual(expectedGallery);
         });
@@ -160,7 +167,9 @@ describe('GalleryService', () => {
                     description: "This is a beautiful living room",
                     room: "Living Room",
                     comments: [],
-                    style: ""
+                    style: "",
+                    likes: [],
+                    favorites: []
                 },
                 {
                     galleryReports: [],
@@ -173,12 +182,14 @@ describe('GalleryService', () => {
                     description: "This is a cozy bedroom",
                     room: "Bedroom",
                     comments: [],
-                    style: ""
+                    style: "",
+                    likes: [],
+                    favorites: []
                 }
             ];
             jest.spyOn(blockedUserService, "findByBlockedAndBlocking").mockResolvedValueOnce([[], []]);
-            jest.spyOn(galleryRepository, 'find').mockResolvedValueOnce(expectedGalleries);
-            const result = await galleryService.findAll(4, user_id, limit, begin_pos, relationOptions);
+            jest.spyOn(galleryRepository, "find").mockResolvedValueOnce(expectedGalleries);
+            const result = await galleryService.findAll(4, user_id, limit, begin_pos, false, relationOptions);
             expect(result).toEqual(expectedGalleries);
         });
 
@@ -195,7 +206,9 @@ describe('GalleryService', () => {
                     description: "This is a beautiful living room",
                     room: "Living Room",
                     comments: [],
-                    style: ""
+                    style: "",
+                    likes: [],
+                    favorites: []
                 },
                 {
                     galleryReports: [],
@@ -208,38 +221,40 @@ describe('GalleryService', () => {
                     description: "This is a cozy bedroom",
                     room: "Bedroom",
                     comments: [],
-                    style: ""
+                    style: "",
+                    likes: [],
+                    favorites: []
                 }
             ];
-            jest.spyOn(blockedUserService, 'findByBlockedAndBlocking').mockResolvedValueOnce([[], []]);
-            jest.spyOn(galleryRepository, 'find').mockResolvedValueOnce(expectedGalleries);
-            const result = await galleryService.findAll(4, null, null, null);
+            jest.spyOn(blockedUserService, "findByBlockedAndBlocking").mockResolvedValueOnce([[], []]);
+            jest.spyOn(galleryRepository, "find").mockResolvedValueOnce(expectedGalleries);
+            const result = await galleryService.findAll(4, null, null, null, false);
             expect(result).toEqual(expectedGalleries);
         });
 
-        it('should return an empty array if the fetcher_id is blocked by the user_id', async () => {
+        it("should return an empty array if the fetcher_id is blocked by the user_id", async () => {
             const fetcherId = 1;
             const userId = 2;
             const relations: FindOptionsRelations<Gallery> = {};
             const select: FindOptionsSelect<Gallery> = {};
 
-            jest.spyOn(blockedUserService, 'findByBlockedAndBlocking').mockResolvedValueOnce([[userId], []]);
+            jest.spyOn(blockedUserService, "findByBlockedAndBlocking").mockResolvedValueOnce([[userId], []]);
 
-            const result = await galleryService.findAll(fetcherId, userId, null, null, relations, select);
+            const result = await galleryService.findAll(fetcherId, userId, null, null, false, relations, select);
 
             expect(galleryRepository.find).not.toHaveBeenCalled();
             expect(result).toEqual([]);
         });
 
-        it('should return an empty array if the fetcher_id is blocking the user_id', async () => {
+        it("should return an empty array if the fetcher_id is blocking the user_id", async () => {
             const fetcherId = 1;
             const userId = 2;
             const relations: FindOptionsRelations<Gallery> = {};
             const select: FindOptionsSelect<Gallery> = {};
 
-            jest.spyOn(blockedUserService, 'findByBlockedAndBlocking').mockResolvedValueOnce([[], [userId]]);
+            jest.spyOn(blockedUserService, "findByBlockedAndBlocking").mockResolvedValueOnce([[], [userId]]);
 
-            const result = await galleryService.findAll(fetcherId, userId, null, null, relations, select);
+            const result = await galleryService.findAll(fetcherId, userId, null, null, false, relations, select);
 
             expect(galleryRepository.find).not.toHaveBeenCalled();
             expect(result).toEqual([]);
@@ -260,7 +275,9 @@ describe('GalleryService', () => {
                     description: "This is a beautiful living room",
                     room: "Living Room",
                     comments: [],
-                    style: ""
+                    style: "",
+                    likes: [],
+                    favorites: []
                 },
                 {
                     galleryReports: [],
@@ -273,10 +290,12 @@ describe('GalleryService', () => {
                     description: "This is a cozy bedroom",
                     room: "Bedroom",
                     comments: [],
-                    style: ""
+                    style: "",
+                    likes: [],
+                    favorites: []
                 }
             ];
-            jest.spyOn(galleryRepository, 'find').mockResolvedValueOnce(expectedGalleries);
+            jest.spyOn(galleryRepository, "find").mockResolvedValueOnce(expectedGalleries);
             const result = await galleryService.findForUser(4, true);
             expect(result).toEqual(expectedGalleries);
         });
@@ -294,7 +313,9 @@ describe('GalleryService', () => {
                     description: "This is a beautiful living room",
                     room: "Living Room",
                     comments: [],
-                    style: ""
+                    style: "",
+                    likes: [],
+                    favorites: []
                 },
                 {
                     galleryReports: [],
@@ -307,10 +328,12 @@ describe('GalleryService', () => {
                     description: "This is a cozy bedroom",
                     room: "Bedroom",
                     comments: [],
-                    style: ""
+                    style: "",
+                    likes: [],
+                    favorites: []
                 }
             ];
-            jest.spyOn(galleryRepository, 'find').mockResolvedValueOnce(expectedGalleries);
+            jest.spyOn(galleryRepository, "find").mockResolvedValueOnce(expectedGalleries);
             const result = await galleryService.findForUser(4, false);
             expect(result).toEqual(expectedGalleries);
         });
@@ -319,6 +342,7 @@ describe('GalleryService', () => {
     describe("update", () => {
         it("should update a gallery", async () => {
             const gallery: Gallery = {
+                favorites: [], likes: [],
                 description: "",
                 model_data: "",
                 galleryReports: [],
@@ -330,8 +354,8 @@ describe('GalleryService', () => {
                 visibility: false,
                 comments: [],
                 style: ""
-            }
-            jest.spyOn(galleryRepository, "update").mockResolvedValue({affected: 1} as UpdateResult);
+            };
+            jest.spyOn(galleryRepository, "update").mockResolvedValue({ affected: 1 } as UpdateResult);
             jest.spyOn(galleryRepository, "findOne").mockResolvedValue(gallery);
             const result = await galleryService.update(1, gallery);
             expect(result).toBeDefined();
@@ -355,15 +379,15 @@ describe('GalleryService', () => {
         });
     });
 
-    describe('findOneById', () => {
-        it('should find a gallery by its ID with provided relations and select', async () => {
+    describe("findOneById", () => {
+        it("should find a gallery by its ID with provided relations and select", async () => {
             const id = 1;
             const relations: FindOptionsRelations<Gallery> = { comments: true };
             const select: FindOptionsSelect<Gallery> = { id: true, name: true };
-            const expectedGallery: Gallery = { id: 1, name: 'Test Gallery' } as Gallery;
+            const expectedGallery: Gallery = { id: 1, name: "Test Gallery" } as Gallery;
 
             // Mock the findOne method to return the expected gallery
-            jest.spyOn(galleryService, 'findOne').mockResolvedValueOnce(expectedGallery);
+            jest.spyOn(galleryService, "findOne").mockResolvedValueOnce(expectedGallery);
 
             const result = await galleryService.findOneById(id, relations, select);
 
@@ -374,13 +398,13 @@ describe('GalleryService', () => {
             expect(result).toEqual(expectedGallery);
         });
 
-        it('should find a gallery by its ID with default select when select is not provided', async () => {
+        it("should find a gallery by its ID with default select when select is not provided", async () => {
             const id = 1;
             const relations: FindOptionsRelations<Gallery> = { comments: true };
-            const expectedGallery: Gallery = { id: 1, name: 'Test Gallery' } as Gallery;
+            const expectedGallery: Gallery = { id: 1, name: "Test Gallery" } as Gallery;
 
             // Mock the findOne method to return the expected gallery
-            jest.spyOn(galleryService, 'findOne').mockResolvedValueOnce(expectedGallery);
+            jest.spyOn(galleryService, "findOne").mockResolvedValueOnce(expectedGallery);
 
             const result = await galleryService.findOneById(id, relations);
 
@@ -392,13 +416,14 @@ describe('GalleryService', () => {
         });
     });
 
-    describe('findOneRestricted', () => {
-        it('should return a public gallery not blocked by or blocking the fetcher', async () => {
+    describe("findOneRestricted", () => {
+        it("should return a public gallery not blocked by or blocking the fetcher", async () => {
             const fetcherId = 1;
             const galleryId = 1;
             const relations: FindOptionsRelations<Gallery> = {};
             const select: FindOptionsSelect<Gallery> = {};
             const expectedGallery: Gallery = {
+                favorites: [], likes: [],
                 id: galleryId,
                 user_id: 2, // Different user
                 visibility: true,
@@ -412,8 +437,8 @@ describe('GalleryService', () => {
                 style: ""
             };
 
-            const findBlocked = jest.spyOn(blockedUserService, 'findByBlockedAndBlocking').mockResolvedValueOnce([[], []]);
-            jest.spyOn(galleryRepository, 'findOne').mockResolvedValueOnce(expectedGallery);
+            const findBlocked = jest.spyOn(blockedUserService, "findByBlockedAndBlocking").mockResolvedValueOnce([[], []]);
+            jest.spyOn(galleryRepository, "findOne").mockResolvedValueOnce(expectedGallery);
 
             const result = await galleryService.findOneRestricted(fetcherId, galleryId, relations, select);
 
@@ -432,19 +457,47 @@ describe('GalleryService', () => {
             expect(result).toEqual(expectedGallery);
         });
 
-        it('should return null if the gallery is private', async () => {
+        it("should return null if the gallery is private", async () => {
             const fetcherId = 1;
             const galleryId = 1;
 
-            jest.spyOn(blockedUserService, 'findByBlockedAndBlocking').mockResolvedValueOnce([[], []]);
-            jest.spyOn(galleryRepository, 'findOne').mockResolvedValueOnce(null);
+            jest.spyOn(blockedUserService, "findByBlockedAndBlocking").mockResolvedValueOnce([[], []]);
+            jest.spyOn(galleryRepository, "findOne").mockResolvedValueOnce(null);
 
             const result = await galleryService.findOneRestricted(fetcherId, galleryId);
 
             expect(result).toBeNull();
         });
 
-        it('should return null if the fetcher is blocking the gallery owner', async () => {
+        it("should return null if the fetcher is blocking the gallery owner", async () => {
+            const fetcherId = 1;
+            const galleryId = 1;
+            const relations: FindOptionsRelations<Gallery> = {};
+            const select: FindOptionsSelect<Gallery> = {};
+            const gallery: Gallery = {
+                favorites: [], likes: [],
+                id: galleryId,
+                user_id: 2,
+                visibility: true,
+                model_data: "{}",
+                name: "Living Room",
+                description: "This is a beautiful living room",
+                room: "Living Room",
+                comments: [],
+                galleryReports: [],
+                user: undefined,
+                style: ""
+            };
+
+            jest.spyOn(blockedUserService, "findByBlockedAndBlocking").mockResolvedValueOnce([[gallery.user_id], []]);
+            jest.spyOn(galleryRepository, "findOne").mockResolvedValueOnce(null);
+
+            const result = await galleryService.findOneRestricted(fetcherId, galleryId, relations, select);
+
+            expect(result).toBeNull();
+        });
+
+        it("should return null if the fetcher is blocked by the gallery owner", async () => {
             const fetcherId = 1;
             const galleryId = 1;
             const relations: FindOptionsRelations<Gallery> = {};
@@ -460,52 +513,27 @@ describe('GalleryService', () => {
                 comments: [],
                 galleryReports: [],
                 user: undefined,
-                style: ""
+                style: "",
+                likes: [],
+                favorites: []
             };
 
-            jest.spyOn(blockedUserService, 'findByBlockedAndBlocking').mockResolvedValueOnce([[gallery.user_id], []]);
-            jest.spyOn(galleryRepository, 'findOne').mockResolvedValueOnce(null);
+            jest.spyOn(blockedUserService, "findByBlockedAndBlocking").mockResolvedValueOnce([[], [gallery.user_id]]);
+            jest.spyOn(galleryRepository, "findOne").mockResolvedValueOnce(null);
 
             const result = await galleryService.findOneRestricted(fetcherId, galleryId, relations, select);
 
             expect(result).toBeNull();
         });
 
-        it('should return null if the fetcher is blocked by the gallery owner', async () => {
-            const fetcherId = 1;
-            const galleryId = 1;
-            const relations: FindOptionsRelations<Gallery> = {};
-            const select: FindOptionsSelect<Gallery> = {};
-            const gallery: Gallery = {
-                id: galleryId,
-                user_id: 2,
-                visibility: true,
-                model_data: "{}",
-                name: "Living Room",
-                description: "This is a beautiful living room",
-                room: "Living Room",
-                comments: [],
-                galleryReports: [],
-                user: undefined,
-                style: ""
-            };
-
-            jest.spyOn(blockedUserService, 'findByBlockedAndBlocking').mockResolvedValueOnce([[], [gallery.user_id]]);
-            jest.spyOn(galleryRepository, 'findOne').mockResolvedValueOnce(null);
-
-            const result = await galleryService.findOneRestricted(fetcherId, galleryId, relations, select);
-
-            expect(result).toBeNull();
-        });
-
-        it('should return null if the gallery is not found', async () => {
+        it("should return null if the gallery is not found", async () => {
             const fetcherId = 1;
             const galleryId = 1;
             const relations: FindOptionsRelations<Gallery> = {};
             const select: FindOptionsSelect<Gallery> = {};
 
-            jest.spyOn(blockedUserService, 'findByBlockedAndBlocking').mockResolvedValueOnce([[], []]);
-            jest.spyOn(galleryRepository, 'findOne').mockResolvedValueOnce(null);
+            jest.spyOn(blockedUserService, "findByBlockedAndBlocking").mockResolvedValueOnce([[], []]);
+            jest.spyOn(galleryRepository, "findOne").mockResolvedValueOnce(null);
 
             const result = await galleryService.findOneRestricted(fetcherId, galleryId, relations, select);
 

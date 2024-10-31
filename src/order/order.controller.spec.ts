@@ -381,7 +381,7 @@ describe("OrderController", () => {
     describe("post", () => {
         it("should return 401 if user is not connected", async () => {
             const req = { cookies: {} } as Request;
-            const result = await controller.post(req, {}, mockResponse);
+            const result = await controller.post(req, mockResponse);
             expect(mockResponse.status).toHaveBeenCalledWith(401);
             expect(result).toEqual({
                 status: "KO",
@@ -393,7 +393,7 @@ describe("OrderController", () => {
 
         it("should return 403 if user is not found", async () => {
             jest.spyOn(userService, "findOne").mockResolvedValueOnce(null);
-            const result = await controller.post(mockRequest, {}, mockResponse);
+            const result = await controller.post(mockRequest, mockResponse);
             expect(mockResponse.status).toHaveBeenCalledWith(403);
             expect(result).toEqual({
                 status: "KO",
@@ -406,7 +406,7 @@ describe("OrderController", () => {
         it("should create a new order history item and return 201", async () => {
             const createdOrder = { ...mockOrder, id: 11 };
             jest.spyOn(orderHistoryService, "create").mockResolvedValueOnce(createdOrder as any);
-            const result = await controller.post(mockRequest, { furniture: "{}" }, mockResponse);
+            const result = await controller.post(mockRequest, mockResponse);
             expect(mockResponse.status).toHaveBeenCalledWith(201);
             expect(result).toEqual({
                 status: "OK",
@@ -418,7 +418,7 @@ describe("OrderController", () => {
 
         it("should return 400 if there's an error creating the order", async () => {
             jest.spyOn(orderHistoryService, "create").mockRejectedValueOnce(new Error("Database error"));
-            const result = await controller.post(mockRequest, { furniture: "{}" }, mockResponse);
+            const result = await controller.post(mockRequest, mockResponse);
             expect(mockResponse.status).toHaveBeenCalledWith(400);
             expect(result).toEqual({
                 status: "KO",

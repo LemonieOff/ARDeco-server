@@ -4,6 +4,7 @@ import { Repository } from "typeorm";
 import { BlockedUser } from "./entities/blocked_user.entity";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import { CreateBlockedUserDto } from "./dto/create-blocked_user.dto";
+import { User } from "../user/models/user.entity";
 
 describe("BlockedUsersService", () => {
     let blockedUsersService: BlockedUsersService;
@@ -42,7 +43,9 @@ describe("BlockedUsersService", () => {
             const blockedUser: BlockedUser = {
                 id: 1,
                 user_id: 1,
-                blocked_user_id: 5
+                blocked_user_id: 5,
+                user: new User,
+                blocked_user: new User
             };
             jest.spyOn(blockedUserRepository, "save").mockReturnValue(blockedUser as any);
             const result = await blockedUsersService.create(createBlockedUserDto);
@@ -56,16 +59,20 @@ describe("BlockedUsersService", () => {
                 {
                     id: 1,
                     user_id: 1,
-                    blocked_user_id: 2
+                    blocked_user_id: 2,
+                    user: new User,
+                    blocked_user: new User
                 },
                 {
                     id: 1,
                     user_id: 1,
-                    blocked_user_id: 3
+                    blocked_user_id: 3,
+                    user: new User,
+                    blocked_user: new User
                 }
             ];
             jest.spyOn(blockedUserRepository, "find").mockResolvedValue(blockedUsers);
-            const result = await blockedUsersService.findByBlocker(1);
+            const result = await blockedUsersService.findByBlocker(1, new User);
             expect(result).toMatchObject(blockedUsers);
         });
     });
@@ -75,7 +82,9 @@ describe("BlockedUsersService", () => {
             const blockedUser: BlockedUser = {
                 id: 1,
                 user_id: 1,
-                blocked_user_id: 2
+                blocked_user_id: 2,
+                user: new User,
+                blocked_user: new User
             };
             jest.spyOn(blockedUserRepository, "findOne").mockResolvedValue(blockedUser);
             const result = await blockedUsersService.findOne(1, 2);
@@ -88,7 +97,9 @@ describe("BlockedUsersService", () => {
             const blockedUser: BlockedUser = {
                 id: 1,
                 user_id: 1,
-                blocked_user_id: 2
+                blocked_user_id: 2,
+                user: new User,
+                blocked_user: new User
             };
             jest.spyOn(blockedUserRepository, "delete").mockResolvedValue({ affected: 1 } as any);
             const result = await blockedUsersService.remove(1, 2);

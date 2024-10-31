@@ -65,9 +65,13 @@ describe("UserService", () => {
                     checkEmailSent: undefined,
                     hasCheckedEmail: false,
                     galleryComments: [],
-                    cart_id: 0,
                     feedbacks: [],
-                    settings: {} as UserSettings
+                    settings: {} as UserSettings,
+                    galleryLikes: [],
+                    blocking: [],
+                    blocked_by: [],
+                    favorite_galleries: [],
+                    favorite_furniture: []
                 }
             ];
             jest.spyOn(userRepository, "find").mockResolvedValue(users);
@@ -78,7 +82,7 @@ describe("UserService", () => {
     describe("create", () => {
         it("should create a new user", async () => {
             const user: User = {
-                cart_id: 0,
+                blocked_by: [], blocking: [], favorite_furniture: [], favorite_galleries: [], galleryLikes: [],
                 feedbacks: [],
                 settings: undefined,
                 city: "",
@@ -108,7 +112,7 @@ describe("UserService", () => {
     describe("findOne", () => {
         it("should return a user by email", async () => {
             const user: User = {
-                cart_id: 0,
+                blocked_by: [], blocking: [], favorite_furniture: [], favorite_galleries: [], galleryLikes: [],
                 feedbacks: [],
                 settings: undefined,
                 city: "",
@@ -138,7 +142,7 @@ describe("UserService", () => {
     describe("findById", () => {
         it("should return a user by id", async () => {
             const user: User = {
-                cart_id: 0,
+                blocked_by: [], blocking: [], favorite_furniture: [], favorite_galleries: [], galleryLikes: [],
                 feedbacks: [],
                 settings: undefined,
                 city: "",
@@ -168,7 +172,7 @@ describe("UserService", () => {
     describe("update", () => {
         it("should update a user", async () => {
             const user: User = {
-                cart_id: 0,
+                blocked_by: [], blocking: [], favorite_furniture: [], favorite_galleries: [], galleryLikes: [],
                 feedbacks: [],
                 settings: undefined,
                 city: "",
@@ -190,7 +194,7 @@ describe("UserService", () => {
                 hasCheckedEmail: false,
                 galleryComments: []
             };
-            jest.spyOn(userRepository, "update").mockResolvedValue({affected: 1} as UpdateResult);
+            jest.spyOn(userRepository, "update").mockResolvedValue({ affected: 1 } as UpdateResult);
             const result = await userService.update(1, user);
             expect(result).toBeDefined();
             expect(result.affected).toBeDefined();

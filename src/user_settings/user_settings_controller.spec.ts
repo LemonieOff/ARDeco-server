@@ -248,11 +248,15 @@ describe("UserSettingsController", () => {
         });
 
         it("should create user settings and return 201", async () => {
-            const settingsToCreate: any = { ...mockUserSettings, user: { id: 1 }, dark_mode: true };
+            const settingsToCreate: any = {
+                ...mockUserSettings,
+                user: { id: 1 },
+                display_lastname_on_public_profile: true
+            };
             jest.spyOn(userSettingsService, "findOne").mockResolvedValueOnce(null);
             jest.spyOn(userSettingsService, "create").mockResolvedValue(settingsToCreate);
             const dto = new UserSettingsDto();
-            dto.dark_mode = true;
+            dto.display_lastname_on_public_profile = true;
             const result = await controller.post(mockRequest, dto, mockResponse);
             expect(mockResponse.status).toHaveBeenCalledWith(201);
             expect(result).toEqual({
@@ -267,7 +271,7 @@ describe("UserSettingsController", () => {
             jest.spyOn(userSettingsService, "findOne").mockResolvedValueOnce(null);
             jest.spyOn(userSettingsService, "create").mockRejectedValue(new Error("Database error"));
             const dto = new UserSettingsDto();
-            dto.dark_mode = true;
+            dto.display_lastname_on_public_profile = true;
             const result = await controller.post(mockRequest, dto, mockResponse);
             expect(mockResponse.status).toHaveBeenCalledWith(400);
             expect(result).toEqual({
@@ -366,7 +370,7 @@ describe("UserSettingsController", () => {
 
     describe("editViaParam", () => {
         it("should return 200 and the updated user settings", async () => {
-            const updatedSettings = { ...mockUserSettings, dark_mode: true };
+            const updatedSettings = { ...mockUserSettings, display_lastname_on_public_profile: true };
             jest.spyOn(userSettingsService, "findOne")
                 .mockResolvedValueOnce({ ...mockUserSettings, user: { id: 1, role: "client" } } as any)
                 .mockResolvedValueOnce(updatedSettings as any);
@@ -374,7 +378,11 @@ describe("UserSettingsController", () => {
             const result = await controller.editViaParam(
                 mockRequest,
                 10,
-                { dark_mode: true },
+                {
+                    automatic_new_gallery_share: false,
+                    display_email_on_public_profile: false,
+                    display_lastname_on_public_profile: true
+                },
                 mockResponse
             );
             expect(mockResponse.status).toHaveBeenCalledWith(200);
@@ -396,7 +404,11 @@ describe("UserSettingsController", () => {
             const result = await controller.editViaParam(
                 mockRequest,
                 10,
-                { dark_mode: true },
+                {
+                    automatic_new_gallery_share: false,
+                    display_email_on_public_profile: false,
+                    display_lastname_on_public_profile: true
+                },
                 mockResponse
             );
             expect(mockResponse.status).toHaveBeenCalledWith(400);
@@ -413,7 +425,11 @@ describe("UserSettingsController", () => {
     describe("editOwnSettings", () => {
         it("should return 401 if user is not connected", async () => {
             const req = { cookies: {} } as Request;
-            const result = await controller.editOwnSettings(req, { dark_mode: true }, mockResponse);
+            const result = await controller.editOwnSettings(req, {
+                automatic_new_gallery_share: false,
+                display_email_on_public_profile: false,
+                display_lastname_on_public_profile: true
+            }, mockResponse);
             expect(mockResponse.status).toHaveBeenCalledWith(401);
             expect(result).toEqual({
                 status: "KO",
@@ -425,7 +441,11 @@ describe("UserSettingsController", () => {
 
         it("should return 403 if user is not found", async () => {
             jest.spyOn(userService, "findOne").mockResolvedValueOnce(null);
-            const result = await controller.editOwnSettings(mockRequest, { dark_mode: true }, mockResponse);
+            const result = await controller.editOwnSettings(mockRequest, {
+                automatic_new_gallery_share: false,
+                display_email_on_public_profile: false,
+                display_lastname_on_public_profile: true
+            }, mockResponse);
             expect(mockResponse.status).toHaveBeenCalledWith(403);
             expect(result).toEqual({
                 status: "KO",
@@ -438,7 +458,11 @@ describe("UserSettingsController", () => {
         it("should return 404 if user has no existing settings", async () => {
             const select = { id: true, user: { id: true } };
             jest.spyOn(userSettingsService, "findOne").mockResolvedValueOnce(null);
-            const result = await controller.editOwnSettings(mockRequest, { dark_mode: true }, mockResponse);
+            const result = await controller.editOwnSettings(mockRequest, {
+                automatic_new_gallery_share: false,
+                display_email_on_public_profile: false,
+                display_lastname_on_public_profile: true
+            }, mockResponse);
             expect(mockResponse.status).toHaveBeenCalledWith(404);
             expect(result).toEqual({
                 status: "KO",
@@ -460,8 +484,12 @@ describe("UserSettingsController", () => {
                 description: "User settings was updated",
                 data: {}
             });
-            await controller.editOwnSettings(mockRequest, { dark_mode: true }, mockResponse);
-            expect(controller.editItem).toHaveBeenCalledWith(mockRequest, 10, { dark_mode: true }, mockResponse);
+            await controller.editOwnSettings(mockRequest, {
+                automatic_new_gallery_share: false,
+                display_email_on_public_profile: false,
+                display_lastname_on_public_profile: true
+            }, mockResponse);
+            expect(controller.editItem).toHaveBeenCalledWith(mockRequest, 10, { display_lastname_on_public_profile: true }, mockResponse);
             expect(userSettingsService.findOne).toHaveBeenCalledWith({ user: { id: 1 } }, select);
         });
     });
@@ -470,7 +498,11 @@ describe("UserSettingsController", () => {
         it("should return 400 if user_id is not a number", async () => {
             jest.spyOn(userSettingsService, "findOne").mockResolvedValueOnce(mockUserSettings);
             jest.spyOn(userSettingsService, "findOne").mockResolvedValueOnce(mockUserSettings);
-            const result = await controller.editSpecificUserSettings(mockRequest, NaN, { dark_mode: true }, mockResponse);
+            const result = await controller.editSpecificUserSettings(mockRequest, NaN, {
+                automatic_new_gallery_share: false,
+                display_email_on_public_profile: false,
+                display_lastname_on_public_profile: true
+            }, mockResponse);
             expect(mockResponse.status).toHaveBeenCalledWith(400);
             expect(result).toEqual({
                 status: "KO",
@@ -483,7 +515,11 @@ describe("UserSettingsController", () => {
         it("should return 404 if settings for this user_id do not exist", async () => {
             const select = { id: true, user: { id: true } };
             jest.spyOn(userSettingsService, "findOne").mockResolvedValueOnce(null);
-            const result = await controller.editSpecificUserSettings(mockRequest, 2, { dark_mode: true }, mockResponse);
+            const result = await controller.editSpecificUserSettings(mockRequest, 2, {
+                automatic_new_gallery_share: false,
+                display_email_on_public_profile: false,
+                display_lastname_on_public_profile: true
+            }, mockResponse);
             expect(mockResponse.status).toHaveBeenCalledWith(404);
             expect(result).toEqual({
                 status: "KO",
@@ -505,8 +541,12 @@ describe("UserSettingsController", () => {
                 description: "User settings was updated",
                 data: {}
             });
-            await controller.editSpecificUserSettings(mockRequest, 2, { dark_mode: true }, mockResponse);
-            expect(controller.editItem).toHaveBeenCalledWith(mockRequest, 15, { dark_mode: true }, mockResponse);
+            await controller.editSpecificUserSettings(mockRequest, 2, {
+                automatic_new_gallery_share: false,
+                display_email_on_public_profile: false,
+                display_lastname_on_public_profile: true
+            }, mockResponse);
+            expect(controller.editItem).toHaveBeenCalledWith(mockRequest, 15, { display_lastname_on_public_profile: true }, mockResponse);
             expect(userSettingsService.findOne).toHaveBeenCalledWith({ user: { id: 2 } }, select);
         });
     });
@@ -515,7 +555,11 @@ describe("UserSettingsController", () => {
         it("should return 401 if user is not connected", async () => {
             const req = { cookies: {} } as Request;
             jest.spyOn(userSettingsService, "findOne").mockResolvedValueOnce(mockUserSettings);
-            const result = await controller.editItem(req, 10, {}, mockResponse);
+            const result = await controller.editItem(req, 10, {
+                automatic_new_gallery_share: false,
+                display_email_on_public_profile: false,
+                display_lastname_on_public_profile: false
+            }, mockResponse);
             expect(mockResponse.status).toHaveBeenCalledWith(401);
             expect(result).toEqual({
                 status: "KO",
@@ -528,7 +572,11 @@ describe("UserSettingsController", () => {
         it("should return 403 if user is not found", async () => {
             jest.spyOn(userSettingsService, "findOne").mockResolvedValueOnce(mockUserSettings);
             jest.spyOn(userService, "findOne").mockResolvedValueOnce(null);
-            const result = await controller.editItem(mockRequest, 10, {}, mockResponse);
+            const result = await controller.editItem(mockRequest, 10, {
+                automatic_new_gallery_share: false,
+                display_email_on_public_profile: false,
+                display_lastname_on_public_profile: false
+            }, mockResponse);
             expect(mockResponse.status).toHaveBeenCalledWith(403);
             expect(result).toEqual({
                 status: "KO",
@@ -540,7 +588,11 @@ describe("UserSettingsController", () => {
 
         it("should return 404 if settings are not found", async () => {
             jest.spyOn(userSettingsService, "findOne").mockResolvedValueOnce(null);
-            const result = await controller.editItem(mockRequest, 10, {}, mockResponse);
+            const result = await controller.editItem(mockRequest, 10, {
+                automatic_new_gallery_share: false,
+                display_email_on_public_profile: false,
+                display_lastname_on_public_profile: false
+            }, mockResponse);
             expect(mockResponse.status).toHaveBeenCalledWith(404);
             expect(result).toEqual({
                 status: "KO",
@@ -553,7 +605,11 @@ describe("UserSettingsController", () => {
         it("should return 403 if user is not the owner nor an admin", async () => {
             const mockSettings = { ...mockUserSettings, user: { ...mockUser, id: 2 } };
             jest.spyOn(userSettingsService, "findOne").mockResolvedValueOnce(mockSettings as any);
-            const result = await controller.editItem(mockRequest, 10, {}, mockResponse);
+            const result = await controller.editItem(mockRequest, 10, {
+                automatic_new_gallery_share: false,
+                display_email_on_public_profile: false,
+                display_lastname_on_public_profile: false
+            }, mockResponse);
             expect(mockResponse.status).toHaveBeenCalledWith(403);
             expect(result).toEqual({
                 status: "KO",
@@ -564,7 +620,7 @@ describe("UserSettingsController", () => {
         });
 
         it("should update user settings and return 200 if authorized", async () => {
-            const updatedSettings = { ...mockUserSettings, dark_mode: true };
+            const updatedSettings = { ...mockUserSettings, display_lastname_on_public_profile: true };
             jest.spyOn(userSettingsService, "findOne").mockResolvedValueOnce({
                 ...mockUserSettings,
                 user: { id: 1, role: "client" }
@@ -573,7 +629,11 @@ describe("UserSettingsController", () => {
             const result = await controller.editItem(
                 mockRequest,
                 10,
-                { dark_mode: true },
+                {
+                    automatic_new_gallery_share: false,
+                    display_email_on_public_profile: false,
+                    display_lastname_on_public_profile: true
+                },
                 mockResponse
             );
             expect(mockResponse.status).toHaveBeenCalledWith(200);
@@ -595,7 +655,11 @@ describe("UserSettingsController", () => {
             const result = await controller.editItem(
                 mockRequest,
                 10,
-                { dark_mode: true },
+                {
+                    automatic_new_gallery_share: false,
+                    display_email_on_public_profile: false,
+                    display_lastname_on_public_profile: true
+                },
                 mockResponse
             );
             expect(mockResponse.status).toHaveBeenCalledWith(400);

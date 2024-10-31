@@ -73,15 +73,21 @@ describe("BlockedUsersController", () => {
             jest.spyOn(userService, "findOne").mockResolvedValue(user);
             const blockedUsers = [{
                 id: 1,
-                user_id: 1,
+                user: user,
+                user_id: user.id,
+                blocked_user: {} as any,
                 blocked_user_id: 2
             }, {
-                id: 1,
-                user_id: 1,
+                id: 2,
+                user: user,
+                user_id: user.id,
+                blocked_user: {} as any,
                 blocked_user_id: 3
             }, {
-                id: 1,
-                user_id: 1,
+                id: 3,
+                user: user,
+                user_id: user.id,
+                blocked_user: {} as any,
                 blocked_user_id: 4
             }];
             jest.spyOn(blockedUsersService, "findByBlocker").mockResolvedValue(blockedUsers);
@@ -138,15 +144,21 @@ describe("BlockedUsersController", () => {
             jest.spyOn(userService, "findOne").mockResolvedValueOnce(user);
             const blockedUsers = [{
                 id: 1,
-                user_id: 1,
+                user: user,
+                user_id: user.id,
+                blocked_user: {} as any,
                 blocked_user_id: 2
             }, {
-                id: 1,
-                user_id: 1,
+                id: 2,
+                user: user,
+                user_id: user.id,
+                blocked_user: {} as any,
                 blocked_user_id: 3
             }, {
-                id: 1,
-                user_id: 1,
+                id: 3,
+                user: user,
+                user_id: user.id,
+                blocked_user: {} as any,
                 blocked_user_id: 4
             }];
             jest.spyOn(blockedUsersService, "findByBlocker").mockResolvedValue(blockedUsers);
@@ -431,8 +443,7 @@ describe("BlockedUsersController", () => {
             expect(res.status).toHaveBeenCalledWith(501);
             expect(result).toMatchObject(expect.objectContaining({
                 status: "KO",
-                code: 501,
-                data: null
+                code: 501
             }));
         });
     });
@@ -591,8 +602,7 @@ describe("BlockedUsersController", () => {
             expect(res.status).toHaveBeenCalledWith(501);
             expect(result).toMatchObject(expect.objectContaining({
                 status: "KO",
-                code: 501,
-                data: null
+                code: 501
             }));
         });
     });

@@ -66,12 +66,24 @@ describe("CommentService", () => {
 
             const comment1 = new Comment();
             const comment2 = new Comment();
-            Object.assign(comment1, { id: 1, comment: "Comment 1", gallery_id: mockGallery.id, user_id: mockUser.id, creation_date: new Date() });
-            Object.assign(comment2, { id: 2, comment: "Comment 2", gallery_id: mockGallery.id, user_id: mockUser.id, creation_date: new Date() });
+            Object.assign(comment1, {
+                id: 1,
+                comment: "Comment 1",
+                gallery_id: mockGallery.id,
+                user_id: mockUser.id,
+                creation_date: new Date()
+            });
+            Object.assign(comment2, {
+                id: 2,
+                comment: "Comment 2",
+                gallery_id: mockGallery.id,
+                user_id: mockUser.id,
+                creation_date: new Date()
+            });
 
             const mockComments = [comment1, comment2];
             jest.spyOn(commentRepository, "find").mockResolvedValue(mockComments as any);
-            const result = await service.allForGallery(galleryId);
+            const result = await service.allForGallery(galleryId, {} as any);
             expect(result).toEqual([
                 {
                     id: 1,

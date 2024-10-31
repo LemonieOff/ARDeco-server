@@ -142,13 +142,17 @@ describe("CommentController", () => {
                     id: 1, comment: "Comment 1", user_id: 1, creation_date: new Date(),
                     gallery: new Gallery,
                     gallery_id: 0,
-                    user: new User
+                    user: new User,
+                    edited: false,
+                    edit_date: undefined
                 },
                 {
                     id: 2, comment: "Comment 2", user_id: 2, creation_date: new Date(),
                     gallery: new Gallery,
                     gallery_id: 0,
-                    user: new User
+                    user: new User,
+                    edited: false,
+                    edit_date: undefined
                 }
             ];
             jest.spyOn(commentService, "allForGallery").mockResolvedValue(mockComments);
@@ -168,19 +172,25 @@ describe("CommentController", () => {
                     id: 1, comment: "Comment 1", user_id: 1, creation_date: new Date(),
                     gallery: new Gallery,
                     gallery_id: 0,
-                    user: new User
+                    user: new User,
+                    edited: false,
+                    edit_date: undefined
                 },
                 {
                     id: 2, comment: "Comment 2", user_id: 2, creation_date: new Date(),
                     gallery: new Gallery,
                     gallery_id: 0,
-                    user: new User
+                    user: new User,
+                    edited: false,
+                    edit_date: undefined
                 },
                 {
                     id: 3, comment: "Comment 3", user_id: 3, creation_date: new Date(),
                     gallery: new Gallery,
                     gallery_id: 0,
-                    user: new User
+                    user: new User,
+                    edited: false,
+                    edit_date: undefined
                 }
             ];
             const blockedUsers: BlockedUser[] = [{ blocked_user_id: 2 } as BlockedUser];
@@ -196,19 +206,25 @@ describe("CommentController", () => {
                     id: 1, comment: "Comment 1", user_id: 1, creation_date: new Date(),
                     gallery: new Gallery,
                     gallery_id: 0,
-                    user: new User
+                    user: new User,
+                    edited: false,
+                    edit_date: undefined
                 },
                 {
                     id: 2, comment: "Comment 2", user_id: 2, creation_date: new Date(),
                     gallery: new Gallery,
                     gallery_id: 0,
-                    user: new User
+                    user: new User,
+                    edited: false,
+                    edit_date: undefined
                 },
                 {
                     id: 3, comment: "Comment 3", user_id: 3, creation_date: new Date(),
                     gallery: new Gallery,
                     gallery_id: 0,
-                    user: new User
+                    user: new User,
+                    edited: false,
+                    edit_date: undefined
                 }
             ];
             const blockerUsers: BlockedUser[] = [{ user_id: 3 } as BlockedUser];
@@ -433,7 +449,9 @@ describe("CommentController", () => {
             const mockComment = { id: 1, user_id: 1, gallery_id: 10 } as Comment;
             const error = new Error("Delete comment database error test");
             jest.spyOn(commentService, "findOne").mockResolvedValueOnce(mockComment);
-            jest.spyOn(commentService, "delete").mockImplementationOnce(() => { throw error });
+            jest.spyOn(commentService, "delete").mockImplementationOnce(() => {
+                throw error;
+            });
             const consoleSpy = jest.spyOn(console, "error"); // Use console.error for error logging
             const result = await controller.delete(mockRequest, mockResponse, 10, 1);
             expect(mockResponse.status).toHaveBeenCalledWith(501);

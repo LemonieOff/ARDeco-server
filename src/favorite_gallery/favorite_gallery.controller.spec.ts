@@ -118,7 +118,9 @@ describe("FavoriteGalleryController", () => {
             const mockFavoriteGalleries: FavoriteGallery[] = [
                 {
                     gallery_id: 10, user_id: 1, timestamp: new Date(),
-                    id: 0
+                    id: 0,
+                    user: new User,
+                    gallery: new Gallery
                 }
             ];
             const user = new User();

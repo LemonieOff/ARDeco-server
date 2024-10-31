@@ -90,7 +90,7 @@ describe("FavoriteFurnitureService", () => {
         it("should find a favorite furniture item by ID", async () => {
             const where = {
                 user_id: 1,
-                furniture_id: "FURNITURE_ID"
+                furniture_id: 2
             };
             const mockFurnitureItem = new FavoriteFurniture();
             jest.spyOn(favoriteFurnitureRepository, "findOne").mockResolvedValue(mockFurnitureItem);
@@ -103,7 +103,7 @@ describe("FavoriteFurnitureService", () => {
         it("should return null if favorite furniture item is not found", async () => {
             const where = {
                 user_id: 1,
-                furniture_id: "NON_EXISTING_FURNITURE_ID"
+                furniture_id: 3
             };
             jest.spyOn(favoriteFurnitureRepository, "findOne").mockResolvedValue(null);
 
@@ -114,7 +114,7 @@ describe("FavoriteFurnitureService", () => {
 
     describe("delete", () => {
         it("should delete a favorite furniture item by furniture ID", async () => {
-            const furnitureId = "FURNITURE_ID";
+            const furnitureId = 1;
             const deleteResult = {
                 raw: [],
                 affected: 1

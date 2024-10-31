@@ -90,7 +90,7 @@ describe("CompanyController", () => {
                 .mockResolvedValueOnce(companyUser)
                 .mockResolvedValueOnce(null);
 
-            const result = await companyController.requestToken(req, companyUser, res);
+            const result = await companyController.requestToken(req, res);
 
             expect(res.status).toHaveBeenCalledWith(200);
             expect(result).toMatchObject(expect.objectContaining({
@@ -105,7 +105,7 @@ describe("CompanyController", () => {
                 status: jest.fn().mockReturnThis(),
                 json: jest.fn()
             } as any;
-            const result = await companyController.requestToken(req, {} as User, res);
+            const result = await companyController.requestToken(req, res);
             expect(res.status).toHaveBeenCalledWith(401);
             expect(result).toMatchObject(expect.objectContaining({
                 status: "KO",
@@ -124,7 +124,7 @@ describe("CompanyController", () => {
             user.id = 1;
             user.role = "client";
             jest.spyOn(userService, "findOne").mockResolvedValue(user);
-            const result = await companyController.requestToken(req, {} as User, res);
+            const result = await companyController.requestToken(req, res);
             expect(res.status).toHaveBeenCalledWith(403);
             expect(result).toMatchObject(expect.objectContaining({
                 status: "KO",
@@ -146,7 +146,7 @@ describe("CompanyController", () => {
             jest.spyOn(companyController, "generateToken").mockImplementationOnce(() => {
                 throw new Error();
             });
-            const result = await companyController.requestToken(req, {} as User, res);
+            const result = await companyController.requestToken(req, res);
             expect(res.status).toHaveBeenCalledWith(500);
             expect(result).toMatchObject(expect.objectContaining({
                 status: "KO",
@@ -184,14 +184,13 @@ describe("CompanyController", () => {
 
             const result = await companyController.resetToken(
                 req,
-                adminUser,
                 res
             );
 
             expect(res.status).toHaveBeenCalledWith(200);
             expect(result).toMatchObject(expect.objectContaining({
                 status: "OK",
-                code: 200,
+                code: 200
             }));
         });
 
@@ -201,7 +200,7 @@ describe("CompanyController", () => {
                 status: jest.fn().mockReturnThis(),
                 json: jest.fn()
             } as any;
-            const result = await companyController.resetToken(req, {} as User, res);
+            const result = await companyController.resetToken(req, res);
             expect(res.status).toHaveBeenCalledWith(401);
             expect(result).toMatchObject(expect.objectContaining({
                 status: "KO",
@@ -220,7 +219,7 @@ describe("CompanyController", () => {
             user.id = 1;
             user.role = "client";
             jest.spyOn(userService, "findOne").mockResolvedValue(user);
-            const result = await companyController.resetToken(req, {} as User, res);
+            const result = await companyController.resetToken(req, res);
             expect(res.status).toHaveBeenCalledWith(403);
             expect(result).toMatchObject(expect.objectContaining({
                 status: "KO",
@@ -247,7 +246,7 @@ describe("CompanyController", () => {
             jest.spyOn(companyController, "generateToken").mockImplementationOnce(() => {
                 throw new Error();
             });
-            const result = await companyController.resetToken(req, {} as User, res);
+            const result = await companyController.resetToken(req, res);
             expect(res.status).toHaveBeenCalledWith(500);
             expect(result).toMatchObject(expect.objectContaining({
                 status: "KO",

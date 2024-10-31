@@ -42,6 +42,7 @@ describe("ArchiveService", () => {
     describe("create", () => {
         it("should create a new archive item", async () => {
             const data: Catalog = {
+                favorites: [],
                 active: false,
                 archived: false,
                 colors: [],
@@ -142,6 +143,7 @@ describe("ArchiveService", () => {
         it("should find all archive items for a company", async () => {
             const companyId = 1;
             const data: Catalog = {
+                favorites: [],
                 active: false,
                 archived: false,
                 colors: [],
@@ -203,6 +205,7 @@ describe("ArchiveService", () => {
         it("should delete all archive items for a company and return a backup", async () => {
             const companyId = 1;
             const data: Catalog = {
+                favorites: [],
                 active: false,
                 archived: false,
                 colors: [],
@@ -270,6 +273,7 @@ describe("ArchiveService", () => {
             const companyId = 4;
             const id = 1;
             const data: Catalog = {
+                favorites: [],
                 active: false,
                 archived: false,
                 colors: [],

@@ -27,8 +27,8 @@ describe("FavoriteFurnitureController", () => {
     } as any;
 
     const mockUserData: User = {
+        blocked_by: [], blocking: [], favorite_furniture: [], favorite_galleries: [], galleryLikes: [],
         cart: undefined,
-        cart_id: 0,
         checkEmailSent: undefined,
         checkEmailToken: "",
         city: "",
@@ -181,33 +181,43 @@ describe("FavoriteFurnitureController", () => {
 
         it("should return 200 and favorite furniture items", async () => {
             const mockFavoriteFurniture = [
-                { id: 1, user_id: 1, furniture_id: "FURNITURE_ID_1" },
-                { id: 2, user_id: 1, furniture_id: "FURNITURE_ID_2" }
+                { id: 1, user_id: 1, furniture_id: 1 },
+                { id: 2, user_id: 1, furniture_id: 2 }
             ] as FavoriteFurniture[];
             const mockCatalogItems = [
                 {
-                    object_id: "FURNITURE_ID_1",
+                    id: 1,
+                    active: true,
+                    archived: false,
+                    object_id: "ddd",
                     name: "Furniture 1",
                     price: 100,
-                    styles: [{ style: "modern" }],
-                    colors: [{ color: "red", model_id: 1 }],
-                    rooms: [{ room: "living_room" }],
+                    styles: [{ style: "modern" } as any],
+                    colors: [{ color: "red", model_id: 1 } as any],
+                    rooms: [{ room: "living_room" } as any],
                     height: 10,
                     width: 20,
                     depth: 30,
-                    company_name: "Company 1"
+                    company_name: "Company 1",
+                    company: 1,
+                    favorites: []
                 },
                 {
-                    object_id: "FURNITURE_ID_2",
+                    id: 2,
+                    active: true,
+                    archived: false,
+                    object_id: "ddddddd",
                     name: "Furniture 2",
                     price: 200,
-                    styles: [{ style: "classic" }],
-                    colors: [{ color: "blue", model_id: 2 }],
-                    rooms: [{ room: "bedroom" }],
+                    styles: [{ style: "classic" } as any],
+                    colors: [{ color: "blue", model_id: 2 } as any],
+                    rooms: [{ room: "bedroom" } as any],
                     height: 15,
                     width: 25,
                     depth: 35,
-                    company_name: "Company 2"
+                    company_name: "Company 2",
+                    company: 2,
+                    favorites: []
                 }
             ] as Catalog[];
 
@@ -224,7 +234,8 @@ describe("FavoriteFurnitureController", () => {
                 data: [
                     {
                         furniture: {
-                            id: "FURNITURE_ID_1",
+                            id: 1,
+                            active: true,
                             name: "Furniture 1",
                             price: 100,
                             styles: ["modern"],
@@ -239,7 +250,8 @@ describe("FavoriteFurnitureController", () => {
                     },
                     {
                         furniture: {
-                            id: "FURNITURE_ID_2",
+                            id: 2,
+                            active: true,
                             name: "Furniture 2",
                             price: 200,
                             styles: ["classic"],
@@ -261,7 +273,7 @@ describe("FavoriteFurnitureController", () => {
     describe("post", () => {
         it("should return 401 if user is not connected", async () => {
             const req = { cookies: {} } as any;
-            const result = await controller.post(req, "FURNITURE_ID", res);
+            const result = await controller.post(req, 25, res);
             expect(res.status).toHaveBeenCalledWith(401);
             expect(result).toEqual({
                 status: "KO",
@@ -273,7 +285,7 @@ describe("FavoriteFurnitureController", () => {
 
         it("should return 403 if user is not found", async () => {
             jest.spyOn(userService, "findOne").mockResolvedValue(null);
-            const result = await controller.post(req, "FURNITURE_ID", res);
+            const result = await controller.post(req, 25, res);
             expect(res.status).toHaveBeenCalledWith(403);
             expect(result).toEqual({
                 status: "KO",
@@ -286,7 +298,7 @@ describe("FavoriteFurnitureController", () => {
         it("should return 404 if furniture does not exist", async () => {
             jest.spyOn(userService, "findOne").mockResolvedValue(mockUser);
             jest.spyOn(catalogService, "findOne").mockResolvedValue(null);
-            const result = await controller.post(req, "FURNITURE_ID", res);
+            const result = await controller.post(req, 25, res);
             expect(result).toEqual({
                 status: "KO",
                 code: 404,
@@ -302,7 +314,7 @@ describe("FavoriteFurnitureController", () => {
             jest.spyOn(userService, "findOne").mockResolvedValue(mockUser);
             jest.spyOn(catalogService, "findOne").mockResolvedValue(mockFurniture);
             jest.spyOn(favoriteFurnitureService, "findOne").mockResolvedValue(mockFavoriteFurniture);
-            const result = await controller.post(req, "FURNITURE_ID", res);
+            const result = await controller.post(req, 25, res);
             expect(result).toEqual({
                 status: "KO",
                 code: 409,
@@ -314,12 +326,12 @@ describe("FavoriteFurnitureController", () => {
 
         it("should add furniture to favorites and return 201", async () => {
             const mockFurniture = { id: 1 } as Catalog;
-            const mockFavoriteFurniture = { id: 1, user_id: 1, furniture_id: "FURNITURE_ID" } as FavoriteFurniture;
-            jest.spyOn(controller, 'checkAuthorization').mockResolvedValue(mockUser);
+            const mockFavoriteFurniture = { id: 1, user_id: 1, furniture_id: 25 } as FavoriteFurniture;
+            jest.spyOn(controller, "checkAuthorization").mockResolvedValue(mockUser);
             jest.spyOn(catalogService, "findOne").mockResolvedValueOnce(mockFurniture);
             jest.spyOn(favoriteFurnitureService, "findOne").mockResolvedValueOnce(null);
             jest.spyOn(favoriteFurnitureService, "create").mockResolvedValue(mockFavoriteFurniture);
-            const result = await controller.post(req, "FURNITURE_ID", res);
+            const result = await controller.post(req, 25, res);
             expect(result).toEqual({
                 status: "OK",
                 code: 201,
@@ -333,7 +345,7 @@ describe("FavoriteFurnitureController", () => {
     describe("deleteItem", () => {
         it("should return 401 if user is not connected", async () => {
             const req = { cookies: {} } as any;
-            const result = await controller.deleteItem(req, "FURNITURE_ID", res);
+            const result = await controller.deleteItem(req, 25, res);
             expect(res.status).toHaveBeenCalledWith(401);
             expect(result).toEqual({
                 status: "KO",
@@ -345,7 +357,7 @@ describe("FavoriteFurnitureController", () => {
 
         it("should return 403 if user is not found", async () => {
             jest.spyOn(userService, "findOne").mockResolvedValue(null);
-            const result = await controller.deleteItem(req, "FURNITURE_ID", res);
+            const result = await controller.deleteItem(req, 25, res);
             expect(res.status).toHaveBeenCalledWith(403);
             expect(result).toEqual({
                 status: "KO",
@@ -358,7 +370,7 @@ describe("FavoriteFurnitureController", () => {
         it("should return 404 if furniture is not in favorites", async () => {
             jest.spyOn(userService, "findOne").mockResolvedValue(mockUser);
             jest.spyOn(favoriteFurnitureService, "findOne").mockResolvedValue(null);
-            const result = await controller.deleteItem(req, "FURNITURE_ID", res);
+            const result = await controller.deleteItem(req, 25, res);
             expect(res.status).toHaveBeenCalledWith(404);
             expect(result).toEqual({
                 status: "KO",
@@ -369,10 +381,10 @@ describe("FavoriteFurnitureController", () => {
         });
 
         it("should return 403 if user is not admin and not the owner", async () => {
-            const mockFavoriteFurniture = { id: 1, user_id: 2, furniture_id: "FURNITURE_ID" } as FavoriteFurniture;
+            const mockFavoriteFurniture = { id: 1, user_id: 2, furniture_id: 25 } as FavoriteFurniture;
             jest.spyOn(userService, "findOne").mockResolvedValue(mockUser);
             jest.spyOn(favoriteFurnitureService, "findOne").mockResolvedValue(mockFavoriteFurniture);
-            const result = await controller.deleteItem(req, "FURNITURE_ID", res);
+            const result = await controller.deleteItem(req, 25, res);
             expect(res.status).toHaveBeenCalledWith(403);
             expect(result).toEqual({
                 status: "KO",
@@ -386,11 +398,11 @@ describe("FavoriteFurnitureController", () => {
             const localMockUserData: User = { ...mockUser, role: "admin" } as User;
             const localMockUser: User = new User();
             Object.assign(localMockUser, localMockUserData);
-            const mockFavoriteFurniture = { id: 1, user_id: 2, furniture_id: "FURNITURE_ID" } as FavoriteFurniture;
+            const mockFavoriteFurniture = { id: 1, user_id: 2, furniture_id: 25 } as FavoriteFurniture;
             jest.spyOn(userService, "findOne").mockResolvedValue(localMockUser);
             jest.spyOn(favoriteFurnitureService, "findOne").mockResolvedValue(mockFavoriteFurniture);
             jest.spyOn(favoriteFurnitureService, "delete").mockResolvedValue({ affected: 1 });
-            const result = await controller.deleteItem(req, "FURNITURE_ID", res);
+            const result = await controller.deleteItem(req, 25, res);
             expect(res.status).toHaveBeenCalledWith(200);
             expect(result).toEqual({
                 status: "OK",
@@ -435,7 +447,7 @@ describe("FavoriteFurnitureController", () => {
         it("should return 404 if furniture is not found in favorites (delete)", async () => {
             jest.spyOn(userService, "findOne").mockResolvedValue(mockUser);
             jest.spyOn(favoriteFurnitureService, "findOne").mockResolvedValue(null);
-            const result = await controller["checkAuthorization"](req, res, "FURNITURE_ID", "delete");
+            const result = await controller["checkAuthorization"](req, res, 25, "delete");
             expect(res.status).toHaveBeenCalledWith(404);
             expect(result).toEqual({
                 status: "KO",
@@ -446,10 +458,10 @@ describe("FavoriteFurnitureController", () => {
         });
 
         it("should return 403 if user is not admin and not the owner (delete)", async () => {
-            const mockFavoriteFurniture = { id: 1, user_id: 2, furniture_id: "FURNITURE_ID" } as FavoriteFurniture;
+            const mockFavoriteFurniture = { id: 1, user_id: 2, furniture_id: 25 } as FavoriteFurniture;
             jest.spyOn(userService, "findOne").mockResolvedValue(mockUser);
             jest.spyOn(favoriteFurnitureService, "findOne").mockResolvedValue(mockFavoriteFurniture);
-            const result = await controller["checkAuthorization"](req, res, "FURNITURE_ID", "delete");
+            const result = await controller["checkAuthorization"](req, res, 25, "delete");
             expect(res.status).toHaveBeenCalledWith(403);
             expect(result).toEqual({
                 status: "KO",
@@ -461,18 +473,18 @@ describe("FavoriteFurnitureController", () => {
 
         it("should return user if user is admin (delete)", async () => {
             const localMockUser = { ...mockUser, role: "admin" } as User;
-            const mockFavoriteFurniture = { id: 1, user_id: 2, furniture_id: "FURNITURE_ID" } as FavoriteFurniture;
+            const mockFavoriteFurniture = { id: 1, user_id: 2, furniture_id: 25 } as FavoriteFurniture;
             jest.spyOn(userService, "findOne").mockResolvedValue(localMockUser);
             jest.spyOn(favoriteFurnitureService, "findOne").mockResolvedValue(mockFavoriteFurniture);
-            const result = await controller["checkAuthorization"](req, res, "FURNITURE_ID", "delete");
+            const result = await controller["checkAuthorization"](req, res, 25, "delete");
             expect(result).toEqual(localMockUser);
         });
 
         it("should return user if user is the owner (delete)", async () => {
-            const mockFavoriteFurniture = { id: 1, user_id: 1, furniture_id: "FURNITURE_ID" } as FavoriteFurniture;
+            const mockFavoriteFurniture = { id: 1, user_id: 1, furniture_id: 25 } as FavoriteFurniture;
             jest.spyOn(userService, "findOne").mockResolvedValue(mockUser);
             jest.spyOn(favoriteFurnitureService, "findOne").mockResolvedValue(mockFavoriteFurniture);
-            const result = await controller["checkAuthorization"](req, res, "FURNITURE_ID", "delete");
+            const result = await controller["checkAuthorization"](req, res, 25, "delete");
             expect(result).toEqual(mockUser);
         });
     });

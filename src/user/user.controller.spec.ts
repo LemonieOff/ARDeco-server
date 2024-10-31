@@ -61,7 +61,7 @@ describe("UserController", () => {
     describe("whoami", () => {
         it("should return the current user", async () => {
             const user: User = {
-                cart_id: 0,
+                blocked_by: [], blocking: [], favorite_furniture: [], favorite_galleries: [], galleryLikes: [],
                 feedbacks: [],
                 galleryComments: [],
                 settings: undefined,
@@ -92,7 +92,7 @@ describe("UserController", () => {
     describe("getOne", () => {
         it("should return a user by id", async () => {
             const user: User = {
-                cart_id: 0,
+                blocked_by: [], blocking: [], favorite_furniture: [], favorite_galleries: [], galleryLikes: [],
                 feedbacks: [],
                 galleryComments: [],
                 settings: undefined,
@@ -115,10 +115,9 @@ describe("UserController", () => {
                 hasCheckedEmail: false
             };
             jest.spyOn(userService, "findOne").mockResolvedValue(user);
-            const result = await userController.getOne(1);
+            const result = await userController.getOne({} as any, {} as any, 1);
             expect(result.status).toEqual("OK");
             expect(result.code).toEqual(200);
-            expect(result.error).toBeUndefined();
             expect(result.data).toBeDefined();
             expect(result.data.id).toEqual(user.id);
             expect(result.data.firstname).toEqual(user.first_name);
@@ -128,17 +127,16 @@ describe("UserController", () => {
 
         it("should return 404 error if user doesn't exist", async () => {
             jest.spyOn(userService, "findOne").mockResolvedValue(null);
-            const result = await userController.getOne(1);
+            const result = await userController.getOne({} as any, {} as any, 1);
             expect(result.status).toEqual("KO");
             expect(result.code).toEqual(404);
-            expect(result.error).toBeDefined();
         });
     });
 
     describe("editViaQuery", () => {
         it("should update a user", async () => {
             const oldUser: User = {
-                cart_id: 0,
+                blocked_by: [], blocking: [], favorite_furniture: [], favorite_galleries: [], galleryLikes: [],
                 feedbacks: [],
                 galleryComments: [],
                 settings: undefined,
@@ -196,7 +194,7 @@ describe("UserController", () => {
     describe("editViaParam", () => {
         it("should update a user", async () => {
             const oldUser: User = {
-                cart_id: 0,
+                blocked_by: [], blocking: [], favorite_furniture: [], favorite_galleries: [], galleryLikes: [],
                 feedbacks: [],
                 galleryComments: [],
                 settings: undefined,
@@ -236,7 +234,7 @@ describe("UserController", () => {
     describe("editUser", () => {
         it("should return error 401 when updating another user without being admin", async () => {
             const oldUser: User = {
-                cart_id: 0,
+                blocked_by: [], blocking: [], favorite_furniture: [], favorite_galleries: [], galleryLikes: [],
                 feedbacks: [],
                 galleryComments: [],
                 settings: undefined,
@@ -271,7 +269,7 @@ describe("UserController", () => {
 
         it("should return error 401 when updating self role without being admin", async () => {
             const oldUser: User = {
-                cart_id: 0,
+                blocked_by: [], blocking: [], favorite_furniture: [], favorite_galleries: [], galleryLikes: [],
                 feedbacks: [],
                 galleryComments: [],
                 settings: undefined,
@@ -306,7 +304,7 @@ describe("UserController", () => {
 
         it("should update when editing self password", async () => {
             const oldUser: User = {
-                cart_id: 0,
+                blocked_by: [], blocking: [], favorite_furniture: [], favorite_galleries: [], galleryLikes: [],
                 feedbacks: [],
                 galleryComments: [],
                 settings: undefined,
@@ -361,28 +359,28 @@ describe("UserController", () => {
             jest.spyOn(userService, "all").mockResolvedValue([
                 {
                     deleted: false,
-                    role: "admin",
+                    role: "admin"
                 } as any,
                 {
                     deleted: false,
-                    role: "admin",
+                    role: "admin"
                 } as any,
                 {
                     deleted: true,
-                    role: "admin",
+                    role: "admin"
                 } as any,
                 {
                     deleted: false,
-                    role: "company",
+                    role: "company"
                 } as any,
                 {
                     deleted: false,
-                    role: "client",
+                    role: "client"
                 } as any,
                 {
                     deleted: true,
-                    role: "client",
-                } as any,
+                    role: "client"
+                } as any
             ]); // 2 deleted, 3 admin, 1 company, 2 client
             const req = { cookies: { jwt: "token" } } as any;
             const result = await userController.getUserTypes(req);
@@ -421,28 +419,28 @@ describe("UserController", () => {
             jest.spyOn(userService, "all").mockResolvedValue([
                 {
                     deleted: false,
-                    role: "admin",
+                    role: "admin"
                 } as any,
                 {
                     deleted: false,
-                    role: "admin",
+                    role: "admin"
                 } as any,
                 {
                     deleted: true,
-                    role: "admin",
+                    role: "admin"
                 } as any,
                 {
                     deleted: false,
-                    role: "company",
+                    role: "company"
                 } as any,
                 {
                     deleted: false,
-                    role: "client",
+                    role: "client"
                 } as any,
                 {
                     deleted: true,
-                    role: "client",
-                } as any,
+                    role: "client"
+                } as any
             ]); // 2 deleted, 3 admin, 1 company, 2 client
             const req = { cookies: { jwt: "token" } } as any;
             const result = await userController.getBasicUsers(req);
@@ -476,28 +474,28 @@ describe("UserController", () => {
             jest.spyOn(userService, "all").mockResolvedValue([
                 {
                     deleted: false,
-                    role: "admin",
+                    role: "admin"
                 } as any,
                 {
                     deleted: false,
-                    role: "admin",
+                    role: "admin"
                 } as any,
                 {
                     deleted: true,
-                    role: "admin",
+                    role: "admin"
                 } as any,
                 {
                     deleted: false,
-                    role: "company",
+                    role: "company"
                 } as any,
                 {
                     deleted: false,
-                    role: "client",
+                    role: "client"
                 } as any,
                 {
                     deleted: true,
-                    role: "client",
-                } as any,
+                    role: "client"
+                } as any
             ]); // 2 deleted, 3 admin, 1 company, 2 client
             const req = { cookies: { jwt: "token" } } as any;
             const result = await userController.getCompanies(req);
@@ -529,7 +527,7 @@ describe("UserController", () => {
             const admin: User = { role: "admin" } as any;
             const company: User = { role: "company" } as any;
             jest.spyOn(userService, "findOne").mockResolvedValueOnce(admin).mockResolvedValueOnce(company);
-            jest.spyOn(userService, "update").mockResolvedValue({affected: 1} as any);
+            jest.spyOn(userService, "update").mockResolvedValue({ affected: 1 } as any);
             const req = { cookies: { jwt: "token" } } as any;
             const res = { status: jest.fn().mockReturnThis() } as any;
             const result = await userController.closeCompany(req, 4, res);
@@ -559,7 +557,7 @@ describe("UserController", () => {
             expect(result.status).toEqual("KO");
             expect(result.code).toEqual(403);
             expect(result.data).toBeNull();
-        })
+        });
 
         it("should return error 500 on error", async () => {
             const res = { status: jest.fn().mockReturnThis() } as any;

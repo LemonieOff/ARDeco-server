@@ -3,6 +3,7 @@ import { getRepositoryToken } from "@nestjs/typeorm";
 import { FindOptionsSelect, Repository } from "typeorm";
 import { UserSettings } from "./models/user_settings.entity";
 import { UserSettingsService } from "./user_settings_service";
+import { UserSettingsDto } from "./models/user_settings.dto";
 
 describe("UserSettingsService", () => {
     let service: UserSettingsService;
@@ -25,7 +26,7 @@ describe("UserSettingsService", () => {
                             where: jest.fn().mockReturnThis(),
                             execute: jest.fn()
                         })),
-                        delete: jest.fn(),
+                        delete: jest.fn()
                     }
                 }
             ]
@@ -50,8 +51,7 @@ describe("UserSettingsService", () => {
     describe("create", () => {
         it("should create new user settings", async () => {
             const data = {
-                theme: "dark",
-                language: "en"
+                display_lastname_on_public: true
             };
             const createdSettings = { id: 1, ...data };
             jest.spyOn(userRepository, "save").mockResolvedValue(createdSettings as any);
@@ -81,7 +81,7 @@ describe("UserSettingsService", () => {
 
         it("should find user settings by condition with select", async () => {
             const condition = { id: 1 };
-            const select: FindOptionsSelect<UserSettings> = { dark_mode: true }; // Select only the 'theme' field
+            const select: FindOptionsSelect<UserSettings> = { display_lastname_on_public: true };
             const mockSettings = new UserSettings();
             jest.spyOn(userRepository, "findOne").mockResolvedValue(mockSettings);
 
@@ -99,10 +99,14 @@ describe("UserSettingsService", () => {
     describe("update", () => {
         it("should update user settings and return the updated settings", async () => {
             const id = 1;
-            const data = { language: "en" };
+            const data: UserSettingsDto = {
+                automatic_new_gallery_share: false,
+                display_email_on_public_profile: false,
+                display_lastname_on_public_profile: true
+            };
             const updatedSettings = {
                 id: 1,
-                language: "en"
+                display_lastname_on_public: true
             }; // Assuming language was previously 'en'
             jest.spyOn(userRepository, "update").mockResolvedValue({ affected: 1 } as any);
             jest.spyOn(userRepository, "findOne").mockResolvedValue(updatedSettings as any);
