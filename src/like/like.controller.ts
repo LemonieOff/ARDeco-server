@@ -58,7 +58,9 @@ export class LikeController {
         @Res({ passthrough: true }) res: Response,
         @Param("user_id") user_id: number,
         @Param("gallery_id") gallery_id: number) {
-        // TODO : Check login
+        const fetcher = await this.checkLogin(req, res, "check", Number(user_id), Number(gallery_id));
+        if (!(fetcher instanceof User)) return fetcher;
+
         const isLiked = await this.likeService.isLiked(user_id, gallery_id);
         res.status(HttpStatus.OK);
         return {
@@ -146,7 +148,7 @@ export class LikeController {
         };
     }
 
-    async checkLogin(req: Request, res: Response, mode: "gallery" | "user" | "all" = "all", id: number = null): Promise<{
+    async checkLogin(req: Request, res: Response, mode: "gallery" | "user" | "all" | "check" = "all", id: number = null, id2: number = null): Promise<{
         code: number;
         data: any;
         description: string;
@@ -213,12 +215,94 @@ export class LikeController {
             };
         }
 
-        console.log("TEST");
+        if (mode === "check") {
+            if (!id2 || isNaN(Number(id2))) {
+                res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+                return {
+                    status: "KO",
+                    code: HttpStatus.INTERNAL_SERVER_ERROR,
+                    description: "Server error: a second id must be passed to check function",
+                    data: null
+                };
+            }
+
+            // Check permissions for user
+            if (user.id !== id) {
+                const userToFetch = await this.userService.findOne({ id: id });
+                if (!userToFetch) {
+                    res.status(HttpStatus.NOT_FOUND);
+                    return {
+                        status: "KO",
+                        code: HttpStatus.NOT_FOUND,
+                        description: "This user is not found",
+                        data: null
+                    };
+                }
+
+                if (user.role !== "admin") {
+                    res.status(HttpStatus.FORBIDDEN);
+                    return {
+                        status: "KO",
+                        code: HttpStatus.FORBIDDEN,
+                        description: "You are not allowed to access this user's likes",
+                        data: null
+                    };
+                }
+            }
+
+            // Check permissions for gallery
+            const gallery = await this.galleryService.findOne({ id: 26 }, { user: true }, {
+                id: true,
+                visibility: true,
+                user: { id: true }
+            });
+
+            if (!gallery) {
+                res.status(HttpStatus.NOT_FOUND);
+                return {
+                    status: "KO",
+                    code: HttpStatus.NOT_FOUND,
+                    description: "Gallery was not found",
+                    data: null
+                };
+            }
+
+            if (user.id !== gallery.user.id && user.role !== "admin") {
+                if (!gallery.visibility) {
+                    res.status(HttpStatus.FORBIDDEN);
+                    return {
+                        status: "KO",
+                        code: HttpStatus.FORBIDDEN,
+                        description: "You are not allowed to access this gallery's likes",
+                        data: null
+                    };
+                }
+
+                const isFetcherBlocking = await this.blockedUsersService.checkBlockedForBlocker(user.id, gallery.user.id);
+                if (isFetcherBlocking) {
+                    res.status(HttpStatus.FORBIDDEN);
+                    return {
+                        status: "KO",
+                        code: HttpStatus.FORBIDDEN,
+                        description: "You cannot access this gallery's likes because you have blocked its creator.",
+                        data: null
+                    };
+                }
+
+                const isFetcherBlocked = await this.blockedUsersService.checkBlockedForBlocker(gallery.user.id, user.id);
+                if (isFetcherBlocked) {
+                    res.status(HttpStatus.FORBIDDEN);
+                    return {
+                        status: "KO",
+                        code: HttpStatus.FORBIDDEN,
+                        description: "You are not allowed to access this gallery's likes",
+                        data: null
+                    };
+                }
+            }
+        }
 
         if (mode === "user") {
-            console.log("TEST");
-            console.log(user.id);
-            console.log(id);
             if (user.id === id) return user; // User to fetch is actually the requesting user, ignoring useless user fetch and checks
 
             const userToFetch = await this.userService.findOne({ id: id });
@@ -269,7 +353,9 @@ export class LikeController {
                     data: null
                 };
             }*/
-        } else if (mode === "gallery") {
+        }
+
+        if (mode === "gallery") {
             const gallery = await this.galleryService.findOne({ id: id }, { user: true }, {
                 id: true,
                 visibility: true,
@@ -326,14 +412,6 @@ export class LikeController {
                     data: null
                 };
             }
-        } else {
-            res.status(HttpStatus.NOT_IMPLEMENTED);
-            return {
-                status: "KO",
-                code: HttpStatus.NOT_IMPLEMENTED,
-                description: "You are trying to access a resource in a way that has not yet been implemented",
-                data: `mode: ${mode}`
-            };
         }
 
         return user;

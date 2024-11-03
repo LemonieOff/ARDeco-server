@@ -1,4 +1,4 @@
-import { Controller, Body, Req, Res, Param, Delete, Get, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Logger, Param, Post, Req, Res } from "@nestjs/common";
 import { GalleryReportsService } from "./gallery_reports.service";
 import { User } from "../../user/models/user.entity";
 import { Request, Response } from "express";
@@ -8,8 +8,10 @@ import { GalleryService } from "../../gallery/gallery.service";
 import { PostGalleryReportDto } from "./dto/post-gallery_report.dto";
 import { Gallery } from "../../gallery/models/gallery.entity";
 
-@Controller()
+@Controller("gallery_report")
 export class GalleryReportsController {
+    private readonly logger = new Logger("GalleryReportsController");
+
     constructor(
         private readonly galleryReportsService: GalleryReportsService,
         private readonly galleryService: GalleryService,
@@ -18,8 +20,29 @@ export class GalleryReportsController {
     ) {
     }
 
+    @Get(":gallery_id")
+    async getReportStatus(
+        @Req() req: Request,
+        @Res({ passthrough: true }) res: Response,
+        @Param("gallery_id") gallery_id: number
+    ) {
+        const userAndGallery = await this.checkAuthorization(req, res, gallery_id, "get");
+        if (!(userAndGallery instanceof Array)) return userAndGallery;
+
+        const [user, gallery] = userAndGallery;
+        const isReporting = !(!await this.galleryReportsService.findOpenByUserAndGallery(user.id, gallery.id));
+
+        res.status(200);
+        return {
+            status: "OK",
+            code: 200,
+            description: "Report status",
+            data: isReporting
+        };
+    }
+
     // Report an item
-    @Post("/gallery_report/:gallery_id")
+    @Post(":gallery_id")
     async reportGallery(
         @Req() req: Request,
         @Res({ passthrough: true }) res: Response,
@@ -51,13 +74,13 @@ export class GalleryReportsController {
         };
     }
 
-    @Get("/gallery_report/:gallery_id/reports/number")
+    @Get(":gallery_id/reports/number")
     async getReportsNumber(
         @Req() req: Request,
         @Res({ passthrough: true }) res: Response,
         @Param("gallery_id") gallery_id: number
     ) {
-        const userAndGallery = await this.checkAuthorization(req, res, gallery_id, "get");
+        const userAndGallery = await this.checkAuthorization(req, res, gallery_id, "get_list");
         if (!(userAndGallery instanceof Array)) return userAndGallery;
 
         const [user, gallery] = userAndGallery;
@@ -72,13 +95,13 @@ export class GalleryReportsController {
         };
     }
 
-    @Get("/gallery_report/:gallery_id/reports/list")
+    @Get(":gallery_id/reports/list")
     async getReportsList(
         @Req() req: Request,
         @Res({ passthrough: true }) res: Response,
         @Param("gallery_id") gallery_id: number
     ) {
-        const userAndGallery = await this.checkAuthorization(req, res, gallery_id, "get");
+        const userAndGallery = await this.checkAuthorization(req, res, gallery_id, "get_list");
         if (!(userAndGallery instanceof Array)) return userAndGallery;
 
         const [user, gallery] = userAndGallery;
@@ -93,7 +116,7 @@ export class GalleryReportsController {
         };
     }
 
-    @Delete("/gallery_report/:gallery_id/close/all")
+    @Delete(":gallery_id/close/all")
     async closeAllReports(
         @Req() req: Request,
         @Res({ passthrough: true }) res: Response,
@@ -115,7 +138,10 @@ export class GalleryReportsController {
             };
         }
 
-        const result = await this.galleryReportsService.editAll({ gallery: { id: gallery.id }, status: "open" }, { status: "close" });
+        const result = await this.galleryReportsService.editAll({
+            gallery: { id: gallery.id },
+            status: "open"
+        }, { status: "close" });
         if (!result) {
             res.status(501);
             return {
@@ -135,7 +161,7 @@ export class GalleryReportsController {
         };
     }
 
-    @Delete("/gallery_report/:gallery_id/close/:report_id")
+    @Delete(":gallery_id/close/:report_id")
     async closeReport(
         @Req() req: Request,
         @Res({ passthrough: true }) res: Response,
@@ -194,7 +220,7 @@ export class GalleryReportsController {
         req: Request,
         res: Response,
         gallery_id: number,
-        type: "get" | "post" | "close" | "delete"
+        type: "get" | "get_list" | "post" | "close" | "delete"
     ): Promise<[User, Gallery] | {
         status: string;
         code: number;
@@ -251,6 +277,10 @@ export class GalleryReportsController {
             };
         }
 
+        if (type === "get") {
+            return [user, gallery];
+        }
+
         if (type === "post") {
             const isUserAlreadyReported = await this.galleryReportsService.findOpenByUserAndGallery(user.id, gallery_id);
 
@@ -263,15 +293,15 @@ export class GalleryReportsController {
                     data: null
                 };
             }
-        } else {
-            if (user.role !== "admin") {
-                return {
-                    status: "KO",
-                    code: 403,
-                    description: "You must be an admin to access/close gallery reports",
-                    data: null
-                };
-            }
+        }
+
+        if (user.role !== "admin") {
+            return {
+                status: "KO",
+                code: 403,
+                description: "You must be an admin to access/close gallery reports",
+                data: null
+            };
         }
 
         return [user, gallery];

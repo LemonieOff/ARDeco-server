@@ -655,7 +655,7 @@ describe("GalleryReportsController", () => {
                 mockRequest,
                 mockResponse,
                 "invalid" as any,
-                "get"
+                "get_list"
             );
             expect(mockResponse.status).toHaveBeenCalledWith(400);
             expect(result).toEqual({
@@ -668,7 +668,7 @@ describe("GalleryReportsController", () => {
 
         it("should return 401 if user is not connected", async () => {
             const req = { cookies: {} } as Request;
-            const result = await controller["checkAuthorization"](req, mockResponse, 10, "get");
+            const result = await controller["checkAuthorization"](req, mockResponse, 10, "get_list");
             expect(mockResponse.status).toHaveBeenCalledWith(401);
             expect(result).toEqual({
                 status: "KO",
@@ -680,7 +680,7 @@ describe("GalleryReportsController", () => {
 
         it("should return 403 if user is not found", async () => {
             jest.spyOn(userService, "findOne").mockResolvedValueOnce(null);
-            const result = await controller["checkAuthorization"](mockRequest, mockResponse, 10, "get");
+            const result = await controller["checkAuthorization"](mockRequest, mockResponse, 10, "get_list");
             expect(mockResponse.status).toHaveBeenCalledWith(403);
             expect(result).toEqual({
                 status: "KO",
@@ -692,7 +692,7 @@ describe("GalleryReportsController", () => {
 
         it("should return 404 if gallery is not found", async () => {
             jest.spyOn(galleryService, "findOne").mockResolvedValueOnce(null);
-            const result = await controller["checkAuthorization"](mockRequest, mockResponse, 10, "get");
+            const result = await controller["checkAuthorization"](mockRequest, mockResponse, 10, "get_list");
             expect(mockResponse.status).toHaveBeenCalledWith(404);
             expect(result).toEqual({
                 status: "KO",
@@ -727,7 +727,7 @@ describe("GalleryReportsController", () => {
         describe("when type is not 'post'", () => {
             it("should return 403 if user is not an admin", async () => {
                 mockUser.role = "client";
-                const result = await controller["checkAuthorization"](mockRequest, mockResponse, 10, "get");
+                const result = await controller["checkAuthorization"](mockRequest, mockResponse, 10, "get_list");
                 expect(mockResponse.status).toHaveBeenCalledWith(403);
                 expect(result).toEqual({
                     status: "KO",
@@ -742,7 +742,7 @@ describe("GalleryReportsController", () => {
                 localUser.role = "admin";
                 jest.spyOn(userService, "findOne").mockResolvedValue(localUser);
                 jest.spyOn(galleryService, "findOne").mockResolvedValue(mockGallery);
-                const result = await controller["checkAuthorization"](mockRequest, mockResponse, 10, "get");
+                const result = await controller["checkAuthorization"](mockRequest, mockResponse, 10, "get_list");
                 expect(result).toEqual([localUser, mockGallery]);
             });
         });
