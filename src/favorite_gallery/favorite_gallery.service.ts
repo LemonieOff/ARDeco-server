@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { FindManyOptions, FindOptionsWhere, Repository } from "typeorm";
+import { FindOptionsRelations, FindOptionsSelect, FindOptionsWhere, Repository } from "typeorm";
 import { FavoriteGallery } from "./models/favorite_gallery.entity";
 
 @Injectable()
@@ -17,21 +17,18 @@ export class FavoriteGalleryService {
         return item;
     }
 
-    // TODO : Include relations/select as from gallery entity/service/controller (make true entity database relations)
     async findAll(
-        user_id: number | null = null
+        where: FindOptionsWhere<FavoriteGallery>,
+        relations: FindOptionsRelations<FavoriteGallery> = {},
+        select: FindOptionsSelect<FavoriteGallery> = {}
     ): Promise<FavoriteGallery[]> {
-        let where: FindOptionsWhere<FavoriteGallery> = { /*visibility: true*/ }; // Public items only
-        if (user_id) {
-            where = {
-                ...where,
-                user_id: user_id
-            };
-        }
-
-        let options: FindManyOptions<FavoriteGallery> = { where: where };
-
-        return this.favoriteGalleryRepository.find(options);
+        return this.favoriteGalleryRepository.find({
+            where: where,
+            loadRelationIds: false,
+            loadEagerRelations: false,
+            relations: relations,
+            select: select
+        });
     }
 
     async findOne(where: FindOptionsWhere<FavoriteGallery>): Promise<FavoriteGallery> {

@@ -15,6 +15,4 @@ export class CatalogResponseDto {
     rooms: string[];
     styles: string[];
     active: boolean;
-
-    // TODO : models
 }
