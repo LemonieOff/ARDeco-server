@@ -71,7 +71,7 @@ export class LikeController {
         };
     }
 
-    // TODO : Details mode
+    // Maybe add a "details" mode if needed
     async getLikes(req: Request, res: Response, mode: "user" | "gallery", id: number) {
         const fetcher = await this.checkLogin(req, res, mode, id);
         if (!(fetcher instanceof User)) return fetcher;
@@ -438,7 +438,7 @@ export class LikeController {
             }
         };
 
-        // TODO : Use req.query["details"] (add req to function param) to fetch details from user/gallery if necessary
+        // Use req.query["details"] (add req to function param) to fetch details from user/gallery if necessary
 
         return [relations, select];
     }

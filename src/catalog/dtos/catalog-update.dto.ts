@@ -65,6 +65,4 @@ export class CatalogUpdateDto {
     @IsLowercase({ each: true })
     @IsIn(styles, { each: true })
     styles: string[];
-
-    // TODO : models
 }

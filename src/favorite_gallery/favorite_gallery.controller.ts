@@ -6,7 +6,7 @@ import { JwtService } from "@nestjs/jwt";
 import { User } from "../user/models/user.entity";
 import { UserService } from "../user/user.service";
 import { GalleryService } from "../gallery/gallery.service";
-import { Gallery } from "src/gallery/models/gallery.entity";
+import { Gallery } from "../gallery/models/gallery.entity";
 
 @Controller("favorite/gallery")
 export class FavoriteGalleryController {
@@ -23,29 +23,17 @@ export class FavoriteGalleryController {
         const user = await this.checkAuthorization(req, res);
         if (!(user instanceof User)) return user;
 
-        const items = await this.favGalleryService.findAll(user.id);
-
-        try {
-            if (items.length === 0) {
-                res.status(404);
-                return {
-                    status: "KO",
-                    code: 404,
-                    description: "You don't have any favorite gallery items",
-                    data: []
-                };
-            }
-
-            let galleryItems: any[] = [];
-
-            for (const item of items) {
-                const gallery: Gallery = await this.galleryService.findOne({
-                    id: item.gallery_id
-                }, {
+        const items = await this.favGalleryService.findAll(
+            { user_id: user.id },
+            {
+                gallery: {
                     user: {
                         settings: true
                     }
-                }, {
+                }
+            },
+            {
+                gallery: {
                     id: true,
                     name: true,
                     description: true,
@@ -61,16 +49,30 @@ export class FavoriteGalleryController {
                             display_lastname_on_public: true
                         }
                     }
-                });
-
-                let displayName = gallery.user.settings.display_lastname_on_public;
-                if (user.role === "admin" || user.id === gallery.user.id) displayName = true; // Always display name if admin or self
-
-                if (!displayName) gallery.user.last_name = "";
-                delete gallery.user.settings;
-
-                galleryItems.push(gallery);
+                }
             }
+        );
+
+        try {
+            if (!items || items.length === 0) {
+                res.status(404);
+                return {
+                    status: "KO",
+                    code: 404,
+                    description: "You don't have any favorite gallery items",
+                    data: []
+                };
+            }
+
+            const galleryItems: Gallery[] = items.map(fav => {
+                let displayName = fav.gallery.user.settings.display_lastname_on_public;
+                if (user.role === "admin" || user.id === fav.gallery.user.id) displayName = true; // Always display name if admin or self
+
+                if (!displayName) fav.gallery.user.last_name = "";
+                delete fav.gallery.user.settings;
+
+                return fav.gallery;
+            });
 
             res.status(200);
             return {
