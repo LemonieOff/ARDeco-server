@@ -10,7 +10,7 @@ node_modules/
 .dbdata_test/
 
 ./furniture_transfer/uploads/
-./ardeco_invoices/
+ardeco_invoices/
 
 .env
 .env.*
