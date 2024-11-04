@@ -5,11 +5,11 @@ import { JwtService } from "@nestjs/jwt";
 import { Order } from "./models/order.entity";
 import { User } from "../user/models/user.entity";
 import { UserService } from "../user/user.service";
-import { createReadStream } from "fs";
+import * as fs from "node:fs";
+import { createReadStream, promises as fsPromises } from "node:fs";
 import * as path from "path";
 import { join } from "path";
 import { CartService } from "../cart/cart.service";
-import * as fs from "node:fs";
 import PDFDocumentWithTables from "pdfkit-table";
 import { MailService } from "../mail/mail.service";
 
@@ -171,8 +171,9 @@ export class OrderController {
             const stream = await this.generateInvoice(order);
             await new Promise((resolve, reject) => {
                 stream.on("finish", resolve);
-                stream.on("error", reject); // N'oubliez pas de gérer les erreurs de stream.
+                stream.on("error", reject);
             });
+            this.logger.log(`Invoice ${order.id} generated`);
             return this.postInvoiceGeneration(res, order, cart.id);
         } catch (e) {
             res.status(501);
@@ -198,7 +199,21 @@ export class OrderController {
         const user = await this.checkAuthorization(req, res, Type.GET_ORDER, order);
         if (!(user instanceof User)) return user;
 
-        const file = createReadStream(join(process.cwd(), `ardeco_invoices/invoice_${order_id}.pdf`));
+        const filePath = join(process.cwd(), `ardeco_invoices/invoice_${order_id}.pdf`);
+
+        try {
+            await fsPromises.access(filePath);
+        } catch (e) {
+            this.logger.warn(`Invoice ${order.id} was not found, generating it`);
+            const stream = await this.generateInvoice(order);
+            await new Promise((resolve, reject) => {
+                stream.on("finish", resolve);
+                stream.on("error", reject);
+            });
+            this.logger.log(`Invoice ${order.id} generated`);
+        }
+
+        const file = createReadStream(filePath);
         res.set({
             "Content-Type": "application/pdf",
             "Content-Disposition": `attachment; filename="ardeco_invoice_${order_id}.pdf"`
