@@ -6,10 +6,12 @@ import { OrderController } from "./order.controller";
 import { OrderService } from "./order.service";
 import { UserModule } from "../user/user.module";
 import { CartModule } from "../cart/cart.module";
+import { MailModule } from "../mail/mail.module";
 
 @Module({
     imports: [
         UserModule,
+        MailModule,
         TypeOrmModule.forFeature([Order]),
         JwtModule.register({
             secret: "secret"

@@ -7,7 +7,6 @@ import { JwtService, JwtSignOptions } from "@nestjs/jwt";
 import { Request, Response } from "express";
 // import { AuthGuard } from "@nestjs/passport";
 import { LoginDto } from "src/auth/models/login.dto";
-// import { CartService } from "src/cart/cart.service";
 import { randomBytes } from "crypto";
 // import { AuthService } from "./auth.service";
 // import { use } from 'passport';
@@ -23,9 +22,8 @@ export class AuthController {
         private userService: UserService,
         private jwtService: JwtService,
         private mailService: MailService,
-        // private cartService: CartService,
-        // private authService: AuthService,
         private userSettingsService: UserSettingsService
+        // private authService: AuthService,
     ) {
     }
 

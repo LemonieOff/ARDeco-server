@@ -2,6 +2,8 @@ import { Injectable } from "@nestjs/common";
 import * as nodemailer from "nodemailer";
 import SMTPTransport from "nodemailer/lib/smtp-transport";
 import { loopWhile } from "deasync";
+import { Attachment } from "nodemailer/lib/mailer";
+import * as fs from "node:fs";
 
 type EmailSender = {
     name: string,
@@ -10,7 +12,7 @@ type EmailSender = {
 
 const ARDeco_sender: EmailSender = {
     name: "ARDeco Team",
-    address: "ardeco.officiel@gmail.com"
+    address: "contact@ardeco.app"
 };
 
 @Injectable()
@@ -37,7 +39,24 @@ Nous vous souhaitons une bonne journée, et à bientôt sur ARDeco !</p></body>`
         return this.sendEmail(email, subject, body);
     }
 
-    private sendEmail(address: string, subject: string, body: string, from: EmailSender = ARDeco_sender) {
+    public sendInvoice(email: string, invoice_id: number) {
+        const subject = "Merci de votre commande sur ARDeco !";
+        const body = `<body><h1>Merci de votre commande sur ARDeco !</h1>
+<p>Bonjour,<br /><br />
+Nous vous remercions pour votre commande sur ARDeco !<br /><br />
+Vous trouverez ci-joint votre facture.<br /><br />
+N'hésitez pas à nous contacter si vous avez la moindre question.<br /><br />
+Nous vous souhaitons une excellente journée, et à bientôt sur ARDeco !</p></body>`;
+        const invoice_path = `ardeco_invoices/invoice_${invoice_id}.pdf`;
+        const invoice_content = fs.readFileSync(invoice_path);
+        return this.sendEmail(email, subject, body, [{
+            filename: `ardeco_invoice_${invoice_id}.pdf`,
+            content: invoice_content,
+            contentType: "application/pdf"
+        }]);
+    }
+
+    private sendEmail(address: string, subject: string, body: string, attachments: Attachment[] = [], from: EmailSender = ARDeco_sender) {
         const transporter = nodemailer.createTransport({
             service: "gmail",
             auth: {
@@ -50,7 +69,8 @@ Nous vous souhaitons une bonne journée, et à bientôt sur ARDeco !</p></body>`
             from: from,
             to: address,
             subject: subject,
-            html: body
+            html: body,
+            attachments: attachments
         };
 
         let finished = false;
@@ -73,64 +93,4 @@ Nous vous souhaitons une bonne journée, et à bientôt sur ARDeco !</p></body>`
         console.log("Email sent");
         return result;
     }
-
-    /*  public async sendMailPassword(content : sendMailPasswordDTO) {
-            await this.setTransport(await this.getToken());
-            this.mailerService
-                .sendMail({
-                    transporterName: 'gmail',
-                    to: content.email, // list of receivers
-                    from: 'noreply@nestjs.com', // sender address
-                    subject: 'Change your ARDeco password', // Subject line
-                    template: './password',
-                    context: {
-                        token : content.token,
-                        user : content.user,
-                    },
-                })
-                .then((success) => {
-                    console.log(success);
-                })
-                .catch((err) => {
-                    console.log(err);
-                });
-        }
-
-        public async sendMailInvoice(content : sendMailInvoiceDTO) {
-            await this.setTransport(await this.getToken());
-
-            let filePath = `ardeco_invoices/invoice_${content.id_invoice}.pdf`
-
-            const attachmentContent = fs.readFileSync(filePath);
-
-            console.log()
-            const command = await
-            this.mailerService
-                .sendMail({
-                    transporterName: 'gmail',
-                    to: content.email, // list of receivers
-                    from: 'noreply@nestjs.com', // sender address
-                    subject: 'Récapitulatif de comande ARdeco', // Subject line
-                    template: './invoice',
-                    context: {
-                        name : content.name,
-                        total : content.total,
-                        order_id: content.id_invoice
-
-                    },
-                    attachments: [
-                        {
-                            filename: "invoice.pdf",
-                            content: attachmentContent,
-                            //encoding: 'utf-8'
-                        },
-                    ]
-                })
-                .then((success) => {
-                    console.log(success);
-                })
-                .catch((err) => {
-                    console.log(err);
-                });
-        }*/
 }
