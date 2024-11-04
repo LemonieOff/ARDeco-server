@@ -38,9 +38,7 @@ export class OrderService {
             object_id: item.furniture.object_id
         }));
 
-        const item = await this.orderHistoryRepository.save(order);
-        console.log("Create OrderHistory item :", item);
-        return item;
+        return await this.orderHistoryRepository.save(order);
     }
 
     async findOne(condit: FindOptionsWhere<Order>): Promise<Order> {
