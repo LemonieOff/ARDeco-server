@@ -64,12 +64,14 @@ export class FavoriteFurnitureController {
                 };
             }
 
+            const isCountMode = Object.keys(req.query).includes("count");
+
             res.status(200);
             return {
                 status: "OK",
                 code: 200,
                 description: "Favorite furniture items",
-                data: furnitureItems
+                data: isCountMode ? furnitureItems.length : furnitureItems
             };
         } catch (e) {
             res.status(501);

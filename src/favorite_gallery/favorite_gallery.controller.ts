@@ -64,6 +64,8 @@ export class FavoriteGalleryController {
                 };
             }
 
+            const isCountMode = Object.keys(req.query).includes("count");
+
             const galleryItems: Gallery[] = items.map(fav => {
                 let displayName = fav.gallery.user.settings.display_lastname_on_public;
                 if (user.role === "admin" || user.id === fav.gallery.user.id) displayName = true; // Always display name if admin or self
@@ -79,7 +81,7 @@ export class FavoriteGalleryController {
                 status: "OK",
                 code: 200,
                 description: "Favorite Gallery items",
-                data: galleryItems
+                data: isCountMode ? galleryItems.length : galleryItems
             };
         } catch (e) {
             res.status(501);
