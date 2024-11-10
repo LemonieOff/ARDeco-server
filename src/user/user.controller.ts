@@ -200,6 +200,7 @@ export class UserController {
                 phone: requestedUser.phone,
                 city: requestedUser.city,
                 role: requestedUser.role,
+                deleted: requestedUser.deleted,
                 profile_picture_id: requestedUser.profile_picture_id
             }
         };
