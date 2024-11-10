@@ -293,6 +293,8 @@ export class GalleryReportsController {
                     data: null
                 };
             }
+
+            return [user, gallery];
         }
 
         if (user.role !== "admin") {
