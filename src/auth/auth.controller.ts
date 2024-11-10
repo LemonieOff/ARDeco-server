@@ -571,7 +571,8 @@ export class AuthController {
         }
 
         // Close account
-        const res = await this.userService.update(usr.id, { deleted: true });
+        await this.userService.delete(usr.id);
+        response.status(200);
         return {
             status: "OK",
             code: 200,
