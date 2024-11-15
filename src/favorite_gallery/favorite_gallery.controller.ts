@@ -40,6 +40,7 @@ export class FavoriteGalleryController {
                     room: true,
                     style: true,
                     model_data: true,
+                    visibility: true,
                     user: {
                         id: true,
                         first_name: true,
