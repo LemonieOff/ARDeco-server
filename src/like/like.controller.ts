@@ -250,8 +250,28 @@ export class LikeController {
                 }
             }
 
+            if (!id2) {
+                res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+                return {
+                    status: "KO",
+                    code: HttpStatus.INTERNAL_SERVER_ERROR,
+                    description: "Server error : a gallery id must be passed to check function",
+                    data: null
+                };
+            }
+            id2 = Number(id2);
+            if (isNaN(id2)) {
+                res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+                return {
+                    status: "KO",
+                    code: HttpStatus.INTERNAL_SERVER_ERROR,
+                    description: "Provided gallery id is not a number",
+                    data: id2
+                };
+            }
+
             // Check permissions for gallery
-            const gallery = await this.galleryService.findOne({ id: 26 }, { user: true }, {
+            const gallery = await this.galleryService.findOne({ id: id2 }, { user: true }, {
                 id: true,
                 visibility: true,
                 user: { id: true }
