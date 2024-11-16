@@ -19,7 +19,9 @@ export class Feedback {
     })
     user_id: number;
 
-    @Column()
+    @Column({
+        type: "longtext"
+    })
     feedback: string;
 
     @Column({
@@ -39,7 +41,7 @@ export class Feedback {
         type: "boolean",
         default: false
     })
-    processed: boolean
+    processed: boolean;
 
     @Column({
         type: "timestamp",
