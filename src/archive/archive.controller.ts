@@ -211,7 +211,7 @@ export class ArchiveController {
                 res.status(403);
                 return {
                     status: "KO",
-                    code: 401,
+                    code: 403,
                     description:
                         "You don't have any API key, please generate one before using this endpoint",
                     data: null
@@ -223,7 +223,7 @@ export class ArchiveController {
                 res.status(403);
                 return {
                     status: "KO",
-                    code: 401,
+                    code: 403,
                     description:
                         "API key is not valid in \"company_api_key\" query parameter",
                     data: null

@@ -27,8 +27,8 @@ export class CatalogController {
         const user = await this.checkAuthorizationUser(req, res);
         if (!(user instanceof User)) return user;
 
-        const includeInactive = user.role === 'admin';
-        
+        const includeInactive = user.role === "admin";
+
         res.status(200);
         return {
             status: "OK",
@@ -674,7 +674,7 @@ export class CatalogController {
                 res.status(403);
                 return {
                     status: "KO",
-                    code: 401,
+                    code: 403,
                     description:
                         "You don't have any API key, please generate one before using this endpoint",
                     data: null
@@ -686,7 +686,7 @@ export class CatalogController {
                 res.status(403);
                 return {
                     status: "KO",
-                    code: 401,
+                    code: 403,
                     description:
                         "API key is not valid in \"company_api_key\" query parameter",
                     data: null
@@ -811,17 +811,17 @@ export class CatalogController {
                 {
                     role: "system",
                     content: "Je vais vous envoyer une image d'une pièce. En fonction de l'image :\n" +
-                             "1. Identification de la pièce : Déterminez le type de pièce (par exemple, salle à manger, salon, chambre, cuisine ou salle de bain).\n" +
-                             "2. Analyse du style et des couleurs : Identifiez le style de design de la pièce (par exemple, moderne, rustique, minimaliste) et le schéma de couleurs dominant.\n" +
-                             "3. Espace et disposition : Estimez l'espace disponible dans la pièce et l'agencement optimal des meubles.\n\n" +
-                             "En utilisant ces informations :\n\n" +
-                             "• Sélection de meubles : Choisissez des articles appropriés dans le catalogue JSON fourni qui correspondent au type de pièce, au style et au schéma de couleurs.\n" +
-                             "• Format de réponse : Listez les IDs des meubles séparés par des points-virgules (par exemple, 'ID1; ID2; ID3'). Vous pouvez inclure plusieurs instances du même article lorsque cela a du sens (par exemple, plusieurs chaises pour une salle à manger).\n" +
-                             "• Restriction sur les grands meubles : Suggérez uniquement un grand article (par exemple, canapé, table à manger) à moins que l'espace ne puisse clairement en accueillir plus.\n" +
-                             "• Évitez l'encombrement : Assurez-vous que les articles sélectionnés s'adaptent à l'espace disponible sans surcharger. Priorisez la fonctionnalité de la disposition.\n" +
-                             "• Suggestions : Fournissez au moins trois suggestions qui améliorent l'apparence générale de la pièce, en garantissant l'harmonie et l'équilibre.\n" +
-                             " Si tu ne sais pas quoi mettre pour la piece ou determiner le type de pièce, donne quand même des ids de chaises et tables" + 
-                             "Réponse uniquement avec des IDs séparés par des points-virgules."
+                        "1. Identification de la pièce : Déterminez le type de pièce (par exemple, salle à manger, salon, chambre, cuisine ou salle de bain).\n" +
+                        "2. Analyse du style et des couleurs : Identifiez le style de design de la pièce (par exemple, moderne, rustique, minimaliste) et le schéma de couleurs dominant.\n" +
+                        "3. Espace et disposition : Estimez l'espace disponible dans la pièce et l'agencement optimal des meubles.\n\n" +
+                        "En utilisant ces informations :\n\n" +
+                        "• Sélection de meubles : Choisissez des articles appropriés dans le catalogue JSON fourni qui correspondent au type de pièce, au style et au schéma de couleurs.\n" +
+                        "• Format de réponse : Listez les IDs des meubles séparés par des points-virgules (par exemple, 'ID1; ID2; ID3'). Vous pouvez inclure plusieurs instances du même article lorsque cela a du sens (par exemple, plusieurs chaises pour une salle à manger).\n" +
+                        "• Restriction sur les grands meubles : Suggérez uniquement un grand article (par exemple, canapé, table à manger) à moins que l'espace ne puisse clairement en accueillir plus.\n" +
+                        "• Évitez l'encombrement : Assurez-vous que les articles sélectionnés s'adaptent à l'espace disponible sans surcharger. Priorisez la fonctionnalité de la disposition.\n" +
+                        "• Suggestions : Fournissez au moins trois suggestions qui améliorent l'apparence générale de la pièce, en garantissant l'harmonie et l'équilibre.\n" +
+                        " Si tu ne sais pas quoi mettre pour la piece ou determiner le type de pièce, donne quand même des ids de chaises et tables" +
+                        "Réponse uniquement avec des IDs séparés par des points-virgules."
                 },
                 {
                     role: "user",
