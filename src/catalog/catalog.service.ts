@@ -29,6 +29,7 @@ const selectRelations: FindManyOptions<Catalog> = {
         height: true,
         depth: true,
         active: true,
+        archived: true,
         colors: {
             color: true,
             model_id: true
@@ -103,16 +104,16 @@ export class CatalogService {
         console.log("");
         let catalog: Catalog[];
         if (!isAdmin) {
-        catalog = await this.catalogRepository.find({
-            where: {
-                ...where,
-                archived: false,
-                active: true
-            },
-            ...selectRelations
+            catalog = await this.catalogRepository.find({
+                where: {
+                    ...where,
+                    archived: false,
+                    active: true
+                },
+                ...selectRelations
             });
         } else {
-                catalog = await this.catalogRepository.find({
+            catalog = await this.catalogRepository.find({
                 where: where,
                 ...selectRelations
             });
