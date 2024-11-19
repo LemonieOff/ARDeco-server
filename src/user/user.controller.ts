@@ -186,7 +186,7 @@ export class UserController {
         }
 
         let displayLastName: boolean = requestedUser.settings.display_lastname_on_public;
-        if (requestedUser.role == "admin" || requestedUser.id === authorizedUser.id) displayLastName = true; // Always display lastname if admin or self
+        if (authorizedUser.role == "admin" || requestedUser.id === authorizedUser.id) displayLastName = true; // Always display lastname if admin or self
 
         return {
             status: "OK",
