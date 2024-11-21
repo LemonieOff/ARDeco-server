@@ -16,6 +16,56 @@ export class TicketController {
     ) {
     }
 
+    @Get("all")
+    async getAll(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<any> {
+        // Check login
+        const cookie = req.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+        if (!data) {
+            res.status(HttpStatus.UNAUTHORIZED);
+            return {
+                status: "KO",
+                code: HttpStatus.UNAUTHORIZED,
+                description: "You are not logged in",
+                data: null
+            };
+        }
+
+        const usr = await this.userService.findOne({ id: data["id"] });
+        if (!usr) {
+            res.status(HttpStatus.FORBIDDEN);
+            return {
+                status: "KO",
+                code: HttpStatus.FORBIDDEN,
+                description: "You are not allowed to access this resource",
+                data: null
+            };
+        }
+
+        if (usr.role != "admin") {
+            res.status(HttpStatus.BAD_REQUEST);
+            return {
+                status: "KO",
+                code: HttpStatus.BAD_REQUEST,
+                description: "You are not an admin",
+                data: null
+            };
+        }
+
+        const tickets = await this.ticketService.all();
+        for (const ticket of tickets) {
+            ticket.messages = ticket.messages = await this.changeUserSenderToRealName(ticket.messages, ticket.user_id);
+        }
+        console.log(tickets);
+        res.status(HttpStatus.OK);
+        return {
+            status: "OK",
+            code: HttpStatus.OK,
+            description: "All tickets",
+            data: tickets
+        };
+    }
+
     @Get("pending")
     async getPending(@Req() req: Request, @Res({ passthrough: true }) httpRes: Response): Promise<any> {
         // Check login
@@ -56,6 +106,7 @@ export class TicketController {
         let res = [];
         for (let i = 0; i < tickets.length; i++) {
             if (tickets[i].status == "pending") {
+                tickets[i].messages = tickets[i].messages = await this.changeUserSenderToRealName(tickets[i].messages, tickets[i].user_id);
                 res.push(tickets[i]);
             }
         }
@@ -109,6 +160,7 @@ export class TicketController {
         let res = [];
         for (let i = 0; i < tickets.length; i++) {
             if (tickets[i].status == "pending") {
+                tickets[i].messages = tickets[i].messages = await this.changeUserSenderToRealName(tickets[i].messages, tickets[i].user_id);
                 res.push(tickets[i]);
             }
         }
@@ -334,6 +386,7 @@ export class TicketController {
             };
         }
 
+        requestedTicket.messages = await this.changeUserSenderToRealName(requestedTicket.messages, requestedTicket.user_id);
         res.status(HttpStatus.OK);
         return {
             status: "OK",
@@ -398,6 +451,9 @@ export class TicketController {
         }
 
         const tickets = await this.ticketService.allForUser(user_id);
+        for (const ticket of tickets) {
+            ticket.messages = await this.changeUserSenderToRealName(ticket.messages, ticket.user_id);
+        }
         //const tickets_ids = tickets.map((ticket) => ticket.id);
 
         res.status(HttpStatus.OK);
@@ -608,7 +664,7 @@ export class TicketController {
         ticketTmp.title = ticket.title;
         ticketTmp.description = ticket.description;
         ticketTmp.messages = JSON.stringify([{
-            sender: `${usr.first_name} ${usr.last_name}`,
+            sender: "User",
             content: ticket.message,
             timestamp: Date.now().toLocaleString()
         }]);
@@ -616,6 +672,7 @@ export class TicketController {
         ticketTmp.status = "pending";
 
         const ress = await this.ticketService.create(ticketTmp);
+        ress.messages = await this.changeUserSenderToRealName(ress.messages, ress.user_id);
         res.status(HttpStatus.OK);
         return {
             status: "OK",
@@ -718,7 +775,7 @@ export class TicketController {
             });
         } else {
             messages.push({
-                sender: `${usr.first_name} ${usr.last_name}`,
+                sender: "User",
                 content: message,
                 timestamp: Date.now().toLocaleString()
             });
@@ -726,58 +783,13 @@ export class TicketController {
         ticket.messages = JSON.stringify(messages);
 
         const ress = await this.ticketService.update(id, ticket);
+        ress.messages = await this.changeUserSenderToRealName(ress.messages, ress.user_id);
         res.status(HttpStatus.OK);
         return {
             status: "OK",
             code: HttpStatus.OK,
             description: "Message was added to ticket",
             data: ress
-        };
-    }
-
-    @Get("all")
-    async getAll(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<any> {
-        // Check login
-        const cookie = req.cookies["jwt"];
-        const data = cookie ? this.jwtService.verify(cookie) : null;
-        if (!data) {
-            res.status(HttpStatus.UNAUTHORIZED);
-            return {
-                status: "KO",
-                code: HttpStatus.UNAUTHORIZED,
-                description: "You are not logged in",
-                data: null
-            };
-        }
-
-        const usr = await this.userService.findOne({ id: data["id"] });
-        if (!usr) {
-            res.status(HttpStatus.FORBIDDEN);
-            return {
-                status: "KO",
-                code: HttpStatus.FORBIDDEN,
-                description: "You are not allowed to access this resource",
-                data: null
-            };
-        }
-
-        if (usr.role != "admin") {
-            res.status(HttpStatus.BAD_REQUEST);
-            return {
-                status: "KO",
-                code: HttpStatus.BAD_REQUEST,
-                description: "You are not an admin",
-                data: null
-            };
-        }
-
-        const tickets = await this.ticketService.all();
-        res.status(HttpStatus.OK);
-        return {
-            status: "OK",
-            code: HttpStatus.OK,
-            description: "All tickets",
-            data: tickets
         };
     }
 
@@ -806,6 +818,16 @@ export class TicketController {
                 data: null
             };
         }
+    }
+
+    private async changeUserSenderToRealName(messages_string: string, user_id: number) {
+        const author = await this.userService.findOne({ id: user_id });
+        const messages: [{ sender: string, content: string, timestamp: string }] = JSON.parse(messages_string);
+
+        return JSON.stringify(messages.map((message) => ({
+            ...message,
+            sender: message.sender === "Support" ? "Support" : `${author.first_name} ${author.last_name}`
+        })));
     }
 }
 
