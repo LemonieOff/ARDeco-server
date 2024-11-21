@@ -22,7 +22,7 @@ export class UserSettingsController {
         @Param("id") id: number,
         @Res({ passthrough: true }) res: Response
     ) {
-        const item = await this.userSettingsService.findOne({ id: id }, {
+        const item = await this.userSettingsService.findOne({ user_id: id }, {
             user: {
                 id: true,
                 role: true
@@ -160,7 +160,7 @@ export class UserSettingsController {
         @Param("id") id: number,
         @Res({ passthrough: true }) res: Response
     ) {
-        const item = await this.userSettingsService.findOne({ id: id });
+        const item = await this.userSettingsService.findOne({ user_id: id });
 
         const authorizedUser = await this.checkAuthorization(
             req,
@@ -171,7 +171,7 @@ export class UserSettingsController {
         if (!(authorizedUser instanceof User)) return authorizedUser;
 
         try {
-            const result = await this.userSettingsService.delete(id);
+            const result = await this.userSettingsService.delete(item.id);
             res.status(200);
             return {
                 status: "OK",
@@ -189,16 +189,6 @@ export class UserSettingsController {
                 data: item
             };
         }
-    }
-
-    @Put(":id")
-    async editViaParam(
-        @Req() req: Request,
-        @Param("id") id: number,
-        @Body() item: UserSettingsDto,
-        @Res({ passthrough: true }) res: Response
-    ) {
-        return await this.editItem(req, id, item, res);
     }
 
     // Edit current user's settings
@@ -233,7 +223,7 @@ export class UserSettingsController {
         return await this.editItem(req, existingSettings.id, item, res);
     }
 
-    // Edit current user's settings
+    // Edit specific settings by user id
     @Put("/user/:user_id")
     async editSpecificUserSettings(
         @Req() req: Request,
@@ -328,7 +318,7 @@ export class UserSettingsController {
                 return {
                     status: "KO",
                     code: 404,
-                    description: "Resource was not found",
+                    description: "Settings were not found",
                     data: null
                 };
             }
