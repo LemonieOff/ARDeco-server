@@ -44,15 +44,19 @@ export class UserController {
 
             const users = await this.userService.all();
 
+            // This current method to retrieve deleted users (highestId - entriesCount) is not viable over time.
+            // The highest actual id might not be the latest one
+            // (for example, the three latest users could have deleted their accounts,
+            // but we don't have a way to know it)
+            // TODO : Replace it with a "statistics" table incrementing a column "deleted_users" on each deletion
+            const maxUserId = Math.max(...users.map(user => user.id));
+            const deleted = maxUserId - users.length;
+
             let admin = 0;
             let company = 0;
             let user = 0;
-            let deleted = 0;
 
             for (let i = 0; i < users.length; i++) {
-                if (users[i].deleted == true) {
-                    deleted++;
-                }
                 if (users[i].role == "admin") {
                     admin++;
                 } else if (users[i].role == "company") {
@@ -71,8 +75,8 @@ export class UserController {
                     company,
                     user,
                     deleted,
-                    totalActive: admin + company + user - deleted,
-                    totalWithDeleted: admin + company + user
+                    totalActive: admin + company + user,
+                    totalWithDeleted: admin + company + user + deleted
                 }
             };
         } catch (e) {

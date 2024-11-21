@@ -57,7 +57,6 @@ export class TicketController {
             if (ticket.messages)
                 ticket.messages = ticket.messages = await this.changeUserSenderToRealName(ticket.messages, ticket.user_id);
         }
-        console.log(tickets);
         res.status(HttpStatus.OK);
         return {
             status: "OK",
