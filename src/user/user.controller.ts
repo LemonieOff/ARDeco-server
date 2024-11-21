@@ -302,6 +302,21 @@ export class UserController {
                 user["password"] = await bcrypt.hash(user["password"], 12);
             }
 
+            // Check if another account already uses the email address
+            if (user["email"] !== undefined) {
+                const email = user["email"] as string;
+                const email_already_used = await this.userService.findOne({ email: email});
+                if (email_already_used && email_already_used.id !== Number(id)) {
+                    res.status(400);
+                    return {
+                        status: "KO",
+                        code: 400,
+                        description: "This email address is already used by another user",
+                        data: null
+                    };
+                }
+            }
+
             const result = await this.userService.update(id, user);
             if (user["password"] !== undefined) {
                 this.mailService.sendPasswordChanged(request_user_id.email, requested_user.first_name);
