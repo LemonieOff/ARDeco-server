@@ -54,7 +54,8 @@ export class TicketController {
 
         const tickets = await this.ticketService.all();
         for (const ticket of tickets) {
-            ticket.messages = ticket.messages = await this.changeUserSenderToRealName(ticket.messages, ticket.user_id);
+            if (ticket.messages)
+                ticket.messages = ticket.messages = await this.changeUserSenderToRealName(ticket.messages, ticket.user_id);
         }
         console.log(tickets);
         res.status(HttpStatus.OK);
@@ -106,7 +107,8 @@ export class TicketController {
         let res = [];
         for (let i = 0; i < tickets.length; i++) {
             if (tickets[i].status == "pending") {
-                tickets[i].messages = tickets[i].messages = await this.changeUserSenderToRealName(tickets[i].messages, tickets[i].user_id);
+                if (tickets[i].messages)
+                    tickets[i].messages = tickets[i].messages = await this.changeUserSenderToRealName(tickets[i].messages, tickets[i].user_id);
                 res.push(tickets[i]);
             }
         }
@@ -160,7 +162,8 @@ export class TicketController {
         let res = [];
         for (let i = 0; i < tickets.length; i++) {
             if (tickets[i].status == "pending") {
-                tickets[i].messages = tickets[i].messages = await this.changeUserSenderToRealName(tickets[i].messages, tickets[i].user_id);
+                if (tickets[i].messages)
+                    tickets[i].messages = tickets[i].messages = await this.changeUserSenderToRealName(tickets[i].messages, tickets[i].user_id);
                 res.push(tickets[i]);
             }
         }
@@ -452,7 +455,8 @@ export class TicketController {
 
         const tickets = await this.ticketService.allForUser(user_id);
         for (const ticket of tickets) {
-            ticket.messages = await this.changeUserSenderToRealName(ticket.messages, ticket.user_id);
+            if (ticket.messages)
+                ticket.messages = await this.changeUserSenderToRealName(ticket.messages, ticket.user_id);
         }
         //const tickets_ids = tickets.map((ticket) => ticket.id);
 
