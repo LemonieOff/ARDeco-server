@@ -52,25 +52,31 @@ export class CommentController {
             }
             const [user, gallery] = auth;
 
-            // Users blocked by the current user
-            const blockedUsers = await this.blockedUsersService.findByBlocker(user.id, user);
-            const blockedUsersIds = blockedUsers.map(blockedUser => blockedUser.blocked_user_id);
+            // Retrieve all comments
+            let comments = await this.commentService.allForGallery(gallery.id, user);
 
-            // Users blocking the current user
-            const blockerUsers = await this.blockedUsersService.findByBlocked(user.id);
-            const blockerUsersIds = blockerUsers.map(blockerUser => blockerUser.user_id);
+            // Remove comments from blocked and blocking users if the requester is not an admin.
+            // Admin must have access to all content
+            if (user.role !== "admin") {
+                // Users blocked by the current user
+                const blockedUsers = await this.blockedUsersService.findByBlocker(user.id, user);
+                const blockedUsersIds = blockedUsers.map(blockedUser => blockedUser.blocked_user_id);
 
-            // Filter comments to remove unwanted comments (from blocked users and blocking users)
-            const comments = await this.commentService.allForGallery(gallery.id, user);
-            const filteredComments = comments.filter(comment => {
-                return !blockedUsersIds.includes(comment.user_id) && !blockerUsersIds.includes(comment.user_id);
-            });
+                // Users blocking the current user
+                const blockerUsers = await this.blockedUsersService.findByBlocked(user.id);
+                const blockerUsersIds = blockerUsers.map(blockerUser => blockerUser.user_id);
+
+                // Filter comments to remove unwanted comments (from blocked users and blocking users)
+                comments = comments.filter(comment => {
+                    return !blockedUsersIds.includes(comment.user_id) && !blockerUsersIds.includes(comment.user_id);
+                });
+            }
 
             // Return filtered comments
             res.status(200);
             return {
                 code: 200,
-                data: filteredComments,
+                data: comments,
                 description: `All comments for gallery ${gallery.id}`,
                 status: "OK"
             };
