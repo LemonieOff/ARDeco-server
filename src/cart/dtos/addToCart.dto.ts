@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsPositive } from "@nestjs/class-validator";
+import { IsNotEmpty, IsNumber, IsPositive, Min } from "@nestjs/class-validator";
 
 export class AddItemToCartDTO {
     @IsNotEmpty()
@@ -8,6 +8,6 @@ export class AddItemToCartDTO {
 
     @IsNotEmpty()
     @IsNumber()
-    @IsPositive()
+    @Min(0)
     model_id: number;
 }
