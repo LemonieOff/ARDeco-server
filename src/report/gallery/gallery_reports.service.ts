@@ -1,5 +1,4 @@
 import { Injectable } from "@nestjs/common";
-import { CreateGalleryReportDto } from "./dto/create-gallery_report.dto";
 import { UpdateGalleryReportDto } from "./dto/update-gallery_report.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { FindOptionsWhere, Repository } from "typeorm";
@@ -22,6 +21,14 @@ export class GalleryReportsService {
         report.report_text = report_text;
         report.status = "open";
         return this.galleryReportRepository.save(report);
+    }
+
+    findAllOpen() {
+        return this.galleryReportRepository.find({
+            where: {
+                status: "open"
+            }
+        });
     }
 
     findAllByUser(user_id: number) {

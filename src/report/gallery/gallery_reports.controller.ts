@@ -20,6 +20,57 @@ export class GalleryReportsController {
     ) {
     }
 
+    @Get()
+    async getAllReportedGalleries(
+        @Req() req: Request,
+        @Res({ passthrough: true }) res: Response
+    ) {
+        const cookie = req.cookies["jwt"];
+        const data = cookie ? this.jwtService.verify(cookie) : null;
+
+        // Cookie or JWT not valid
+        if (!cookie || !data) {
+            res.status(401);
+            return {
+                status: "KO",
+                code: 401,
+                description:
+                    "You have to login in order to report a gallery",
+                data: null
+            };
+        }
+
+        const user = await this.userService.findOne({ id: data["id"] });
+
+        if (!user) {
+            res.status(403);
+            return {
+                status: "KO",
+                code: 403,
+                description: "User not found",
+                data: null
+            };
+        }
+
+        if (user.role !== "admin") {
+            res.status(403);
+            return {
+                status: "KO",
+                code: 403,
+                description: "You must be an admin to access/close gallery reports",
+            }
+        }
+
+        const reports = (await this.galleryReportsService.findAllOpen()).map((report) => report.gallery.id);
+        res.status(200);
+        return {
+            status: "OK",
+            code: 200,
+            description: "List of all reported galleries",
+            data: reports
+        };
+    }
+
     @Get(":gallery_id")
     async getReportStatus(
         @Req() req: Request,
