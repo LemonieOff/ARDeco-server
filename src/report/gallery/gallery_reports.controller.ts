@@ -57,8 +57,8 @@ export class GalleryReportsController {
             return {
                 status: "KO",
                 code: 403,
-                description: "You must be an admin to access/close gallery reports",
-            }
+                description: "You must be an admin to access/close gallery reports"
+            };
         }
 
         const reports = (await this.galleryReportsService.findAllOpen()).map((report) => report.gallery.id);

@@ -25,8 +25,16 @@ export class GalleryReportsService {
 
     findAllOpen() {
         return this.galleryReportRepository.find({
+            relations: {
+                gallery: true
+            },
             where: {
                 status: "open"
+            },
+            select: {
+                gallery: {
+                    id: true
+                }
             }
         });
     }
