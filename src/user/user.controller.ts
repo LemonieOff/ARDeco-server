@@ -323,7 +323,7 @@ export class UserController {
 
             const result = await this.userService.update(id, user);
             if (user["password"] !== undefined) {
-                this.mailService.sendPasswordChanged(request_user_id.email, requested_user.first_name);
+                await this.mailService.sendPasswordChanged(requested_user.email, requested_user.first_name);
             }
             res.status(200);
             return {

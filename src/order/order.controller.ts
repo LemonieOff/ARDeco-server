@@ -341,7 +341,7 @@ export class OrderController {
 
     private async postInvoiceGeneration(res: Response, order: Order, id: number) {
         try {
-            this.mailService.sendInvoice(order.user.email, order.id);
+            await this.mailService.sendInvoice(order.user.email, order.id);
         } catch (e) {
             this.logger.error(e);
             this.logger.warn("Invoice has successfully been generated, but no email has been sent");

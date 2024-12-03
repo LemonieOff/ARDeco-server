@@ -173,7 +173,7 @@ export class AuthController {
             console.log("Settings created for user ", settings.user.id);
 
             // Send email
-            const emailResult = this.mailService.sendWelcomeAndVerification(res.email, res.checkEmailToken);
+            const emailResult = await this.mailService.sendWelcomeAndVerification(res.email, res.checkEmailToken);
             let emailStatus = "";
             if (emailResult instanceof Error) {
                 emailStatus = "email was not sent due to an error";
