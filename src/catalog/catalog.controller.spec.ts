@@ -8,8 +8,8 @@ import { User } from "../user/models/user.entity";
 import { CatalogFilterDto } from "./dtos/catalog-filter.dto";
 import { CatalogResponseDto } from "./dtos/catalog-response.dto";
 import { UserSettings } from "../user_settings/models/user_settings.entity";
-import { HttpStatus } from "@nestjs/common";
 import { CatalogCreateDto } from "./dtos/catalog-create.dto";
+import { HttpStatus } from "@nestjs/common";
 import { CatalogUpdateDto } from "./dtos/catalog-update.dto";
 
 describe("CatalogController", () => {
@@ -136,7 +136,7 @@ describe("CatalogController", () => {
                 data: mockCatalog
             });
         });
-    });
+    })
 
     describe("filterCatalog", () => {
         it("should filter and return catalog items", async () => {
@@ -226,7 +226,7 @@ describe("CatalogController", () => {
                     description: "You don't have access to this furniture",
                     data: null
                 });
-            });
+            })
 
             it("should return 200 if furniture is inactive but user is the company owner", async () => {
                 const companyUser = { ...mockUser, role: "company" };
@@ -345,7 +345,7 @@ describe("CatalogController", () => {
                 description: "No object to register",
                 data: null
             });
-        });
+        })
 
         it("should return 400 with validation errors", async () => {
             const companyId = 1;
@@ -366,7 +366,7 @@ describe("CatalogController", () => {
                 description: [["Validation error 1", "Validation error 2"]],
                 data: null
             });
-        });
+        })
 
         it("should handle database errors during creation", async () => {
             const companyId = 1;

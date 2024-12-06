@@ -6,8 +6,8 @@ import { JwtService } from "@nestjs/jwt";
 import { Request, Response } from "express";
 import { BlockedUser } from "./entities/blocked_user.entity";
 import { User } from "../user/models/user.entity";
-import { HttpStatus } from "@nestjs/common";
 import { UserSettings } from "../user_settings/models/user_settings.entity";
+import { HttpStatus } from "@nestjs/common";
 
 describe("BlockedUsersController", () => {
     let controller: BlockedUsersController;

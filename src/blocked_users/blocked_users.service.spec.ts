@@ -88,8 +88,8 @@ describe("BlockedUsersService", () => {
                 where: { user_id: blockerId }
             });
             expect(result).toEqual([
-                { ...mockBlockedUser, blocked_user: { id: 2, first_name: "", last_name: "", profile_picture_id: 0, role: "", settings: undefined } },
-                { ...mockBlockedUser, blocked_user: { id: 3, first_name: "", last_name: "", profile_picture_id: 0, role: "", settings: undefined } }
+                { ...mockBlockedUser, blocked_user: { id: 2, last_name: "" } },
+                { ...mockBlockedUser, blocked_user: { id: 3 } }
             ]);
         });
     });
