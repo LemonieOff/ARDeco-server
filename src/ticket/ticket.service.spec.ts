@@ -67,7 +67,7 @@ describe("TicketService", () => {
             const result = await service.allForUser(userId);
             expect(ticketRepository.find).toHaveBeenCalledWith({
                 where: {
-                    user_init_id: userId,
+                    user_id: userId,
                     status: Not("deleted")
                 },
                 select: ["id", "title", "status", "description"]

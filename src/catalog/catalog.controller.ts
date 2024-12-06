@@ -760,7 +760,7 @@ export class CatalogController {
     async checkAuthorizationUser(
         req: Request,
         res: Response
-    ): Promise<Promise<User> | {
+    ): Promise<User | {
         status: string,
         code: number,
         description: string,

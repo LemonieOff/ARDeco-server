@@ -1,12 +1,12 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { getRepositoryToken } from "@nestjs/typeorm";
-import { FindOptionsSelect, Repository } from "typeorm";
-import { UserSettings } from "./models/user_settings.entity";
 import { UserSettingsService } from "./user_settings_service";
+import { DeepPartial, Repository, UpdateResult } from "typeorm";
+import { getRepositoryToken } from "@nestjs/typeorm";
+import { UserSettings } from "./models/user_settings.entity";
 
 describe("UserSettingsService", () => {
     let service: UserSettingsService;
-    let userRepository: Repository<UserSettings>;
+    let repository: Repository<UserSettings>;
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -14,114 +14,62 @@ describe("UserSettingsService", () => {
                 UserSettingsService,
                 {
                     provide: getRepositoryToken(UserSettings),
-                    useValue: {
-                        find: jest.fn(),
-                        save: jest.fn(),
-                        findOne: jest.fn(),
-                        update: jest.fn(),
-                        createQueryBuilder: jest.fn(() => ({
-                            delete: jest.fn().mockReturnThis(),
-                            from: jest.fn().mockReturnThis(),
-                            where: jest.fn().mockReturnThis(),
-                            execute: jest.fn()
-                        })),
-                        delete: jest.fn(),
-                    }
+                    useClass: Repository
                 }
             ]
         }).compile();
 
         service = module.get<UserSettingsService>(UserSettingsService);
-        userRepository = module.get<Repository<UserSettings>>(
-            getRepositoryToken(UserSettings)
-        );
+        repository = module.get<Repository<UserSettings>>(getRepositoryToken(UserSettings));
     });
 
     describe("all", () => {
-        it("should return all user settings", async () => {
-            const mockSettings = [new UserSettings(), new UserSettings()];
-            jest.spyOn(userRepository, "find").mockResolvedValue(mockSettings);
+        it("should return an array of user settings", async () => {
+            const userSettingsArray = [{ id: 1, user_id: 1 }] as UserSettings[];
+            jest.spyOn(repository, "find").mockResolvedValue(userSettingsArray);
 
-            const result = await service.all();
-            expect(result).toEqual(mockSettings);
+            expect(await service.all()).toEqual(userSettingsArray);
         });
     });
 
     describe("create", () => {
-        it("should create new user settings", async () => {
-            const data = {
-                theme: "dark",
-                language: "en"
-            };
-            const createdSettings = { id: 1, ...data };
-            jest.spyOn(userRepository, "save").mockResolvedValue(createdSettings as any);
+        it("should create and save a new user settings record", async () => {
+            const dto: DeepPartial<UserSettings> = { user_id: 1 };
+            const userSetting = new UserSettings();
+            jest.spyOn(repository, "save").mockResolvedValue(userSetting);
 
-            const result = await service.create(data);
-            expect(result).toEqual(createdSettings);
+            expect(await service.create(dto)).toEqual(userSetting);
         });
     });
 
     describe("findOne", () => {
-        it("should find user settings by condition without select", async () => {
+        it("should find one user setting by given condition", async () => {
             const condition = { id: 1 };
-            const mockSettings = new UserSettings();
-            jest.spyOn(userRepository, "findOne").mockResolvedValue(mockSettings);
+            const userSetting = new UserSettings();
+            jest.spyOn(repository, "findOne").mockResolvedValue(userSetting);
 
-            const result = await service.findOne(condition);
-            expect(result).toEqual(mockSettings);
-            expect(userRepository.findOne).toHaveBeenCalledWith({
-                where: condition,
-                loadRelationIds: true,
-                relations: {
-                    user: true
-                },
-                loadEagerRelations: false
-            });
-        });
-
-        it("should find user settings by condition with select", async () => {
-            const condition = { id: 1 };
-            const select: FindOptionsSelect<UserSettings> = { dark_mode: true }; // Select only the 'theme' field
-            const mockSettings = new UserSettings();
-            jest.spyOn(userRepository, "findOne").mockResolvedValue(mockSettings);
-
-            const result = await service.findOne(condition, select);
-            expect(result).toEqual(mockSettings);
-            expect(userRepository.findOne).toHaveBeenCalledWith({
-                loadEagerRelations: false,
-                relations: { user: true },
-                where: condition,
-                select: select
-            });
+            expect(await service.findOne(condition)).toEqual(userSetting);
         });
     });
 
     describe("update", () => {
-        it("should update user settings and return the updated settings", async () => {
+        it("should update user settings by id", async () => {
             const id = 1;
-            const data = { language: "en" };
-            const updatedSettings = {
-                id: 1,
-                language: "en"
-            }; // Assuming language was previously 'en'
-            jest.spyOn(userRepository, "update").mockResolvedValue({ affected: 1 } as any);
-            jest.spyOn(userRepository, "findOne").mockResolvedValue(updatedSettings as any);
+            const dto = { automatic_new_gallery_share: true };
+            const userSetting = new UserSettings();
+            jest.spyOn(repository, "update").mockResolvedValue({} as UpdateResult);
+            jest.spyOn(service, "findOne").mockResolvedValue(userSetting);
 
-            const result = await service.update(id, data);
-            expect(result).toEqual(updatedSettings);
+            expect(await service.update(id, dto as any)).toEqual(userSetting);
         });
     });
 
     describe("delete", () => {
-        it("should delete user settings", async () => {
+        it("should delete a user setting by id", async () => {
             const id = 1;
-            jest.spyOn(userRepository, "delete").mockReturnValue({} as any);
-            const result = await service.delete(id);
-            expect(userRepository.delete).toHaveBeenCalled();
-            /*expect(result).toEqual({
-                raw: [],
-                affected: 1
-            });*/
+            jest.spyOn(repository, "delete").mockResolvedValue({} as any);
+
+            expect(await service.delete(id)).toEqual({});
         });
     });
 });

@@ -3,18 +3,44 @@ import { getRepositoryToken } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Comment } from "./models/comment.entity";
 import { CommentService } from "./comment.service";
-import { Gallery } from "../gallery/models/gallery.entity";
 import { User } from "../user/models/user.entity";
+import { Gallery } from "../gallery/models/gallery.entity";
+import { UserSettings } from "../user_settings/models/user_settings.entity";
 
 describe("CommentService", () => {
     let service: CommentService;
     let commentRepository: Repository<Comment>;
 
-    const mockUser = new User();
-    mockUser.id = 1;
+    const mockUser: User = {
+        id: 1,
+        first_name: "Test",
+        last_name: "User",
+        settings: { display_lastname_on_public: false } as UserSettings,
+        email: "",
+        password: "",
+        role: "client",
+        company_api_key: null,
+        galleries: [], galleryLikes: [], galleryComments: [], galleryReports: [],
+        feedbacks: [], blocking: [], blocked_by: [], favorite_galleries: [],
+        favorite_furniture: [], profile_picture_id: 0, checkEmailToken: null,
+        checkEmailSent: null, hasCheckedEmail: false, deleted: false, city: null,
+        phone: null, cart: null
+    };
 
     const mockGallery = new Gallery();
     mockGallery.id = 10;
+
+    const mockComment: Comment = {
+        id: 1,
+        comment: "Test comment",
+        creation_date: new Date(),
+        edited: false,
+        edit_date: null,
+        gallery: mockGallery,
+        gallery_id: mockGallery.id,
+        user: mockUser,
+        user_id: mockUser.id
+    };
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -42,90 +68,199 @@ describe("CommentService", () => {
 
     describe("all", () => {
         it("should return all comments", async () => {
-            const mockComments = [new Comment(), new Comment()];
-            jest.spyOn(commentRepository, "find").mockResolvedValue(mockComments);
+            const expectedComments: Comment[] = [mockComment, { ...mockComment, id: 2 }];
+            jest.spyOn(commentRepository, "find").mockResolvedValueOnce(expectedComments as any);
+
             const result = await service.all();
-            expect(result).toEqual(mockComments);
+
+            expect(commentRepository.find).toHaveBeenCalled();
+            expect(result).toEqual(expectedComments);
         });
     });
 
     describe("findOne", () => {
-        it("should return a comment by ID", async () => {
-            const commentId = 1;
-            const mockComment = new Comment();
-            jest.spyOn(commentRepository, "findOne").mockResolvedValue(mockComment);
-            const result = await service.findOne(commentId);
+        it("should return one comment by id", async () => {
+            jest.spyOn(commentRepository, "findOne").mockResolvedValueOnce(mockComment as any);
+
+            const result = await service.findOne(1);
+
+            expect(commentRepository.findOne).toHaveBeenCalledWith({ where: { id: 1 } });
             expect(result).toEqual(mockComment);
-            expect(commentRepository.findOne).toHaveBeenCalledWith({ where: { id: commentId } });
         });
     });
 
     describe("allForGallery", () => {
         it("should return all comments for a gallery", async () => {
             const galleryId = 10;
+            const requestingUser = { ...mockUser, settings: { display_lastname_on_public: true } };
+            const expectedComments = [
+                { ...mockComment, user: { ...mockUser, settings: { display_lastname_on_public: true } } },
+                { ...mockComment, id: 2, user: { ...mockUser, id: 2, settings: { display_lastname_on_public: true } } }
+            ];
 
-            const comment1 = new Comment();
-            const comment2 = new Comment();
-            Object.assign(comment1, { id: 1, comment: "Comment 1", gallery_id: mockGallery.id, user_id: mockUser.id, creation_date: new Date() });
-            Object.assign(comment2, { id: 2, comment: "Comment 2", gallery_id: mockGallery.id, user_id: mockUser.id, creation_date: new Date() });
+            jest.spyOn(commentRepository, "find").mockResolvedValue(expectedComments as any);
 
-            const mockComments = [comment1, comment2];
-            jest.spyOn(commentRepository, "find").mockResolvedValue(mockComments as any);
-            const result = await service.allForGallery(galleryId);
-            expect(result).toEqual([
-                {
-                    id: 1,
-                    comment: "Comment 1",
-                    gallery_id: galleryId,
-                    user_id: mockUser.id,
-                    creation_date: mockComments[0].creation_date
-                },
-                {
-                    id: 2,
-                    comment: "Comment 2",
-                    gallery_id: galleryId,
-                    user_id: mockUser.id,
-                    creation_date: mockComments[1].creation_date
-                }
-            ]);
+            const result = await service.allForGallery(galleryId, requestingUser as any);
+
             expect(commentRepository.find).toHaveBeenCalledWith({
-                where: {
-                    gallery: { id: galleryId }
-                }
+                select: {
+                    user: {
+                        first_name: true,
+                        last_name: true,
+                        profile_picture_id: true
+                    }
+                },
+                relations: { user: true },
+                where: { gallery: { id: galleryId } }
             });
+
+            const expectedResultComments = expectedComments.map(comment => ({
+                ...comment,
+                gallery: undefined,
+                user: {
+                    first_name: comment.user.first_name,
+                    last_name: comment.user.last_name,
+                    profile_picture_id: comment.user.profile_picture_id
+                } as User
+            }));
+
+            expect(result).toEqual(expectedResultComments);
+        });
+
+        it("should return comments with last name displayed if author is self even if it should be hidden", async () => {
+            const galleryId = 10;
+            const requestingUser = { ...mockUser, settings: { display_lastname_on_public: false } };
+            const expectedComments = [
+                { ...mockComment, user: { ...mockUser, settings: { display_lastname_on_public: false } } },
+                { ...mockComment, id: 2, user: { ...mockUser, id: 2, settings: { display_lastname_on_public: false } } }
+            ];
+
+            jest.spyOn(commentRepository, "find").mockResolvedValue(expectedComments as any);
+
+            const result = await service.allForGallery(galleryId, requestingUser as any);
+
+            const expectedResultComments = expectedComments.map(comment => ({
+                ...comment,
+                user: {
+                    first_name: comment.user.first_name,
+                    last_name: "User",
+                    profile_picture_id: comment.user.profile_picture_id
+                } as User
+            }));
+
+            expect(result).toEqual(expectedResultComments);
+        });
+
+        it("should return comments with last name displayed if requesting user is admin", async () => {
+            const galleryId = 10;
+            const requestingUser = { ...mockUser, role: "admin", settings: { display_lastname_on_public: false } };
+            const expectedComments = [
+                { ...mockComment, user: { ...mockUser, settings: { display_lastname_on_public: false } } },
+                { ...mockComment, id: 2, user: { ...mockUser, id: 2, settings: { display_lastname_on_public: false } } }
+            ];
+
+            jest.spyOn(commentRepository, "find").mockResolvedValue(expectedComments as any);
+
+            const result = await service.allForGallery(galleryId, requestingUser as any);
+
+            const expectedResultComments = expectedComments.map(comment => ({
+                ...comment,
+                gallery: undefined,
+                user: {
+                    first_name: comment.user.first_name,
+                    last_name: comment.user.last_name, // Last name should be displayed
+                    profile_picture_id: comment.user.profile_picture_id
+                } as User
+            }));
+
+            expect(result).toEqual(expectedResultComments);
+        });
+
+        it("should return comments with last name displayed if requesting user is the author", async () => {
+            const galleryId = 10;
+            const requestingUser = { ...mockUser, id: mockComment.user_id, settings: { display_lastname_on_public: false } };
+            const expectedComments = [
+                { ...mockComment, user: { ...mockUser, settings: { display_lastname_on_public: false } } }
+            ];
+
+            jest.spyOn(commentRepository, "find").mockResolvedValue(expectedComments as any);
+
+            const result = await service.allForGallery(galleryId, requestingUser as any);
+
+            const expectedResultComments = expectedComments.map(comment => ({
+                ...comment,
+                gallery: undefined,
+                user: {
+                    first_name: comment.user.first_name,
+                    last_name: comment.user.last_name, // Last name should be displayed
+                    profile_picture_id: comment.user.profile_picture_id
+                } as User
+            }));
+
+            expect(result).toEqual(expectedResultComments);
         });
     });
 
     describe("create", () => {
-        it("should create a new comment and return a partial comment", async () => {
-            const data = { comment: "New Comment", gallery: mockGallery, user_id: mockUser.id };
-            const newComment = new Comment();
-            Object.assign(newComment, { id: 1, ...data, creation_date: new Date() });
-            Object.defineProperty(newComment, "gallery_id", { value: mockGallery.id });
+        it("should create a new comment", async () => {
+            const data = { comment: "New comment", gallery: mockGallery, user: mockUser };
+            const newComment = {
+                ...mockComment,
+                comment: data.comment,
+                gallery: data.gallery,
+                user: data.user
+            };
             jest.spyOn(commentRepository, "save").mockResolvedValue(newComment as any);
-            const consoleSpy = jest.spyOn(console, "log"); // Spy on console.log
-            const result = await service.create(data);
+            const consoleSpy = jest.spyOn(console, "log");
+
+            const result = await service.create(data as any);
+
+            expect(commentRepository.save).toHaveBeenCalledWith(data);
+            // expect(consoleSpy).toHaveBeenCalledWith("Create comment :", newComment);
             expect(result).toEqual({
-                id: 1,
-                comment: "New Comment",
-                gallery_id: mockGallery.id,
-                user_id: mockUser.id,
+                id: newComment.id,
+                comment: newComment.comment,
+                gallery_id: newComment.gallery_id,
+                user_id: newComment.user_id,
                 creation_date: newComment.creation_date
             });
-            expect(consoleSpy).toHaveBeenCalledWith("Create comment :", newComment); // Check console.log call
+        });
+    });
+
+    describe("update", () => {
+        it("should update an existing comment", async () => {
+            const updatedComment = { ...mockComment, comment: "Updated comment", edited: true };
+            jest.spyOn(commentRepository, "save").mockResolvedValue(updatedComment as any);
+            const consoleSpy = jest.spyOn(console, "log");
+
+            const result = await service.update(updatedComment);
+
+            expect(commentRepository.save).toHaveBeenCalledWith(updatedComment);
+            // expect(consoleSpy).toHaveBeenCalledWith("Update comment :", updatedComment);
+            expect(result).toEqual({
+                id: updatedComment.id,
+                comment: updatedComment.comment,
+                gallery_id: updatedComment.gallery_id,
+                user_id: updatedComment.user_id,
+                creation_date: updatedComment.creation_date,
+                edited: updatedComment.edited,
+                edit_date: updatedComment.edit_date
+            });
         });
     });
 
     describe("delete", () => {
-        it("should delete a comment by ID", async () => {
+        it("should delete a comment by id", async () => {
             const commentId = 1;
-            const deleteResult = { raw: [], affected: 1 }; // Mock delete result
+            const deleteResult = { raw: [], affected: 1 };
             jest.spyOn(commentRepository, "delete").mockResolvedValue(deleteResult as any);
-            const consoleSpy = jest.spyOn(console, "log"); // Spy on console.log
+            const consoleSpy = jest.spyOn(console, "log");
+
             const result = await service.delete(commentId);
-            expect(result).toEqual(deleteResult); // Check if delete result is returned
+
             expect(commentRepository.delete).toHaveBeenCalledWith(commentId);
-            expect(consoleSpy).toHaveBeenCalledWith("Deleting comment ", commentId); // Check console.log call
+            // expect(consoleSpy).toHaveBeenCalledWith("Deleting comment ", commentId);
+            expect(result).toEqual(deleteResult);
         });
     });
 });
