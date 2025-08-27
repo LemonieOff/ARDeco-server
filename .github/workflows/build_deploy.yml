@@ -33,58 +33,58 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Deploy file
-        uses: Dylan700/sftp-upload-action@latest
-        with:
-          server: ${{ vars.SERVER_HOST }}
-          username: ${{ vars.SERVER_USERNAME }}
-          password: ${{ secrets.SERVER_PASSWORD }}
-          uploads: |
-            ./ => /opt/ardeco/backend/
-            ./dist/ => /opt/ardeco/backend/dist/
-          ignore: |
-            .git
-            .github
-            node_modules
-            src
-            test
-            .env
-            .env.*
-            .gitignore
-            .prettierrc
-            .eslintrc.js
-            README.md
-            Gulpfile.js
-            nest-cli.json
-            package-lock.json
+# - name: Deploy file
+#   uses: Dylan700/sftp-upload-action@latest
+#   with:
+#     server: ${{ vars.SERVER_HOST }}
+#     username: ${{ vars.SERVER_USERNAME }}
+#     password: ${{ secrets.SERVER_PASSWORD }}
+#     uploads: |
+#       ./ => /opt/ardeco/backend/
+#       ./dist/ => /opt/ardeco/backend/dist/
+#     ignore: |
+#       .git
+#       .github
+#       node_modules
+#       src
+#       test
+#       .env
+#       .env.*
+#       .gitignore
+#       .prettierrc
+#       .eslintrc.js
+#       README.md
+#       Gulpfile.js
+#       nest-cli.json
+#       package-lock.json
 
-      - name: Install dependencies on server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ vars.SERVER_HOST }}
-          username: ${{ vars.SERVER_USERNAME }}
-          password: ${{ secrets.SERVER_PASSWORD }}
-          script: |
-            cd /opt/ardeco/backend
-            npm install
+# - name: Install dependencies on server
+#   uses: appleboy/ssh-action@master
+#   with:
+#     host: ${{ vars.SERVER_HOST }}
+#     username: ${{ vars.SERVER_USERNAME }}
+#     password: ${{ secrets.SERVER_PASSWORD }}
+#     script: |
+#       cd /opt/ardeco/backend
+#       npm install
 
-      - name: Run database migrations on server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ vars.SERVER_HOST }}
-          username: ${{ vars.SERVER_USERNAME }}
-          password: ${{ secrets.SERVER_PASSWORD }}
-          script: |
-            cd /opt/ardeco/backend
-            npm run migration:show
-            npm run migration:run
+# - name: Run database migrations on server
+#   uses: appleboy/ssh-action@master
+#   with:
+#     host: ${{ vars.SERVER_HOST }}
+#     username: ${{ vars.SERVER_USERNAME }}
+#     password: ${{ secrets.SERVER_PASSWORD }}
+#     script: |
+#       cd /opt/ardeco/backend
+#       npm run migration:show
+#       npm run migration:run
 
-      - name: Log timestamp
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ vars.SERVER_HOST }}
-          username: ${{ vars.SERVER_USERNAME }}
-          password: ${{ secrets.SERVER_PASSWORD }}
-          script: |
-            cd /opt/ardeco/backend
-            touch timestamp
+# - name: Log timestamp
+#   uses: appleboy/ssh-action@master
+#   with:
+#     host: ${{ vars.SERVER_HOST }}
+#     username: ${{ vars.SERVER_USERNAME }}
+#     password: ${{ secrets.SERVER_PASSWORD }}
+#     script: |
+#       cd /opt/ardeco/backend
+#       touch timestamp
