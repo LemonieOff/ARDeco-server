@@ -4,6 +4,7 @@ import { UserService } from "../user/user.service";
 import { JwtService } from "@nestjs/jwt";
 import { MailService } from "../mail/mail.service";
 import { UserSettingsService } from "../user_settings/user_settings_service";
+import { ConfigService } from "@nestjs/config";
 import { Request, Response } from "express";
 import { RegisterDto } from "./models/register.dto";
 import { LoginDto } from "./models/login.dto";
@@ -18,6 +19,7 @@ describe("AuthController", () => {
     let jwtService: JwtService;
     let mailService: MailService;
     let userSettingsService: UserSettingsService;
+    let configService: ConfigService;
 
     const mockUser: User = {
         id: 1,
@@ -31,7 +33,7 @@ describe("AuthController", () => {
         feedbacks: [], blocking: [], blocked_by: [], favorite_galleries: [],
         favorite_furniture: [], profile_picture_id: 0, checkEmailToken: "mockCheckEmailToken",
         checkEmailSent: null, hasCheckedEmail: false, deleted: false, city: null,
-        phone: null, company_api_key: null, cart: null
+        phone: null, company_api_key: null, cart: null, googleId: null
     };
 
     const mockRequest = {
@@ -41,7 +43,8 @@ describe("AuthController", () => {
     const mockResponse = {
         status: jest.fn().mockReturnThis(),
         cookie: jest.fn(),
-        json: jest.fn()
+        json: jest.fn(),
+        redirect: jest.fn()
     } as unknown as Response;
 
     beforeEach(async () => {
@@ -76,6 +79,12 @@ describe("AuthController", () => {
                     useValue: {
                         create: jest.fn()
                     }
+                },
+                {
+                    provide: ConfigService,
+                    useValue: {
+                        get: jest.fn().mockReturnValue("https://ardeco.app")
+                    }
                 }
             ]
         }).compile();
@@ -85,6 +94,7 @@ describe("AuthController", () => {
         jwtService = module.get<JwtService>(JwtService);
         mailService = module.get<MailService>(MailService);
         userSettingsService = module.get<UserSettingsService>(UserSettingsService);
+        configService = module.get<ConfigService>(ConfigService);
     });
 
     it("should be defined", () => {
@@ -264,4 +274,136 @@ describe("AuthController", () => {
     });
 
     // ... tests for logout, deleteAccount, deleteAccountById
+
+    describe("googleAuthRedirect", () => {
+        it("should login an existing Google user", async () => {
+            const googleUser = {
+                googleId: "google123",
+                email: "google@example.com",
+                firstName: "Google",
+                lastName: "User"
+            };
+            const existingUser = { ...mockUser, googleId: "google123", email: "google@example.com" };
+            const signedJwt = "mockGoogleJwt";
+
+            const req = { ...mockRequest, user: googleUser } as any;
+            jest.spyOn(userService, "findOne").mockResolvedValueOnce(existingUser as any);
+            jest.spyOn(jwtService, "signAsync").mockResolvedValueOnce(signedJwt);
+
+            await controller.googleAuthRedirect(req, mockResponse as Response);
+
+            expect(userService.findOne).toHaveBeenCalledWith({ googleId: "google123" });
+            expect(jwtService.signAsync).toHaveBeenCalledWith(
+                { id: existingUser.id, email: existingUser.email },
+                { expiresIn: "28d" }
+            );
+            expect(mockResponse.cookie).toHaveBeenCalledWith("jwt", signedJwt,
+                expect.objectContaining({
+                    httpOnly: true,
+                    sameSite: "none",
+                    secure: true
+                })
+            );
+            expect(mockResponse.redirect).toHaveBeenCalledWith(
+                `https://ardeco.app/auth/google/callback?jwt=${signedJwt}&userID=${existingUser.id}&role=${existingUser.role}`
+            );
+        });
+
+        it("should create a new user for a new Google account", async () => {
+            const googleUser = {
+                googleId: "google456",
+                email: "newgoogle@example.com",
+                firstName: "New",
+                lastName: "GoogleUser"
+            };
+            const createdUser = { ...mockUser, id: 2, email: "newgoogle@example.com", googleId: "google456" };
+            const signedJwt = "mockNewGoogleJwt";
+
+            const req = { ...mockRequest, user: googleUser } as any;
+            jest.spyOn(userService, "findOne")
+                .mockResolvedValueOnce(null)  // No user with this googleId
+                .mockResolvedValueOnce(null); // No user with this email
+            jest.spyOn(bcrypt, "hash").mockResolvedValueOnce("hashedRandomPassword");
+            jest.spyOn(userService, "create").mockResolvedValueOnce(createdUser as any);
+            jest.spyOn(userSettingsService, "create").mockResolvedValueOnce({ user: { id: 2 } } as any);
+            jest.spyOn(jwtService, "signAsync").mockResolvedValueOnce(signedJwt);
+
+            await controller.googleAuthRedirect(req, mockResponse as Response);
+
+            expect(userService.create).toHaveBeenCalledWith(expect.objectContaining({
+                email: "newgoogle@example.com",
+                first_name: "New",
+                last_name: "GoogleUser",
+                role: "client",
+                googleId: "google456",
+                hasCheckedEmail: true
+            }));
+            expect(userSettingsService.create).toHaveBeenCalledWith({ user: { id: 2 } });
+            expect(mockResponse.redirect).toHaveBeenCalledWith(
+                `https://ardeco.app/auth/google/callback?jwt=${signedJwt}&userID=${createdUser.id}&role=${createdUser.role}`
+            );
+        });
+
+        it("should link Google account to existing user with same email", async () => {
+            const googleUser = {
+                googleId: "google789",
+                email: "test@example.com",
+                firstName: "Test",
+                lastName: "User"
+            };
+            const existingUser = { ...mockUser, googleId: null };
+            const updatedUser = { ...mockUser, googleId: "google789" };
+            const signedJwt = "mockLinkedJwt";
+
+            const req = { ...mockRequest, user: googleUser } as any;
+            jest.spyOn(userService, "findOne")
+                .mockResolvedValueOnce(null)          // No user with this googleId
+                .mockResolvedValueOnce(existingUser as any)  // User with this email exists
+                .mockResolvedValueOnce(updatedUser as any);  // After update
+            jest.spyOn(userService, "update").mockResolvedValueOnce({} as any);
+            jest.spyOn(jwtService, "signAsync").mockResolvedValueOnce(signedJwt);
+
+            await controller.googleAuthRedirect(req, mockResponse as Response);
+
+            expect(userService.update).toHaveBeenCalledWith(existingUser.id, { googleId: "google789" });
+            expect(mockResponse.redirect).toHaveBeenCalledWith(
+                `https://ardeco.app/auth/google/callback?jwt=${signedJwt}&userID=${updatedUser.id}&role=${updatedUser.role}`
+            );
+        });
+
+        it("should return 401 if no Google user data", async () => {
+            const req = { ...mockRequest, user: null } as any;
+
+            const result = await controller.googleAuthRedirect(req, mockResponse as Response);
+
+            expect(mockResponse.status).toHaveBeenCalledWith(401);
+            expect(result).toEqual({
+                status: "KO",
+                code: 401,
+                description: "Google authentication failed"
+            });
+        });
+
+        it("should return 401 if Google user account is deleted", async () => {
+            const googleUser = {
+                googleId: "google123",
+                email: "deleted@example.com",
+                firstName: "Deleted",
+                lastName: "User"
+            };
+            const deletedUser = { ...mockUser, googleId: "google123", deleted: true };
+
+            const req = { ...mockRequest, user: googleUser } as any;
+            jest.spyOn(userService, "findOne").mockResolvedValueOnce(deletedUser as any);
+
+            const result = await controller.googleAuthRedirect(req, mockResponse as Response);
+
+            expect(mockResponse.status).toHaveBeenCalledWith(401);
+            expect(result).toEqual({
+                status: "KO",
+                code: 401,
+                description: "Account deleted"
+            });
+        });
+    });
 });

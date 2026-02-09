@@ -1,11 +1,11 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Req, Res } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Req, Res, UseGuards } from "@nestjs/common";
 
 import { UserService } from "src/user/user.service";
 import * as bcrypt from "bcryptjs";
 import { RegisterDto } from "./models/register.dto";
 import { JwtService, JwtSignOptions } from "@nestjs/jwt";
 import { Request, Response } from "express";
-// import { AuthGuard } from "@nestjs/passport";
+import { AuthGuard } from "@nestjs/passport";
 import { LoginDto } from "src/auth/models/login.dto";
 import { randomBytes } from "crypto";
 // import { AuthService } from "./auth.service";
@@ -15,6 +15,7 @@ import { MailService } from "../mail/mail.service";
 import { User } from "../user/models/user.entity";
 import { QueryPartialEntity } from "typeorm/query-builder/QueryPartialEntity";
 import { DeleteAccountDto } from "./models/deleteAccount.dto";
+import { ConfigService } from "@nestjs/config";
 
 @Controller()
 export class AuthController {
@@ -22,7 +23,8 @@ export class AuthController {
         private userService: UserService,
         private jwtService: JwtService,
         private mailService: MailService,
-        private userSettingsService: UserSettingsService
+        private userSettingsService: UserSettingsService,
+        private configService: ConfigService
         // private authService: AuthService,
     ) {
     }
@@ -380,6 +382,104 @@ export class AuthController {
                 status: "KO",
                 code: 401,
                 description: "JWT is not valid for this user, email is not the same"
+            };
+        }
+    }
+
+    @Get("google")
+    @UseGuards(AuthGuard("google"))
+    async googleAuth() {
+        // Guard redirects to Google
+    }
+
+    @Get("google/callback")
+    @UseGuards(AuthGuard("google"))
+    async googleAuthRedirect(
+        @Req() request: Request,
+        @Res({ passthrough: true }) response: Response
+    ) {
+        const googleUser = request.user as {
+            googleId: string;
+            email: string;
+            firstName: string;
+            lastName: string;
+        };
+
+        if (!googleUser) {
+            response.status(401);
+            return {
+                status: "KO",
+                code: 401,
+                description: "Google authentication failed"
+            };
+        }
+
+        try {
+            let user = await this.userService.findOne({ googleId: googleUser.googleId });
+
+            if (!user) {
+                // Check if a user with the same email already exists
+                const existingUser = await this.userService.findOne({ email: googleUser.email });
+                if (existingUser) {
+                    // Link Google account to existing user
+                    await this.userService.update(existingUser.id, { googleId: googleUser.googleId });
+                    user = await this.userService.findOne({ id: existingUser.id });
+                } else {
+                    // Create a new user
+                    const randomPassword = randomBytes(32).toString("hex");
+                    const hashed = await bcrypt.hash(randomPassword, 12);
+
+                    const newUser: QueryPartialEntity<User> = {
+                        email: googleUser.email,
+                        first_name: googleUser.firstName,
+                        last_name: googleUser.lastName,
+                        password: hashed,
+                        role: "client",
+                        googleId: googleUser.googleId,
+                        hasCheckedEmail: true
+                    };
+
+                    user = await this.userService.create(newUser);
+
+                    // Create settings for the user
+                    await this.userSettingsService.create({
+                        user: { id: user.id }
+                    });
+                }
+            }
+
+            if (user.deleted) {
+                response.status(401);
+                return {
+                    status: "KO",
+                    code: 401,
+                    description: "Account deleted"
+                };
+            }
+
+            // Issue JWT
+            const jwt = await this.jwtService.signAsync(
+                { id: user.id, email: user.email },
+                { expiresIn: "28d" }
+            );
+
+            response.cookie("jwt", jwt, {
+                httpOnly: true,
+                sameSite: "none",
+                secure: true,
+                expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7 * 4)
+            } as any);
+
+            const frontendUrl = this.configService.get<string>("FRONTEND_URL") || "https://ardeco.app";
+            response.redirect(`${frontendUrl}/auth/google/callback?jwt=${jwt}&userID=${user.id}&role=${user.role}`);
+        } catch (e) {
+            console.error(e);
+            response.status(422);
+            return {
+                status: "KO",
+                description: "Error during Google authentication",
+                code: 422,
+                data: e
             };
         }
     }

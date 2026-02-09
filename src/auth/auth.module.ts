@@ -8,6 +8,7 @@ import { CartModule } from 'src/cart/cart.module';
 import { Reset } from './models/password_reset.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserSettingsModule } from "../user_settings/user_settings_module";
+import { GoogleStrategy } from './google.strategy';
 
 @Module({
     imports: [
@@ -24,6 +25,7 @@ import { UserSettingsModule } from "../user_settings/user_settings_module";
         AuthController
     ],
     providers: [
+        GoogleStrategy
         // AuthService
     ]
 })

@@ -70,6 +70,9 @@ export class User {
     })
     hasCheckedEmail: boolean;
 
+    @Column({ nullable: true })
+    googleId: string;
+
     @OneToMany(_ => Comment, galleryComment => galleryComment.user)
     galleryComments: Comment[];
 
