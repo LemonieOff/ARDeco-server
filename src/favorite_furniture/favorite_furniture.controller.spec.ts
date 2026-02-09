@@ -42,7 +42,7 @@ describe("FavoriteFurnitureController", () => {
         city: "",
         phone: "",
         company_api_key: "",
-        cart: null
+        cart: null, googleId: null
     };
 
     const mockCatalogItem: Catalog = {

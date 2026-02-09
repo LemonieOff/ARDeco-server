@@ -24,7 +24,7 @@ describe("CommentService", () => {
         feedbacks: [], blocking: [], blocked_by: [], favorite_galleries: [],
         favorite_furniture: [], profile_picture_id: 0, checkEmailToken: null,
         checkEmailSent: null, hasCheckedEmail: false, deleted: false, city: null,
-        phone: null, cart: null
+        phone: null, cart: null, googleId: null
     };
 
     const mockGallery = new Gallery();

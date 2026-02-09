@@ -55,7 +55,7 @@ describe("BlockedUsersController", () => {
         city: "",
         phone: "",
         company_api_key: "",
-        cart: null
+        cart: null, googleId: null
     };
 
     beforeEach(async () => {

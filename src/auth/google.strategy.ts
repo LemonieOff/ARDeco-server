@@ -1,38 +1,32 @@
-/*
 import { PassportStrategy } from "@nestjs/passport";
 import { Strategy, VerifyCallback } from "passport-google-oauth20";
-import { config } from "dotenv";
 import { Injectable } from "@nestjs/common";
-
-config();
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
+export class GoogleStrategy extends PassportStrategy(Strategy, "google") {
+    constructor(private configService: ConfigService) {
+        super({
+            clientID: configService.get<string>("GOOGLE_CLIENT_ID"),
+            clientSecret: configService.get<string>("GOOGLE_CLIENT_SECRET"),
+            callbackURL: configService.get<string>("GOOGLE_CALLBACK_URL"),
+            scope: ["email", "profile"]
+        });
+    }
 
-export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
-
-  constructor() {
-    super({
-      clientID: "720605484975-ohe2u21jk3k6e2cdekgifiliipd4e6oh.apps.googleusercontent.com",
-      clientSecret: "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",
-      callbackURL: 'https://api.ardeco.app/callback',
-      scope: ['email', 'profile'],
-    });
-  }
     async validate(
         accessToken: string,
         refreshToken: string,
         profile: any,
         done: VerifyCallback
     ): Promise<any> {
-        const { name, emails, photos } = profile;
+        const { name, emails } = profile;
         const user = {
+            googleId: profile.id,
             email: emails[0].value,
             firstName: name.givenName,
-            lastName: name.familyName,
-            picture: photos[0].value,
-            accessToken
+            lastName: name.familyName
         };
         done(null, user);
     }
 }
-*/

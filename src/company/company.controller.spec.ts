@@ -36,7 +36,7 @@ describe("CompanyController", () => {
         deleted: false,
         city: "",
         phone: "",
-        cart: null
+        cart: null, googleId: null
     };
 
     const mockRequest = {
