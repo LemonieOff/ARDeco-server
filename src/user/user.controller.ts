@@ -303,7 +303,7 @@ export class UserController {
             // Check password in case of password change
             // TEMPORARY SOLUTION
             if (user["password"] !== undefined) {
-                user["password"] = await bcrypt.hash(user["password"], 12);
+                user["password"] = await (bcrypt.hash(user["password"] as string, 12));
             }
 
             // Check if another account already uses the email address

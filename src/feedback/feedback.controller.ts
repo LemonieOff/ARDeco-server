@@ -229,7 +229,7 @@ export class FeedbackController {
     }> {
         try {
             // Check authorization of access (user and feedback)
-            const auth = await this.checkAuthorization(request, "process", parseInt(request.params.id));
+            const auth = await this.checkAuthorization(request, "process", parseInt(request.params.id as string));
             if (!Array.isArray(auth)) {
                 response.status(auth.code);
                 return auth;
@@ -288,7 +288,7 @@ export class FeedbackController {
     }> {
         try {
             // Check authorization of access (user and feedback)
-            const auth = await this.checkAuthorization(request, "unprocess", parseInt(request.params.id));
+            const auth = await this.checkAuthorization(request, "unprocess", parseInt(request.params.id as string));
             if (!Array.isArray(auth)) {
                 response.status(auth.code);
                 return auth;
@@ -346,8 +346,10 @@ export class FeedbackController {
         data: null | Feedback;
     }> {
         try {
+            console.log("Deleting feedback with ID:", request.params.id, typeof request.params.id);
+
             // Check authorization of access (user and feedback)
-            const auth = await this.checkAuthorization(request, "delete", parseInt(request.params.id));
+            const auth = await this.checkAuthorization(request, "delete", parseInt(request.params.id as string));
             if (!Array.isArray(auth)) {
                 response.status(auth.code);
                 return auth;
